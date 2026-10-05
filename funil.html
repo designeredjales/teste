@@ -58,6 +58,46 @@ aside{background:var(--panel);overflow:auto}
 .pal-item{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;cursor:grab;user-select:none;border:1px solid transparent}
 .pal-item:hover{background:var(--panel-2);border-color:var(--line)}
 .ico{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:800;flex:none;letter-spacing:-.04em}
+.ico svg{width:15px;height:15px}
+.ico-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:4px;max-height:150px;overflow:auto;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2)}
+.ico-pick button{border:1px solid transparent;background:transparent;border-radius:7px;height:34px;display:grid;place-items:center;cursor:pointer;color:var(--text)}
+.ico-pick button svg{width:18px;height:18px}
+.ico-pick button:hover{background:var(--panel)}
+.ico-pick button.on{background:var(--accent);color:#1b1d1a}
+.shape-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.shape-pick button{border:1px solid var(--line);background:var(--panel-2);border-radius:8px;padding:6px 4px;cursor:pointer;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text)}
+.shape-pick button.on{outline:2px solid var(--accent);border-color:var(--accent-strong)}
+.shape-pick svg{width:46px;height:26px;fill:none;stroke:currentColor;stroke-width:1.6}
+dialog.wide{max-width:1060px;height:min(88vh,780px);padding:18px;flex-direction:column;gap:6px}
+dialog.wide[open]{display:flex}
+.cat-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cat-body{display:grid;grid-template-columns:280px 1fr;gap:16px;flex:1;min-height:0}
+.cat-list{overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:2px}
+.cat-list>.btn{margin-top:8px;align-self:flex-start}
+.cat-edit{overflow:auto;min-width:0;padding-right:4px}
+.cat-item{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:13px}
+.cat-item:hover{background:var(--panel-2)}
+.cat-item.on{background:var(--panel-2);outline:2px solid var(--accent)}
+.cat-item.dim{opacity:.55}
+.grow{flex:1;min-width:0}
+.swatch{width:16px;height:16px;border-radius:5px;flex:none}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.checks{display:flex;flex-wrap:wrap;gap:14px;margin:4px 0 12px;font-size:13px}
+.checks label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.box{border:1px dashed var(--line);border-radius:10px;padding:12px;margin:6px 0 14px}
+h4{font-family:Syne,Inter,sans-serif;font-size:13px;margin:2px 0 8px}
+.fld-row{display:grid;grid-template-columns:1fr 150px auto auto auto;gap:6px;margin-bottom:6px;align-items:center}
+.fld-row input,.fld-row select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);min-width:0}
+.fld-opts{grid-column:1/-1}
+.cat-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn:disabled{opacity:.4;cursor:default}
+.cat-msg{font-size:12px;font-weight:600;color:var(--ok)}
+.pal-manage{margin-top:14px;width:100%}
+.tpl-row{display:flex;gap:6px;align-items:stretch}.tpl-row .tpl{flex:1}.tpl-row .btn{margin-top:8px}
+.confirm{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.node .xtra{font-size:11px;color:var(--muted);padding:0 10px 8px;margin-top:-4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:900px){.cat-body{grid-template-columns:1fr}.cat-list{max-height:200px}.row3{grid-template-columns:1fr 1fr}.fld-row{grid-template-columns:1fr 1fr auto auto auto}}
 
 /* ---------- canvas ---------- */
 #stage{position:relative;overflow:hidden;touch-action:none;background-color:var(--bg);
@@ -146,8 +186,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     </div>
     <div class="spacer"></div>
     <select id="mapSelect" class="btn" title="Funis salvos"></select>
+    <span id="confirmBox" class="confirm" hidden></span>
+    <button class="btn" id="btnCat">Cadastros</button>
     <button class="btn" id="btnNew">+ Novo funil</button>
     <button class="btn" id="btnExport" title="Exportar JSON">Exportar</button>
+    <button class="btn" id="btnDrawio" title="Abrir no Draw.io / diagrams.net">Draw.io</button>
     <button class="btn" id="btnImport" title="Importar JSON">Importar</button>
     <button class="btn ghost" id="btnTheme" title="Tema">◐</button>
     <input type="file" id="fileIn" accept="application/json" hidden>
@@ -175,46 +218,89 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <h2 style="font-size:20px">Novo funil</h2>
   <p class="muted">Comece de um modelo validado no setor moveleiro ou de um canvas em branco.</p>
   <div id="tplList"></div>
-  <div style="text-align:right;margin-top:14px"><button class="btn" onclick="dlgNew.close()">Cancelar</button></div>
+  <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:14px"><button class="btn" id="btnSaveTpl">Salvar funil atual como modelo</button><button class="btn" onclick="dlgNew.close()">Cancelar</button></div>
 </dialog>
 
+<dialog id="dlgCat" class="wide"></dialog>
+
 <script>
+/* Ícones: Lucide (lucide.dev), licença ISC */
+const ICONS={"megaphone":["Anúncio","<path d=\"M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z\" /><path d=\"M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14\" /><path d=\"M8 6v8\" />"],"search":["Busca","<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />"],"camera":["Rede social","<path d=\"M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z\" /><circle cx=\"12\" cy=\"13\" r=\"3\" />"],"video":["Vídeo","<path d=\"m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5\" /><rect x=\"2\" y=\"6\" width=\"14\" height=\"12\" rx=\"2\" />"],"users":["Indicação","<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /><path d=\"M16 3.128a4 4 0 0 1 0 7.744\" /><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /><circle cx=\"9\" cy=\"7\" r=\"4\" />"],"handshake":["Parceria","<path d=\"m11 17 2 2a1 1 0 1 0 3-3\" /><path d=\"m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4\" /><path d=\"m21 3 1 11h-2\" /><path d=\"M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3\" /><path d=\"M3 4h8\" />"],"store":["Loja","<path d=\"M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5\" /><path d=\"M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244\" /><path d=\"M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05\" />"],"map-pin":["Local","<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\" /><circle cx=\"12\" cy=\"10\" r=\"3\" />"],"layout-template":["Página","<rect width=\"18\" height=\"7\" x=\"3\" y=\"3\" rx=\"1\" /><rect width=\"9\" height=\"7\" x=\"3\" y=\"14\" rx=\"1\" /><rect width=\"5\" height=\"7\" x=\"16\" y=\"14\" rx=\"1\" />"],"clipboard-list":["Formulário","<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\" /><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\" /><path d=\"M12 11h4\" /><path d=\"M12 16h4\" /><path d=\"M8 11h.01\" /><path d=\"M8 16h.01\" />"],"globe":["Site","<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20\" /><path d=\"M2 12h20\" />"],"calculator":["Calculadora","<rect width=\"16\" height=\"20\" x=\"4\" y=\"2\" rx=\"2\" /><line x1=\"8\" x2=\"16\" y1=\"6\" y2=\"6\" /><line x1=\"16\" x2=\"16\" y1=\"14\" y2=\"18\" /><path d=\"M16 10h.01\" /><path d=\"M12 10h.01\" /><path d=\"M8 10h.01\" /><path d=\"M12 14h.01\" /><path d=\"M8 14h.01\" /><path d=\"M12 18h.01\" /><path d=\"M8 18h.01\" />"],"qr-code":["QR code","<rect width=\"5\" height=\"5\" x=\"3\" y=\"3\" rx=\"1\" /><rect width=\"5\" height=\"5\" x=\"16\" y=\"3\" rx=\"1\" /><rect width=\"5\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\" /><path d=\"M21 16h-3a2 2 0 0 0-2 2v3\" /><path d=\"M21 21v.01\" /><path d=\"M12 7v3a2 2 0 0 1-2 2H7\" /><path d=\"M3 12h.01\" /><path d=\"M12 3h.01\" /><path d=\"M12 16v.01\" /><path d=\"M16 12h1\" /><path d=\"M21 12v.01\" /><path d=\"M12 21v-1\" />"],"mail":["E-mail","<path d=\"m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7\" /><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\" />"],"message-circle":["WhatsApp","<path d=\"M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719\" />"],"phone-call":["Ligação","<path d=\"M13 2a9 9 0 0 1 9 9\" /><path d=\"M13 6a5 5 0 0 1 5 5\" /><path d=\"M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384\" />"],"bot":["Automação","<path d=\"M12 8V4H8\" /><rect width=\"16\" height=\"12\" x=\"4\" y=\"8\" rx=\"2\" /><path d=\"M2 14h2\" /><path d=\"M20 14h2\" /><path d=\"M15 13v2\" /><path d=\"M9 13v2\" />"],"filter":["Qualificação","<path d=\"M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z\" />"],"calendar-check":["Agendamento","<path d=\"M8 2v3\" /><path d=\"M16 2v3\" /><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M3 9h18\" /><path d=\"m9 15 2 2 4-4\" />"],"ruler":["Medição","<path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z\" /><path d=\"m14.5 12.5 2-2\" /><path d=\"m11.5 9.5 2-2\" /><path d=\"m8.5 6.5 2-2\" /><path d=\"m17.5 15.5 2-2\" />"],"box":["Projeto 3D","<path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\" /><path d=\"m3.3 7 8.7 5 8.7-5\" /><path d=\"M12 22V12\" />"],"sofa":["Ambiente","<path d=\"M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3\" /><path d=\"M2 16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z\" /><path d=\"M4 18v2\" /><path d=\"M20 18v2\" /><path d=\"M12 4v9\" />"],"presentation":["Apresentação","<path d=\"M2 3h20\" /><path d=\"M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3\" /><path d=\"m7 21 5-5 5 5\" />"],"file-text":["Proposta","<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\" /><path d=\"M14 2v5a1 1 0 0 0 1 1h5\" /><path d=\"M10 9H8\" /><path d=\"M16 13H8\" /><path d=\"M16 17H8\" />"],"scale":["Negociação","<path d=\"M12 3v18\" /><path d=\"m19 8 3 8a5 5 0 0 1-6 0zV7\" /><path d=\"M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1\" /><path d=\"m5 8 3 8a5 5 0 0 1-6 0zV7\" /><path d=\"M7 21h10\" />"],"file-signature":["Contrato","<path d=\"M14.364 13.634a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506l4.013-4.009a1 1 0 0 0-3.004-3.004z\" /><path d=\"M14.487 7.858A1 1 0 0 1 14 7V2\" /><path d=\"M20 19.645V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l2.516 2.516\" /><path d=\"M8 18h1\" />"],"badge-dollar-sign":["Venda","<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\" /><path d=\"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8\" /><path d=\"M12 18V6\" />"],"hand-coins":["Financiamento","<path d=\"M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17\" /><path d=\"m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9\" /><path d=\"m2 16 6 6\" /><circle cx=\"16\" cy=\"9\" r=\"2.9\" /><circle cx=\"6\" cy=\"5\" r=\"3\" />"],"receipt":["Pagamento","<path d=\"M12 17V7\" /><path d=\"M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8\" /><path d=\"M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z\" />"],"plus-circle":["Upsell","<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M8 12h8\" /><path d=\"M12 8v8\" />"],"factory":["Produção","<path d=\"M12 16h.01\" /><path d=\"M16 16h.01\" /><path d=\"M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a.5.5 0 0 0-.769-.422l-4.462 2.844A.5.5 0 0 1 15 10.5v-2a.5.5 0 0 0-.769-.422L9.77 10.922A.5.5 0 0 1 9 10.5V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z\" /><path d=\"M8 16h.01\" />"],"hammer":["Marcenaria","<path d=\"m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9\" /><path d=\"m18 15 4-4\" /><path d=\"m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5\" />"],"drill":["Furação","<path d=\"M10 18a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a3 3 0 0 1-3-3 1 1 0 0 1 1-1z\" /><path d=\"M13 10H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1l-.81 3.242a1 1 0 0 1-.97.758H8\" /><path d=\"M14 4h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3\" /><path d=\"M18 6h4\" /><path d=\"m5 10-2 8\" /><path d=\"m7 18 2-8\" />"],"truck":["Entrega","<path d=\"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2\" /><path d=\"M15 18H9\" /><path d=\"M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14\" /><circle cx=\"17\" cy=\"18\" r=\"2\" /><circle cx=\"7\" cy=\"18\" r=\"2\" />"],"wrench":["Montagem","<path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z\" />"],"house":["Obra","<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />"],"star":["Avaliação","<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />"],"sparkles":["Destaque","<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" /><path d=\"M20 2v4\" /><path d=\"M22 4h-4\" /><circle cx=\"4\" cy=\"20\" r=\"2\" />"],"target":["Meta","<circle cx=\"12\" cy=\"12\" r=\"10\" /><circle cx=\"12\" cy=\"12\" r=\"6\" /><circle cx=\"12\" cy=\"12\" r=\"2\" />"],"link":["Link","<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\" /><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\" />"],"pen-line":["Edição","<path d=\"M13 21h8\" /><path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" />"],"circle-dot":["Genérico","<circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"12\" cy=\"12\" r=\"10\" />"]};
+
 /* =========================================================
-   Catálogo de elementos
+   Cadastros: seções, etapas e campos (padrão de fábrica)
    ========================================================= */
-const CATS = {
-  src:  {name:'Fontes de tráfego', color:'var(--c-src)'},
-  page: {name:'Páginas & captura', color:'var(--c-page)'},
-  act:  {name:'Comercial', color:'var(--c-act)'},
-  off:  {name:'Operação & pós-venda', color:'var(--c-off)'},
-  conv: {name:'Conversão', color:'var(--c-conv)'}
+const ROLES={fonte:'Fonte de tráfego',etapa:'Etapa intermediária',conversao:'Conversão (gera receita)'};
+const ROLE_HELP={fonte:'Recebe tráfego e investimento de mídia. Não tem entrada pela esquerda.',etapa:'Recebe pessoas das etapas anteriores e repassa pela taxa de conversão.',conversao:'Etapa onde o dinheiro entra. O ticket médio vira receita.'};
+const FIELD_KINDS={text:'Texto',number:'Número',currency:'Valor (R$)',date:'Data',bool:'Sim / Não',select:'Lista de opções'};
+// Formas nativas do Draw.io (diagrams.net) usadas na exportação
+const SHAPES={
+  process:   {label:'Processo',   style:'rounded=1;whiteSpace=wrap;html=1;arcSize=12;', svg:'<rect x="3" y="3" width="40" height="20" rx="4"/>'},
+  terminator:{label:'Início / fim',style:'shape=mxgraph.flowchart.terminator;whiteSpace=wrap;html=1;', svg:'<rect x="3" y="3" width="40" height="20" rx="10"/>'},
+  data:      {label:'Entrada de dados',style:'shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;', svg:'<path d="M10 3h33l-7 20H3z"/>'},
+  document:  {label:'Documento',  style:'shape=mxgraph.flowchart.document;whiteSpace=wrap;html=1;', svg:'<path d="M3 3h40v16c-10-5-20 7-40 2z"/>'},
+  decision:  {label:'Decisão',    style:'rhombus;whiteSpace=wrap;html=1;', svg:'<path d="M23 2l20 11-20 11L3 13z"/>'},
+  manual:    {label:'Entrada manual',style:'shape=manualInput;whiteSpace=wrap;html=1;size=12;', svg:'<path d="M3 9l40-6v20H3z"/>'},
+  delay:     {label:'Espera',     style:'shape=delay;whiteSpace=wrap;html=1;', svg:'<path d="M3 3h28a12 10 0 0 1 0 20H3z"/>'},
+  hexagon:   {label:'Preparação', style:'shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;', svg:'<path d="M10 3h26l7 10-7 10H10L3 13z"/>'},
+  database:  {label:'Base de dados',style:'shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=8;', svg:'<path d="M3 6v14c0 4 40 4 40 0V6"/><ellipse cx="23" cy="6" rx="20" ry="3.5"/>'},
+  cloud:     {label:'Nuvem / mídia',style:'ellipse;shape=cloud;whiteSpace=wrap;html=1;', svg:'<path d="M12 22a7 7 0 0 1-1-14 9 9 0 0 1 17-2 7 7 0 0 1 9 6 5 5 0 0 1-1 10z"/>'},
+  ellipse:   {label:'Círculo',    style:'ellipse;whiteSpace=wrap;html=1;', svg:'<ellipse cx="23" cy="13" rx="20" ry="10"/>'},
+  card:      {label:'Cartão',     style:'shape=card;whiteSpace=wrap;html=1;size=14;', svg:'<path d="M11 3h32v20H3V11z"/>'},
+  actor:     {label:'Pessoa',     style:'shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;', svg:'<circle cx="23" cy="6" r="3.5"/><path d="M23 10v7M17 12h12M23 17l-5 6M23 17l5 6"/>'},
 };
-const TYPES = {
-  meta:      {cat:'src',  label:'Meta Ads',            ab:'MT'},
-  google:    {cat:'src',  label:'Google Ads',          ab:'G'},
-  insta:     {cat:'src',  label:'Instagram orgânico',  ab:'IG'},
-  indic:     {cat:'src',  label:'Indicação de cliente',ab:'IND'},
-  arq:       {cat:'src',  label:'Arquiteto parceiro',  ab:'ARQ'},
-  loja:      {cat:'src',  label:'Showroom / loja',     ab:'LJ'},
-  lp:        {cat:'page', label:'Landing page',        ab:'LP'},
-  form:      {cat:'page', label:'Formulário',          ab:'FRM'},
-  site:      {cat:'page', label:'Site / portfólio',    ab:'WEB'},
-  quiz:      {cat:'page', label:'Quiz / calculadora',  ab:'QZ'},
-  wpp:       {cat:'act',  label:'WhatsApp',            ab:'WA'},
-  sdr:       {cat:'act',  label:'Qualificação (SDR)',  ab:'SDR'},
-  agenda:    {cat:'act',  label:'Agendamento',         ab:'AG'},
-  medicao:   {cat:'act',  label:'Visita técnica',      ab:'VT'},
-  projeto:   {cat:'act',  label:'Projeto 3D',          ab:'3D'},
-  apres:     {cat:'act',  label:'Apresentação',        ab:'AP'},
-  proposta:  {cat:'act',  label:'Proposta enviada',    ab:'PRP'},
-  negoc:     {cat:'act',  label:'Negociação',          ab:'NEG'},
-  contrato:  {cat:'conv', label:'Contrato fechado',    ab:'$'},
-  upsell:    {cat:'conv', label:'Ambiente extra',      ab:'UP'},
-  producao:  {cat:'off',  label:'Produção',            ab:'PRD'},
-  montagem:  {cat:'off',  label:'Montagem',            ab:'MNT'},
-  posobra:   {cat:'off',  label:'Pós-obra / NPS',      ab:'NPS'},
-  generic:   {cat:'act',  label:'Etapa personalizada', ab:'•'}
-};
+const DEF_CATS=[
+  ['src','Fontes de tráfego','#3b82f6','fonte',[['Campanha / UTM','text']]],
+  ['page','Páginas & captura','#8b5cf6','etapa',[['Ferramenta','select','WordPress, Elementor, Typebot, Jotform, RD Station']]],
+  ['act','Comercial','#f59e0b','etapa',[['Responsável','text'],['SLA de resposta (horas)','number']]],
+  ['off','Operação & pós-venda','#14b8a6','etapa',[['Responsável','text'],['Prazo (dias)','number']]],
+  ['conv','Conversão','#22a35a','conversao',[['Forma de pagamento','select','À vista, Parcelado, Financiamento, Consórcio']]],
+];
+// id, seção, nome, sigla, ícone, forma Draw.io, benchmark %, extras
+const DEF_TYPES=[
+  ['meta','src','Meta Ads','MT','megaphone','cloud',null,{traffic:5000,cost:2000}],
+  ['google','src','Google Ads','G','search','cloud',null,{traffic:3000,cost:2000}],
+  ['insta','src','Instagram orgânico','IG','camera','cloud',null,{traffic:10000}],
+  ['indic','src','Indicação de cliente','IND','users','actor',null,{traffic:8}],
+  ['arq','src','Arquiteto parceiro','ARQ','handshake','actor',null,{traffic:10}],
+  ['loja','src','Showroom / loja','LJ','store','terminator',null,{traffic:30}],
+  ['lp','page','Landing page','LP','layout-template','document',3],
+  ['form','page','Formulário','FRM','clipboard-list','data',25,{lead:true}],
+  ['site','page','Site / portfólio','WEB','globe','document',2],
+  ['quiz','page','Quiz / calculadora','QZ','calculator','data',20,{lead:true}],
+  ['wpp','act','WhatsApp','WA','message-circle','process',25,{lead:true}],
+  ['sdr','act','Qualificação (SDR)','SDR','filter','decision',75],
+  ['agenda','act','Agendamento','AG','calendar-check','process',55],
+  ['medicao','act','Visita técnica','VT','ruler','manual',60,{fields:[['Visita cobrada?','bool']]}],
+  ['projeto','act','Projeto 3D','3D','box','hexagon',90,{fields:[['Software','select','Promob, SketchUp, Gabster, Outro']]}],
+  ['apres','act','Apresentação','AP','presentation','process',85],
+  ['proposta','act','Proposta enviada','PRP','file-text','document',90],
+  ['negoc','act','Negociação','NEG','scale','decision',70],
+  ['contrato','conv','Contrato fechado','$','file-signature','terminator',35,{sale:true,value:30000}],
+  ['upsell','conv','Ambiente extra','UP','plus-circle','terminator',20,{value:8000}],
+  ['producao','off','Produção','PRD','factory','process',100],
+  ['montagem','off','Montagem','MNT','wrench','process',100],
+  ['posobra','off','Pós-obra / NPS','NPS','star','delay',80],
+  ['generic','act','Etapa personalizada','•','circle-dot','process',50],
+];
+const mkFields=a=>(a||[]).map(([label,kind,options])=>({id:'f_'+uid(),label,kind,options:options||''}));
+function defaultCatalog(){
+  const cats={},types={};
+  DEF_CATS.forEach(([id,name,color,role,f],i)=>cats[id]={name,color,role,order:i,fields:mkFields(f)});
+  DEF_TYPES.forEach(([id,cat,label,ab,icon,shape,bench,o={}],i)=>types[id]={cat,label,ab,icon,shape,bench,rate:bench??50,
+    traffic:o.traffic||0,cost:o.cost||0,value:o.value||0,lead:!!o.lead,sale:!!o.sale,hidden:false,order:i,fields:mkFields(o.fields)});
+  return {cats,types};
+}
+let CATS,TYPES;
+function bindCatalog(){CATS=store.catalog.cats;TYPES=store.catalog.types}
+const FALLBACK_CAT={name:'Sem seção',color:'#8a8f86',role:'etapa',fields:[]};
+const C=id=>CATS[id]||FALLBACK_CAT;
+const T=id=>TYPES[id]||{cat:'',label:'Etapa removida',ab:'?',icon:'circle-dot',shape:'process',bench:null,rate:50,fields:[]};
+const catsSorted=()=>Object.entries(CATS).sort((a,b)=>a[1].order-b[1].order);
+const typesOf=c=>Object.entries(TYPES).filter(([,t])=>t.cat===c).sort((a,b)=>a[1].order-b[1].order);
+const allTypesSorted=()=>catsSorted().flatMap(([c])=>typesOf(c));
+const nextOrder=list=>list.reduce((m,o)=>Math.max(m,o.order??0),-1)+1;
+function icoHTML(t,color){const i=ICONS[t.icon];return `<div class="ico" style="background:${color}">${i?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${i[1]}</svg>`:esc(t.ab)}</div>`}
 
 /* =========================================================
    Modelos
@@ -277,20 +363,25 @@ function build(name,ns,es){
   return {id:uid(),name,nodes,edges,goal:0,updated:Date.now()};
 }
 function mkNode(type,x,y,o={}){
-  return Object.assign({id:uid(),type,x,y,label:TYPES[type].label,traffic:0,cost:0,value:0,real:null,notes:''},o);
+  const t=T(type);return Object.assign({id:uid(),type,x,y,label:t.label,traffic:+t.traffic||0,cost:+t.cost||0,value:+t.value||0,real:null,notes:'',extra:{}},o);
 }
 
 /* =========================================================
    Estado + persistência
    ========================================================= */
 const LS='funil40.v1';
-let store=load();
+let store;store=load();
 let map=store.maps.find(m=>m.id===store.current)||store.maps[0];
 let mode='map', sel=null, view={x:40,y:40,k:.8};
 
 function load(){
-  try{const s=JSON.parse(localStorage.getItem(LS));if(s&&s.maps&&s.maps.length)return s;}catch(e){}
-  const m=tplMarcenaria();return {maps:[m],current:m.id};
+  let s=null;try{s=JSON.parse(localStorage.getItem(LS))}catch(e){}
+  if(!s||typeof s!=='object')s={};
+  if(!s.catalog||!s.catalog.cats||!s.catalog.types)s.catalog=defaultCatalog();
+  if(!Array.isArray(s.templates))s.templates=[];
+  store=s;bindCatalog();
+  if(!Array.isArray(s.maps)||!s.maps.length){const m=tplMarcenaria();s.maps=[m];s.current=m.id}
+  return s;
 }
 let saveT;
 function save(){clearTimeout(saveT);saveT=setTimeout(()=>{map.updated=Date.now();store.current=map.id;try{localStorage.setItem(LS,JSON.stringify(store))}catch(e){}},250)}
@@ -312,18 +403,19 @@ function compute(m,override){
   const vol={};
   order.forEach(id=>{const n=byId[id];let v=+n.traffic||0;inc[id].forEach(e=>{v+=(vol[e.from]||0)*(+rate(e)||0)/100});vol[id]=v});
   let revenue=0,cost=0,sales=0,leads=0;
+  let hasSale=false;
   m.nodes.forEach(n=>{
-    const v=vol[n.id]||0;cost+=+n.cost||0;
-    if(+n.value>0){revenue+=v*n.value;if(n.type==='contrato')sales+=v}
-    if(n.type==='wpp'||n.type==='form'||n.type==='quiz')leads+=v;
+    const v=vol[n.id]||0,t=T(n.type);cost+=+n.cost||0;
+    if(+n.value>0)revenue+=v*n.value;
+    if(t.sale){sales+=v;hasSale=true}
+    if(t.lead)leads+=v;
   });
-  if(!sales)sales=m.nodes.filter(n=>TYPES[n.type].cat==='conv').reduce((s,n)=>s+(vol[n.id]||0),0);
+  if(!hasSale)sales=m.nodes.filter(n=>C(T(n.type).cat).role==='conversao').reduce((s,n)=>s+(vol[n.id]||0),0);
   const profit=revenue-cost;
   return {vol,revenue,cost,sales,leads,profit,roi:cost?profit/cost:null,cac:sales?cost/sales:null,cpl:leads?cost/leads:null,cyclic};
 }
-// Benchmarks de conversão por etapa de destino (referência Diâmetro para marcenaria sob medida)
-const BENCH={lp:3,form:25,site:2,quiz:20,wpp:25,sdr:75,agenda:55,medicao:60,projeto:90,apres:85,proposta:90,negoc:70,contrato:35,upsell:20,producao:100,montagem:100,posobra:80,generic:50};
-const benchOf=e=>{const n=map.nodes.find(x=>x.id===e.to);return n?BENCH[n.type]:null};
+// Benchmark de conversão vem do cadastro da etapa de destino
+const benchOf=e=>{const n=map.nodes.find(x=>x.id===e.to);const b=n?T(n.type).bench:null;return b==null||b===''?null:+b};
 // Alavancas: receita extra ao levar cada conversão ao benchmark (ou +10% relativo se já estiver acima)
 function levers(m,base){
   return m.edges.filter(e=>e.rate<100).map(e=>{
@@ -348,13 +440,14 @@ const $=s=>document.querySelector(s);
 const stage=$('#stage'),world=$('#world'),svg=$('#edges'),nodesEl=$('#nodes'),side=$('#side');
 function renderPalette(){
   let h='';
-  Object.entries(CATS).forEach(([c,cat])=>{
-    h+=`<div class="group-title">${cat.name}</div>`;
-    Object.entries(TYPES).filter(([,t])=>t.cat===c).forEach(([k,t])=>{
-      h+=`<div class="pal-item" draggable="true" data-type="${k}"><div class="ico" style="background:${cat.color}">${t.ab}</div>${t.label}</div>`;
-    });
+  catsSorted().forEach(([c,cat])=>{
+    const list=typesOf(c).filter(([,t])=>!t.hidden);if(!list.length)return;
+    h+=`<div class="group-title">${esc(cat.name)}</div>`;
+    list.forEach(([k,t])=>{h+=`<div class="pal-item" draggable="true" data-type="${k}" title="Arraste para o canvas ou dê dois cliques">${icoHTML(t,cat.color)}${esc(t.label)}</div>`});
   });
+  h+=`<button class="btn sm pal-manage" id="btnCat2">Gerenciar cadastros</button>`;
   $('#palette').innerHTML=h;
+  $('#btnCat2').onclick=()=>openCatalog('types');
   $('#palette').querySelectorAll('.pal-item').forEach(el=>{
     el.addEventListener('dragstart',ev=>ev.dataTransfer.setData('text/type',el.dataset.type));
     el.addEventListener('dblclick',()=>{const r=stage.getBoundingClientRect();addNode(el.dataset.type,(r.width/2-view.x)/view.k-95,(r.height/2-view.y)/view.k-40)});
@@ -375,10 +468,10 @@ function commit(){calc=compute(map);const lv=levers(map,calc);bottleneck=lv[0]?l
 function applyView(){world.style.transform=`translate(${view.x}px,${view.y}px) scale(${view.k})`}
 
 function nodeStats(n){
-  const v=calc.vol[n.id]||0,t=TYPES[n.type];
+  const v=calc.vol[n.id]||0,t=T(n.type);
   if(mode==='map'){
-    const isSrc=t.cat==='src';
-    return `<div class="stats"><span class="muted">${isSrc?(n.traffic?num(+n.traffic)+' visitas':'Defina o tráfego'):CATS[t.cat].name}</span>${n.value>0?`<span class="sub">ticket ${brl(+n.value)}</span>`:''}</div>`;
+    const isSrc=C(t.cat).role==='fonte';
+    return `<div class="stats"><span class="muted">${isSrc?(n.traffic?num(+n.traffic)+' visitas':'Defina o tráfego'):esc(C(t.cat).name)}</span>${n.value>0?`<span class="sub">ticket ${brl(+n.value)}</span>`:''}</div>`;
   }
   if(mode==='forecast'){
     return `<div class="stats"><span class="big">${num(v)}</span><span class="sub">${n.value>0?brl(v*n.value):(n.cost?'custo '+brl(+n.cost):'pessoas')}</span></div>`;
@@ -392,11 +485,11 @@ function nodeStats(n){
 function render(){
   applyView();
   nodesEl.innerHTML=map.nodes.map(n=>{
-    const t=TYPES[n.type],c=CATS[t.cat];
+    const t=T(n.type),c=C(t.cat),x=firstExtra(n);
     return `<div class="node${sel&&sel.kind==='node'&&sel.id===n.id?' sel':''}" data-id="${n.id}" style="left:${n.x}px;top:${n.y}px">
-      ${t.cat!=='src'?'<div class="port in"></div>':''}
-      <div class="top"><div class="ico" style="background:${c.color}">${t.ab}</div><div style="min-width:0"><div class="name">${esc(n.label)}</div><div class="kind">${t.label}</div></div></div>
-      ${nodeStats(n)}
+      ${c.role!=='fonte'?'<div class="port in"></div>':''}
+      <div class="top">${icoHTML(t,c.color)}<div style="min-width:0"><div class="name">${esc(n.label)}</div><div class="kind">${esc(t.label)}</div></div></div>
+      ${nodeStats(n)}${x?`<div class="xtra">${esc(x)}</div>`:''}
       <div class="port out" data-port="${n.id}"></div>
     </div>`}).join('');
   renderEdges();
@@ -461,7 +554,10 @@ stage.addEventListener('pointerup',e=>{
     }else renderEdges();
   }
 });
-function defaultRate(to){const t=TYPES[map.nodes.find(n=>n.id===to).type];return t.cat==='page'?3:t.cat==='conv'?30:50}
+function defaultRate(to){const r=T(map.nodes.find(n=>n.id===to).type).rate;return r===''||r==null?50:+r}
+function nodeFields(n){const t=T(n.type);return [...(C(t.cat).fields||[]),...(t.fields||[])].filter(f=>f.label)}
+function fmtExtra(f,v){if(v===''||v==null)return '';if(f.kind==='bool')return v==='sim'?'Sim':'Não';if(f.kind==='currency')return brl(+v);if(f.kind==='date'){const d=v.split('-');return d.length===3?`${d[2]}/${d[1]}/${d[0]}`:v}return v}
+function firstExtra(n){const x=n.extra||{};const f=nodeFields(n).find(f=>x[f.id]!==''&&x[f.id]!=null);return f?`${f.label}: ${fmtExtra(f,x[f.id])}`:''}
 stage.addEventListener('wheel',e=>{
   e.preventDefault();const r=stage.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
   const k=Math.min(2,Math.max(.25,view.k*(e.deltaY<0?1.1:1/1.1)));
@@ -540,18 +636,37 @@ function inspector(){
       <button class="btn sm" data-del>Remover conexão</button></div>`;
   }
   const n=map.nodes.find(x=>x.id===sel.id);if(!n)return '';
-  const t=TYPES[n.type],isSrc=t.cat==='src';
+  const t=T(n.type),isSrc=C(t.cat).role==='fonte';
   return `<div class="section"><h3>Etapa selecionada</h3>
     <label class="field"><span>Nome</span><input data-f="label" value="${esc(n.label)}"></label>
-    <label class="field"><span>Tipo</span><select data-f="type">${Object.entries(TYPES).map(([k,x])=>`<option value="${k}"${k===n.type?' selected':''}>${CATS[x.cat].name} · ${x.label}</option>`).join('')}</select></label>
+    <label class="field"><span>Tipo</span><select data-f="type">${TYPES[n.type]?'':'<option selected>Etapa removida do cadastro</option>'}${allTypesSorted().map(([k,x])=>`<option value="${k}"${k===n.type?' selected':''}>${esc(C(x.cat).name)} · ${esc(x.label)}</option>`).join('')}</select></label>
     <div class="row2">
       <label class="field"><span>${isSrc?'Tráfego / mês':'Entrada direta / mês'}</span><input type="number" min="0" data-f="traffic" value="${n.traffic||''}" placeholder="0"></label>
       <label class="field"><span>Custo / mês (R$)</span><input type="number" min="0" data-f="cost" value="${n.cost||''}" placeholder="0"></label>
     </div>
     <label class="field"><span>Valor por conversão (R$) — ticket médio</span><input type="number" min="0" data-f="value" value="${n.value||''}" placeholder="0 = não gera receita"></label>
     <label class="field"><span>Realizado no mês (pessoas)</span><input type="number" min="0" data-f="real" value="${n.real??''}" placeholder="lance o número real"></label>
-    <label class="field"><span>Notas / responsável / SLA</span><textarea rows="2" data-f="notes">${esc(n.notes)}</textarea></label>
-    <button class="btn sm" data-del>Remover etapa</button></div>`;
+    <label class="field"><span>Notas</span><textarea rows="2" data-f="notes">${esc(n.notes)}</textarea></label>
+    ${customFieldsHTML(n)}
+    <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-del>Remover etapa</button>${TYPES[n.type]?`<button class="btn sm" data-edit-type="${n.type}">Editar cadastro de "${esc(t.label)}"</button>`:''}</div></div>`;
+}
+function customFieldsHTML(n){
+  const fs=nodeFields(n);
+  if(!fs.length)return '';
+  const x=n.extra||{};
+  return `<h4>Campos personalizados</h4>`+fs.map(f=>{
+    const v=x[f.id]??'',id=`nx_${n.id}_${f.id}`,a=`id="${id}" data-x="${f.id}"`;let inp;
+    switch(f.kind){
+      case 'number':inp=`<input ${a} type="number" value="${esc(v)}">`;break;
+      case 'currency':inp=`<input ${a} type="number" step="0.01" min="0" value="${esc(v)}">`;break;
+      case 'date':inp=`<input ${a} type="date" value="${esc(v)}">`;break;
+      case 'bool':inp=`<select ${a}>${[['','—'],['sim','Sim'],['nao','Não']].map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('')}</select>`;break;
+      case 'select':{const opts=String(f.options||'').split(',').map(o=>o.trim()).filter(Boolean);
+        inp=`<select ${a}><option value="">—</option>${opts.map(o=>`<option${o===v?' selected':''}>${esc(o)}</option>`).join('')}</select>`;break}
+      default:inp=`<input ${a} value="${esc(v)}">`;
+    }
+    return `<label class="field" for="${id}"><span>${esc(f.label)}${f.kind==='currency'?' (R$)':''}</span>${inp}</label>`;
+  }).join('');
 }
 function renderSide(){
   let h=`<label class="field"><span>Nome do funil</span><input data-mapname value="${esc(map.name)}"></label>`;
@@ -567,6 +682,7 @@ side.addEventListener('input',e=>{
   if(t.dataset.mapname!==undefined){map.name=t.value;save();renderMapSelect();return}
   if(t.dataset.goal!==undefined){map.goal=+t.value||0;save();clearTimeout(side._gt);side._gt=setTimeout(()=>{renderSide();focusSel('[data-goal]')},500);return}
   if(t.dataset.edgeRate!==undefined){const e=map.edges.find(x=>x.id===sel.id);e.rate=Math.min(100,Math.max(0,+t.value||0));liveUpdate('[data-edge-rate]');return}
+  if(t.dataset.x&&sel){const n=map.nodes.find(x=>x.id===sel.id);n.extra=n.extra||{};n.extra[t.dataset.x]=t.value;save();render();return}
   const f=t.dataset.f;if(!f||!sel)return;
   const n=map.nodes.find(x=>x.id===sel.id);
   if(f==='label'||f==='notes'){n[f]=t.value;render();save();return}
@@ -582,6 +698,7 @@ function liveUpdate(focusSelector){
 function focusSel(s){const el=side.querySelector(s);if(el){el.focus();const v=el.value;if(el.setSelectionRange&&el.type!=='number'){el.setSelectionRange(v.length,v.length)}}}
 side.addEventListener('click',e=>{
   if(e.target.closest('[data-del]')){removeSel();return}
+  const et=e.target.closest('[data-edit-type]');if(et){openCatalog('types',et.dataset.editType);return}
   const g=e.target.closest('[data-goto]');if(g){sel={kind:'node',id:g.dataset.goto};render();renderSide();return}
   const eg=e.target.closest('[data-edge-goto]');if(eg){sel={kind:'edge',id:eg.dataset.edgeGoto};render();renderSide()}
 });
@@ -595,30 +712,235 @@ document.querySelectorAll('.modes button').forEach(b=>b.onclick=()=>{
 function renderMapSelect(){
   $('#mapSelect').innerHTML=store.maps.map(m=>`<option value="${m.id}"${m.id===map.id?' selected':''}>${esc(m.name)}</option>`).join('')+`<option value="__del">— Excluir funil atual</option>`;
 }
+const box=$('#confirmBox');let boxT;
+function flash(msg){clearTimeout(boxT);box.innerHTML=esc(msg);box.hidden=false;boxT=setTimeout(()=>box.hidden=true,4000)}
+function askConfirm(msg,yes){clearTimeout(boxT);box.innerHTML=`${esc(msg)} <button class="btn sm primary" id="cfYes">Excluir</button><button class="btn sm" id="cfNo">Cancelar</button>`;box.hidden=false;
+  $('#cfYes').onclick=()=>{box.hidden=true;yes()};$('#cfNo').onclick=()=>box.hidden=true}
+function notify(msg){if(dlgCat.open)catMsg(msg);else flash(msg)}
+function download(name,ext,text,mime){
+  const blob=new Blob([text],{type:mime});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(name||'funil').replace(/[^\w\-]+/g,'_')+'.'+ext;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  notify('Arquivo .'+ext+' baixado.');
+}
 $('#mapSelect').onchange=e=>{
   if(e.target.value==='__del'){
-    if(store.maps.length>1&&confirm(`Excluir "${map.name}"?`)){store.maps=store.maps.filter(m=>m.id!==map.id);switchMap(store.maps[0])}
-    else renderMapSelect();return;
+    renderMapSelect();
+    if(store.maps.length<2){flash('Mantenha pelo menos um funil.');return}
+    askConfirm(`Excluir "${map.name}"?`,()=>{store.maps=store.maps.filter(m=>m.id!==map.id);switchMap(store.maps[0])});return;
   }
   switchMap(store.maps.find(m=>m.id===e.target.value));
 };
 function switchMap(m){map=m;sel=null;store.current=m.id;commit();renderMapSelect();requestAnimationFrame(fit)}
+
+/* ---------- modelos (padrão + seus) ---------- */
 const dlgNew=$('#dlgNew');
-$('#tplList').innerHTML=TEMPLATES.map((t,i)=>`<button class="tpl" data-i="${i}"><b>${t.name}</b><span class="muted">${t.desc}</span></button>`).join('');
-$('#tplList').onclick=e=>{const b=e.target.closest('.tpl');if(!b)return;const m=TEMPLATES[b.dataset.i].fn();store.maps.push(m);dlgNew.close();switchMap(m)};
-$('#btnNew').onclick=()=>dlgNew.showModal();
-$('#btnExport').onclick=()=>{
-  const blob=new Blob([JSON.stringify(map,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(map.name||'funil').replace(/[^\w\-]+/g,'_')+'.json';a.click();URL.revokeObjectURL(a.href);
+function cloneMap(m,name){
+  const ids={};
+  const nodes=m.nodes.map(n=>{const id=uid();ids[n.id]=id;return Object.assign(JSON.parse(JSON.stringify(n)),{id,real:null})});
+  const edges=m.edges.filter(e=>ids[e.from]&&ids[e.to]).map(e=>({id:uid(),from:ids[e.from],to:ids[e.to],rate:e.rate}));
+  return {id:uid(),name,nodes,edges,goal:m.goal||0,updated:Date.now()};
+}
+function renderTplList(){
+  const own=store.templates.map((t,i)=>`<div class="tpl-row"><button class="tpl" data-own="${i}"><b>${esc(t.name)}</b><span class="muted">Seu modelo · ${t.nodes.length} etapas</span></button><button class="btn sm" data-own-del="${i}" title="Excluir modelo">×</button></div>`).join('');
+  $('#tplList').innerHTML=(own?`<div class="group-title" style="margin-top:12px">Seus modelos</div>${own}<div class="group-title" style="margin-top:14px">Modelos Diâmetro</div>`:'')+
+    TEMPLATES.map((t,i)=>`<button class="tpl" data-i="${i}"><b>${t.name}</b><span class="muted">${t.desc}</span></button>`).join('');
+}
+$('#tplList').onclick=e=>{
+  const d=e.target.closest('[data-own-del]');
+  if(d){if(!d.dataset.armed){d.dataset.armed=1;d.textContent='Excluir?';d.classList.add('danger');return}
+    store.templates.splice(+d.dataset.ownDel,1);save();renderTplList();return}
+  const b=e.target.closest('.tpl');if(!b)return;
+  const m=b.dataset.own!=null?cloneMap(store.templates[+b.dataset.own],store.templates[+b.dataset.own].name):TEMPLATES[b.dataset.i].fn();
+  store.maps.push(m);dlgNew.close();switchMap(m);
 };
+$('#btnNew').onclick=()=>{renderTplList();dlgNew.showModal()};
+$('#btnSaveTpl').onclick=()=>{const t=cloneMap(map,map.name);store.templates.push(t);save();renderTplList();
+  const b=$('#btnSaveTpl');b.textContent='Modelo salvo ✓';setTimeout(()=>b.textContent='Salvar funil atual como modelo',2500)};
+
+/* ---------- exportar / importar ---------- */
+function usedCatalog(m){const types={},cats={};m.nodes.forEach(n=>{const t=TYPES[n.type];if(t){types[n.type]=t;if(CATS[t.cat])cats[t.cat]=CATS[t.cat]}});return {cats,types}}
+$('#btnExport').onclick=()=>download(map.name,'json',JSON.stringify({...map,catalogo:usedCatalog(map)},null,2),'application/json');
 $('#btnImport').onclick=()=>$('#fileIn').click();
+function mergeCatalog(cat,overwrite){
+  let n=0;
+  Object.entries(cat.cats||{}).forEach(([id,c])=>{if(overwrite||!CATS[id]){CATS[id]=Object.assign({name:'Seção',color:'#64748b',role:'etapa',order:nextOrder(Object.values(CATS)),fields:[]},c);n++}});
+  Object.entries(cat.types||{}).forEach(([id,t])=>{if(overwrite||!TYPES[id]){TYPES[id]=Object.assign({label:'Etapa',ab:'?',icon:'circle-dot',shape:'process',bench:null,rate:50,traffic:0,cost:0,value:0,fields:[],order:99},t);n++}});
+  return n;
+}
 $('#fileIn').onchange=async e=>{
-  const f=e.target.files[0];if(!f)return;
-  try{const m=JSON.parse(await f.text());if(!Array.isArray(m.nodes)||!Array.isArray(m.edges))throw 0;
-    m.nodes=m.nodes.filter(n=>TYPES[n.type]);m.id=uid();m.name=m.name||'Funil importado';store.maps.push(m);switchMap(m);
-  }catch(err){alert('Arquivo inválido.')}
-  e.target.value='';
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  let d;try{d=JSON.parse(await f.text())}catch(err){notify('Arquivo inválido: use um JSON exportado pelo Funil 4.0.');return}
+  if(Array.isArray(d.nodes)&&Array.isArray(d.edges)){
+    if(d.catalogo)mergeCatalog(d.catalogo,false);
+    const m={id:uid(),name:d.name||'Funil importado',nodes:d.nodes,edges:d.edges,goal:d.goal||0,updated:Date.now()};
+    store.maps.push(m);renderPalette();switchMap(m);if(dlgCat.open)renderCatalog();notify('Funil importado.');
+  }else if(d.catalogo){
+    const n=mergeCatalog(d.catalogo,true);if(Array.isArray(d.modelos))store.templates.push(...d.modelos);
+    save();renderPalette();commit();if(dlgCat.open)renderCatalog();notify(`${n} cadastros importados.`);
+  }else notify('Arquivo inválido: use um JSON exportado pelo Funil 4.0.');
 };
+
+/* ---------- Draw.io (diagrams.net) ---------- */
+function tint(hex,a){const h=hex.replace('#','');const c=[0,2,4].map(i=>parseInt(h.substr(i,2),16)||0);return '#'+c.map(v=>Math.round(v*a+255*(1-a)).toString(16).padStart(2,'0')).join('')}
+const xmlEsc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toDrawio(m){
+  const c=compute(m),cells=[];
+  const title=`<b style="font-size:16px">${esc(m.name)}</b><br>Receita projetada: <b>${brl(c.revenue)}</b> · Contratos: ${num(c.sales)} · Investimento: ${brl(c.cost)} · ROI: ${c.roi==null?'—':pct(c.roi)}`;
+  const minX=Math.min(0,...m.nodes.map(n=>n.x)),minY=Math.min(0,...m.nodes.map(n=>n.y));
+  cells.push(`<mxCell id="titulo" value="${xmlEsc(title)}" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1"><mxGeometry x="${minX}" y="${minY-90}" width="900" height="60" as="geometry"/></mxCell>`);
+  m.nodes.forEach(n=>{
+    const t=T(n.type),cat=C(t.cat),sh=SHAPES[t.shape]||SHAPES.process,v=c.vol[n.id]||0;
+    const lines=[`<b>${esc(n.label)}</b>`,`${num(v)} pessoas/mês`];
+    if(+n.value>0)lines.push(brl(v*n.value));
+    if(+n.cost>0)lines.push('custo '+brl(+n.cost));
+    const x=n.extra||{};nodeFields(n).forEach(f=>{const val=fmtExtra(f,x[f.id]);if(val)lines.push(`<i>${esc(f.label)}: ${esc(val)}</i>`)});
+    const actor=t.shape==='actor',w=actor?40:190,h=actor?70:Math.max(80,40+lines.length*16);
+    cells.push(`<mxCell id="n_${n.id}" value="${xmlEsc(lines.join('<br>'))}" style="${sh.style}fillColor=${tint(cat.color,.18)};strokeColor=${cat.color};strokeWidth=2;fontColor=#1b1d1a;fontSize=12;" vertex="1" parent="1"><mxGeometry x="${n.x+(actor?75:0)}" y="${n.y}" width="${w}" height="${h}" as="geometry"/></mxCell>`);
+  });
+  m.edges.forEach(e=>{
+    cells.push(`<mxCell id="e_${e.id}" value="${xmlEsc(num(+e.rate)+'%')}" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#6b7166;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n_${e.from}" target="n_${e.to}"><mxGeometry relative="1" as="geometry"/></mxCell>`);
+  });
+  return `<mxfile host="Funil 4.0"><diagram id="${m.id}" name="${xmlEsc(m.name)}"><mxGraphModel grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" math="0" shadow="0"><root><mxCell id="0"/><mxCell id="1" parent="0"/>${cells.join('')}</root></mxGraphModel></diagram></mxfile>`;
+}
+$('#btnDrawio').onclick=()=>download(map.name,'drawio',toDrawio(map),'application/xml');
+
+/* =========================================================
+   Tela de cadastros
+   ========================================================= */
+const dlgCat=$('#dlgCat');let cTab='types',cSel=null,msgT;
+$('#btnCat').onclick=()=>openCatalog('types');
+function usage(typeId){let n=0,f=0;store.maps.forEach(m=>{const k=m.nodes.filter(x=>x.type===typeId).length;if(k){n+=k;f++}});return {n,f}}
+function openCatalog(tab,id){cTab=tab||cTab;cSel=id||null;renderCatalog();if(!dlgCat.open)dlgCat.showModal()}
+function catMsg(t){const el=dlgCat.querySelector('.cat-msg');if(!el)return;el.textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>el.textContent='',4000)}
+function catalogChanged(full){renderPalette();commit();if(full)renderCatalog();else renderCatList()}
+function curItem(){return cTab==='cats'?CATS[cSel]:TYPES[cSel]}
+function renderCatalog(){
+  if(cTab==='cats'&&!CATS[cSel])cSel=(catsSorted()[0]||[])[0]||null;
+  if(cTab==='types'&&!TYPES[cSel])cSel=(allTypesSorted()[0]||[])[0]||null;
+  dlgCat.innerHTML=`<div class="cat-head"><h2 style="font-size:20px">Cadastros</h2>
+    <div class="modes"><button data-ctab="cats" class="${cTab==='cats'?'on':''}">Seções</button><button data-ctab="types" class="${cTab==='types'?'on':''}">Etapas</button></div>
+    <span class="cat-msg" role="status"></span><div class="spacer"></div>
+    <button class="btn sm" data-cexp>Exportar cadastros</button><button class="btn sm" data-cimp>Importar</button>
+    <button class="btn sm" data-two="restore" data-label="Restaurar padrão">Restaurar padrão</button>
+    <button class="btn sm primary" data-close>Concluir</button></div>
+    <p class="muted" style="margin:0 0 8px">${cTab==='cats'?'Seções agrupam as etapas na paleta e definem o papel delas no cálculo. Os campos de uma seção aparecem em todas as etapas dela.':'Cada etapa tem ícone, forma no Draw.io, benchmark, valores padrão e campos próprios. Tudo o que você cadastrar aqui aparece na paleta e no painel de edição.'}</p>
+    <div class="cat-body"><div class="cat-list"></div><div class="cat-edit"></div></div>`;
+  renderCatList();renderCatEdit();
+}
+function renderCatList(){
+  const el=dlgCat.querySelector('.cat-list');if(!el)return;let h='';
+  if(cTab==='cats'){
+    h=catsSorted().map(([id,c])=>`<div class="cat-item${id===cSel?' on':''}" data-pick="${id}"><span class="swatch" style="background:${c.color}"></span><span class="grow">${esc(c.name)}<br><span class="muted">${ROLES[c.role]||''} · ${typesOf(id).length} etapas</span></span></div>`).join('')+`<button class="btn sm" data-add="cat">+ Nova seção</button>`;
+  }else{
+    catsSorted().forEach(([cid,c])=>{
+      h+=`<div class="group-title">${esc(c.name)}</div>`+typesOf(cid).map(([id,t])=>`<div class="cat-item${id===cSel?' on':''}${t.hidden?' dim':''}" data-pick="${id}">${icoHTML(t,c.color)}<span class="grow">${esc(t.label)}${t.hidden?' <span class="muted">(oculta)</span>':''}</span></div>`).join('');
+    });
+    h+=`<button class="btn sm" data-add="type">+ Nova etapa</button>`;
+  }
+  el.innerHTML=h;
+}
+function fieldsEditor(fs,title){
+  return `<div class="box"><h4>${title}</h4>${fs.length?'':'<p class="muted" style="margin:0 0 8px">Nenhum campo ainda. Exemplos: responsável, prazo, ferramenta, forma de pagamento.</p>'}`+
+    fs.map((f,i)=>`<div class="fld-row"><input id="fl_${f.id}" data-fld="${i}" data-fk="label" value="${esc(f.label)}" placeholder="Nome do campo" aria-label="Nome do campo">
+      <select id="fk_${f.id}" data-fld="${i}" data-fk="kind" aria-label="Tipo do campo">${Object.entries(FIELD_KINDS).map(([k,v])=>`<option value="${k}"${k===f.kind?' selected':''}>${v}</option>`).join('')}</select>
+      <button class="btn sm" data-fmove="${i}" data-dir="-1"${i?'':' disabled'} title="Subir">↑</button><button class="btn sm" data-fmove="${i}" data-dir="1"${i<fs.length-1?'':' disabled'} title="Descer">↓</button><button class="btn sm" data-fdel="${i}" title="Remover campo">×</button>
+      ${f.kind==='select'?`<input class="fld-opts" id="fo_${f.id}" data-fld="${i}" data-fk="options" value="${esc(f.options)}" placeholder="Opções separadas por vírgula. Ex.: À vista, Parcelado">`:''}</div>`).join('')+
+    `<button class="btn sm" data-fadd>+ Adicionar campo</button></div>`;
+}
+function renderCatEdit(){
+  const el=dlgCat.querySelector('.cat-edit');if(!el)return;
+  if(!cSel){el.innerHTML='<p class="muted">Nada cadastrado ainda. Use o botão de adicionar à esquerda.</p>';return}
+  if(cTab==='cats'){
+    const c=CATS[cSel],ids=catsSorted().map(x=>x[0]),i=ids.indexOf(cSel),n=typesOf(cSel).length;
+    el.innerHTML=`<div class="row2"><label class="field"><span>Nome da seção</span><input id="ce_name" data-c="name" value="${esc(c.name)}"></label>
+      <label class="field"><span>Cor</span><input id="ce_color" type="color" data-c="color" value="${esc(c.color)}" style="height:38px;padding:3px"></label></div>
+      <label class="field"><span>Papel no funil</span><select id="ce_role" data-c="role">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}"${k===c.role?' selected':''}>${v}</option>`).join('')}</select></label>
+      <p class="muted" style="margin:-4px 0 12px">${ROLE_HELP[c.role]||''}</p>
+      ${fieldsEditor(c.fields,'Campos de todas as etapas desta seção')}
+      <div class="cat-actions"><button class="btn sm" data-move="-1"${i<=0?' disabled':''}>↑ Subir</button><button class="btn sm" data-move="1"${i>=ids.length-1?' disabled':''}>↓ Descer</button><span class="spacer"></span>
+      ${n?`<span class="muted">Para excluir, mova ou exclua as ${n} etapas desta seção.</span>`:`<button class="btn sm danger" data-two="del" data-label="Excluir seção">Excluir seção</button>`}</div>`;
+    return;
+  }
+  const t=TYPES[cSel],sib=typesOf(t.cat).map(x=>x[0]),i=sib.indexOf(cSel),u=usage(cSel);
+  const numIn=(k,label,extra='')=>`<label class="field"><span>${label}</span><input id="te_${k}" type="number" min="0" data-t="${k}" value="${t[k]??''}" ${extra}></label>`;
+  el.innerHTML=`<div class="row3"><label class="field" style="grid-column:span 2"><span>Nome da etapa</span><input id="te_label" data-t="label" value="${esc(t.label)}"></label>
+      <label class="field"><span>Sigla (até 4)</span><input id="te_ab" data-t="ab" maxlength="4" value="${esc(t.ab)}"></label></div>
+    <label class="field"><span>Seção</span><select id="te_cat" data-t="cat">${catsSorted().map(([k,c])=>`<option value="${k}"${k===t.cat?' selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
+    <h4>Ícone</h4>
+    <div class="ico-pick" role="listbox" aria-label="Ícone da etapa">${Object.entries(ICONS).map(([k,[l,svg]])=>`<button type="button" data-icon="${k}" class="${k===t.icon?'on':''}" title="${l}" aria-label="${l}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg></button>`).join('')}</div>
+    <h4 style="margin-top:14px">Forma no Draw.io</h4>
+    <div class="shape-pick">${Object.entries(SHAPES).map(([k,sh])=>`<button type="button" data-shape="${k}" class="${k===(t.shape||'process')?'on':''}"><svg viewBox="0 0 46 26">${sh.svg}</svg>${sh.label}</button>`).join('')}</div>
+    <h4 style="margin-top:14px">Conversão</h4>
+    <div class="row2">${numIn('bench','Benchmark do setor (%)','max="100" step="0.1" placeholder="sem benchmark"')}${numIn('rate','Taxa padrão ao conectar (%)','max="100" step="0.1"')}</div>
+    <h4>Valores padrão ao inserir no canvas</h4>
+    <div class="row3">${numIn('traffic','Tráfego / entrada por mês')}${numIn('cost','Custo / mês (R$)')}${numIn('value','Ticket médio (R$)')}</div>
+    <div class="checks"><label><input type="checkbox" id="te_lead" data-t="lead"${t.lead?' checked':''}> Conta como lead</label>
+      <label><input type="checkbox" id="te_sale" data-t="sale"${t.sale?' checked':''}> Conta como contrato</label>
+      <label><input type="checkbox" id="te_hidden" data-t="hidden"${t.hidden?' checked':''}> Ocultar da paleta</label></div>
+    ${fieldsEditor(t.fields,'Campos exclusivos desta etapa')}
+    <div class="cat-actions"><button class="btn sm" data-move="-1"${i<=0?' disabled':''}>↑ Subir</button><button class="btn sm" data-move="1"${i>=sib.length-1?' disabled':''}>↓ Descer</button><button class="btn sm" data-dup>Duplicar</button><span class="spacer"></span>
+    ${u.n?`<span class="muted">Usada em ${u.n} ${u.n>1?'etapas':'etapa'} de ${u.f} ${u.f>1?'funis':'funil'}. Oculte da paleta em vez de excluir.</span>`:`<button class="btn sm danger" data-two="del" data-label="Excluir etapa">Excluir etapa</button>`}</div>`;
+}
+dlgCat.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.c){CATS[cSel][t.dataset.c]=t.value;catalogChanged(t.dataset.c==='role');return}
+  if(t.dataset.t){
+    const ty=TYPES[cSel],k=t.dataset.t;
+    if(t.type==='checkbox')ty[k]=t.checked;
+    else if(['bench','rate','traffic','cost','value'].includes(k)){
+      ty[k]=t.value===''?(k==='bench'?null:0):Math.max(0,+t.value);
+      if((k==='bench'||k==='rate')&&ty[k]!=null)ty[k]=Math.min(100,ty[k]);
+    }else ty[k]=k==='ab'?t.value.slice(0,4):t.value;
+    if(k==='cat')ty.order=nextOrder(typesOf(t.value).filter(([id])=>id!==cSel).map(x=>x[1]));
+    catalogChanged(k==='cat'||k==='hidden');return;
+  }
+  if(t.dataset.fld!=null){const f=curItem().fields[+t.dataset.fld];f[t.dataset.fk]=t.value;catalogChanged(t.dataset.fk==='kind')}
+});
+function arm(b){b.dataset.armed=1;b.textContent='Clique de novo para confirmar';b.classList.add('danger');
+  setTimeout(()=>{if(b.isConnected&&b.dataset.armed){delete b.dataset.armed;b.textContent=b.dataset.label;if(b.dataset.two!=='del')b.classList.remove('danger')}},4000)}
+function swapOrder(list,id,dir){
+  list.forEach(([,o],k)=>o.order=k);
+  const i=list.findIndex(x=>x[0]===id),j=i+dir;if(j<0||j>=list.length)return;
+  const a=list[i][1],b=list[j][1];[a.order,b.order]=[b.order,a.order];
+}
+dlgCat.addEventListener('click',e=>{
+  const b=e.target.closest('button,[data-pick]');if(!b)return;
+  if(b.dataset.close!==undefined){dlgCat.close();return}
+  if(b.dataset.ctab){cTab=b.dataset.ctab;cSel=null;renderCatalog();return}
+  if(b.dataset.pick){cSel=b.dataset.pick;renderCatList();renderCatEdit();return}
+  if(b.dataset.cexp!==undefined){download('cadastros-funil40','json',JSON.stringify({catalogo:store.catalog,modelos:store.templates},null,2),'application/json');return}
+  if(b.dataset.cimp!==undefined){$('#fileIn').click();return}
+  if(b.dataset.two){
+    if(!b.dataset.armed){arm(b);return}
+    if(b.dataset.two==='restore'){const d=defaultCatalog();Object.assign(CATS,d.cats);Object.assign(TYPES,d.types);catalogChanged(true);catMsg('Padrões restaurados. Suas seções e etapas próprias foram mantidas.')}
+    else{if(cTab==='cats')delete CATS[cSel];else delete TYPES[cSel];cSel=null;catalogChanged(true);catMsg('Excluído.')}
+    return;
+  }
+  if(b.dataset.add==='cat'){
+    const id='c_'+uid(),pal=['#e11d48','#0ea5e9','#a16207','#7c3aed','#059669','#64748b'];
+    CATS[id]={name:'Nova seção',color:pal[Object.keys(CATS).length%pal.length],role:'etapa',order:nextOrder(Object.values(CATS)),fields:[]};
+    cSel=id;catalogChanged(true);dlgCat.querySelector('#ce_name')?.select();return;
+  }
+  if(b.dataset.add==='type'){
+    const first=catsSorted()[0];if(!first){catMsg('Cadastre uma seção antes de criar etapas.');return}
+    const cat=TYPES[cSel]?TYPES[cSel].cat:first[0],id='t_'+uid();
+    TYPES[id]={cat,label:'Nova etapa',ab:'NE',icon:'circle-dot',shape:'process',bench:null,rate:50,traffic:0,cost:0,value:0,lead:false,sale:false,hidden:false,order:nextOrder(typesOf(cat).map(x=>x[1])),fields:[]};
+    cSel=id;catalogChanged(true);dlgCat.querySelector('#te_label')?.select();return;
+  }
+  if(b.dataset.icon){TYPES[cSel].icon=b.dataset.icon;dlgCat.querySelectorAll('[data-icon]').forEach(x=>x.classList.toggle('on',x===b));catalogChanged(false);return}
+  if(b.dataset.shape){TYPES[cSel].shape=b.dataset.shape;dlgCat.querySelectorAll('[data-shape]').forEach(x=>x.classList.toggle('on',x===b));save();return}
+  if(b.dataset.move){swapOrder(cTab==='cats'?catsSorted():typesOf(TYPES[cSel].cat),cSel,+b.dataset.move);catalogChanged(true);return}
+  if(b.dataset.dup!==undefined){
+    const src=TYPES[cSel],id='t_'+uid(),copy=JSON.parse(JSON.stringify(src));
+    copy.label+=' (cópia)';copy.order=src.order+.5;copy.fields.forEach(f=>f.id='f_'+uid());
+    TYPES[id]=copy;typesOf(src.cat).forEach(([,o],k)=>o.order=k);cSel=id;catalogChanged(true);return;
+  }
+  const fs=curItem()&&curItem().fields;
+  if(b.dataset.fadd!==undefined){fs.push({id:'f_'+uid(),label:'',kind:'text',options:''});catalogChanged(true);const ins=dlgCat.querySelectorAll('[data-fk="label"]');ins[ins.length-1]?.focus();return}
+  if(b.dataset.fdel){fs.splice(+b.dataset.fdel,1);catalogChanged(true);return}
+  if(b.dataset.fmove){const i=+b.dataset.fmove,j=i+ +b.dataset.dir;[fs[i],fs[j]]=[fs[j],fs[i]];catalogChanged(true);return}
+});
+
 $('#btnTheme').onclick=()=>{
   const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
   r.dataset.theme=dark?'light':'dark';try{localStorage.setItem(LS+'.theme',r.dataset.theme)}catch(e){}
