@@ -1,0 +1,20 @@
+{
+  "name": "designeredjales-plugins",
+  "owner": {
+    "name": "designeredjales"
+  },
+  "metadata": {
+    "description": "Plugins do Claude Code para gestão, operação e crescimento de marcenarias e fábricas de móveis sob medida.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "drawio-moveleiro",
+      "source": "./plugins/drawio-moveleiro",
+      "description": "Diagramas de gestão no draw.io com canvas ao vivo: fluxos em raias (AS-IS/TO-BE), mapas de gargalo, organogramas com dependência do dono e jornadas do cliente.",
+      "version": "1.0.0",
+      "category": "productivity",
+      "keywords": ["drawio", "diagramas", "processos", "moveleiro", "marcenaria"]
+    }
+  ]
+}
