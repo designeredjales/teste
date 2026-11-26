@@ -431,9 +431,16 @@ details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); displa
             <div class="field" data-campo="qFolha"><label for="qFolha">Folha mensal de salários</label><div class="inp"><span class="un">R$</span><input id="qFolha" inputmode="decimal" autocomplete="off"></div></div>
             <div class="field"><label for="qRat">RAT da empresa</label><select id="qRat"><option value="1">1% · risco leve</option><option value="2">2% · risco médio</option><option value="3">3% · risco grave</option></select></div>
             <div class="field" data-campo="qFap"><label for="qFap">FAP da empresa</label><div class="inp"><input id="qFap" inputmode="decimal" autocomplete="off"><span class="un dir">0,5 a 2</span></div></div>
-            <div class="field" data-campo="qDespPJ"><label for="qDespPJ">Despesas mensais com empresas do regime regular</label><div class="inp"><span class="un">R$</span><input id="qDespPJ" inputmode="decimal" autocomplete="off"></div><small>Energia, aluguel pago a empresa, frete, software, contabilidade.</small></div>
+            <div class="field" data-campo="qDespPJ"><label for="qDespPJ">Despesas mensais com empresas do regime regular</label><div class="inp"><span class="un">R$</span><input id="qDespPJ" inputmode="decimal" autocomplete="off"></div><small>Energia, aluguel pago a empresa, software, contabilidade. Frota e frete têm campo próprio.</small></div>
             <div class="field"><label for="qMontagem">Quem faz a montagem</label><select id="qMontagem"><option value="clt">Equipe própria registrada</option><option value="mei">Montadores MEI ou autônomos</option><option value="empresa">Empresa de montagem</option></select></div>
             <div class="field"><label for="qPejot">Converter funcionários em PJ</label><select id="qPejot"><option value="nao">Não pensamos nisso</option><option value="avaliando">Estamos avaliando</option></select></div>
+            <div class="full"><h2>Frota, máquinas e logística</h2></div>
+            <div class="field" data-campo="qVeicOp"><label for="qVeicOp">Veículos usados na operação</label><div class="inp"><input id="qVeicOp" inputmode="decimal" autocomplete="off"><span class="un dir">veículos</span></div><small>Entrega, montagem e medição.</small></div>
+            <div class="field" data-campo="qGastoFrota"><label for="qGastoFrota">Gasto mensal da frota</label><div class="inp"><span class="un">R$</span><input id="qGastoFrota" inputmode="decimal" autocomplete="off"></div><small>Manutenção, peças, seguro e combustível.</small></div>
+            <div class="field" data-campo="qVeicSocio"><label for="qVeicSocio">Carros usados pelos sócios</label><div class="inp"><input id="qVeicSocio" inputmode="decimal" autocomplete="off"><span class="un dir">carros</span></div></div>
+            <div class="field" data-campo="qBens"><label for="qBens">Valor da frota e das máquinas</label><div class="inp"><span class="un">R$</span><input id="qBens" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field"><label for="qEntrega">Como a entrega é feita</label><select id="qEntrega"><option value="propria">Frota própria</option><option value="transportadora">Transportadora contratada</option><option value="grupo">Transportadora do grupo</option><option value="autonomos">Transportador autônomo</option></select></div>
+            <div class="field" data-campo="qFrete"><label for="qFrete">Gasto mensal com frete de terceiros</label><div class="inp"><span class="un">R$</span><input id="qFrete" inputmode="decimal" autocomplete="off"></div></div>
           </div>
         </section>
         <section class="card destaque">
@@ -445,7 +452,7 @@ details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); displa
           <div class="resumo" id="ck-resumo"></div>
         </section>
         <section class="card">
-          <header><h2>Alavancas por prioridade</h2><span class="small muted">Verde: fazer · Amarelo: só com parecer · Vermelho: não fazer</span></header>
+          <header><h2>Alavancas por prioridade</h2><span class="small muted">Verde: fazer · Amarelo: risco de interpretação, só com parecer e prova · Vermelho: não fazer</span></header>
           <div class="alavancas" id="alavancas"></div>
         </section>
         <section class="card">
@@ -900,7 +907,7 @@ const ENGINE = (() => {
     const cDesp27 = despAno * k27 / (1 + k27), cDesp33 = despAno * k33 / (1 + k33);
     if (!(despAno > 0)) add({ id: 'despesas', aplica: false, titulo: tDesp, motivo: 'despesas com fornecedores do regime regular não informadas' });
     else if (credita) add({ id: 'despesas', aplica: true, sem: 'verde', valida: 'Contador', titulo: tDesp, ganho: cDesp27,
-      porque: `Com o crédito amplo do IBS/CBS, despesas pagas a empresas do regime regular também geram crédito: energia elétrica, aluguel pago a empresa, frete com transportadora, software, contabilidade, marketing. Nos ${R(despAno)} por ano informados, isso dá cerca de ${R(cDesp27)} em 2027 e ${R(cDesp33)} em 2033. A comparação de regimes trata as despesas fixas como sem crédito, então esse valor soma ao resultado.`,
+      porque: `Com o crédito amplo do IBS/CBS, despesas pagas a empresas do regime regular também geram crédito: energia elétrica, aluguel pago a empresa, software, contabilidade, marketing. Nos ${R(despAno)} por ano informados, isso dá cerca de ${R(cDesp27)} em 2027 e ${R(cDesp33)} em 2033. A comparação de regimes trata as despesas fixas como sem crédito, então esse valor soma ao resultado.`,
       passos: ['Mapear as despesas por fornecedor e regime tributário', 'Exigir nota com IBS/CBS destacados e guardar os XMLs', 'Conferir os créditos todo mês, antes da apuração'] });
     else add({ id: 'despesas', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tDesp, rotulo: `${R(cDesp27)} por ano no híbrido`,
       porque: `No Simples puro, despesas não geram crédito. No híbrido ou no regime regular, os ${R(despAno)} por ano pagos a empresas do regime regular renderiam cerca de ${R(cDesp27)} de crédito em 2027 e ${R(cDesp33)} em 2033. Esse valor pesa a favor do híbrido e não está na comparação de regimes.`,
@@ -926,6 +933,54 @@ const ENGINE = (() => {
         : 'No Simples puro não há crédito sobre a montagem terceirizada; no híbrido ou no regime regular, a contratação de empresa do regime regular passaria a gerar crédito.',
       passos: ['Confirmar o regime tributário da empresa de montagem', 'Contrato com escopo, prazo e preço por serviço', 'Exigir nota com IBS/CBS destacados'] });
     else add({ id: 'montagem', aplica: false, titulo: 'Montagem terceirizada', motivo: 'a montagem é feita por equipe própria registrada' });
+
+    // 15. Frota usada na operação
+    const frotaAno = inp.qGastoFrota * 12, cFrota = frotaAno * k27 / (1 + k27), tFrota = 'Frota usada na operação';
+    const irFrota = rec === 'real' ? ' No Lucro Real, essas despesas e a depreciação dos veículos também reduzem o IRPJ e a CSLL, desde que ligadas à produção ou à venda.' : rec === 'presumido' ? ' No Presumido, elas não mudam o IRPJ e a CSLL, que saem de um percentual fixo da receita.' : '';
+    if (!(inp.qVeicOp > 0 && frotaAno > 0)) add({ id: 'frota', aplica: false, titulo: tFrota, motivo: 'sem veículos de operação ou gasto de frota informado' });
+    else if (credita) add({ id: 'frota', aplica: true, sem: 'verde', valida: 'Contador', titulo: tFrota, ganho: cFrota,
+      porque: `Os ${inp.qVeicOp} veículos de entrega, montagem e medição geram crédito de IBS/CBS sobre manutenção, peças, seguro e combustível (o combustível tem regra própria, monofásica). Nos ${R(frotaAno)} por ano informados, são cerca de ${R(cFrota)} em 2027.${irFrota}`,
+      passos: ['Veículos no nome da empresa e usados na atividade', 'Controle de quilometragem, rotas e notas de entrega por veículo', 'Nota com IBS/CBS destacados em peças, serviços e combustível'] });
+    else add({ id: 'frota', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tFrota, rotulo: `${R(cFrota)} por ano no híbrido`,
+      porque: `No Simples puro, a frota não gera crédito. No híbrido, os ${R(frotaAno)} por ano em manutenção, peças, seguro e combustível dos ${inp.qVeicOp} veículos de operação renderiam cerca de ${R(cFrota)} de crédito em 2027: mais um ponto a favor do híbrido, fora da comparação de regimes.`,
+      passos: ['Somar esse crédito na decisão de regime', 'Começar já o controle de quilometragem e rotas por veículo'] });
+
+    // 16. Carros dos sócios
+    if (inp.qVeicSocio > 0) add({ id: 'carrosocio', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: 'Carros usados pelos sócios', rotulo: 'só com prova de uso',
+      porque: `${inp.qVeicSocio === 1 ? 'O carro usado pelos sócios só gera' : `Os ${inp.qVeicSocio} carros usados pelos sócios só geram`} crédito de IBS/CBS, e despesa dedutível no Lucro Real, na parte usada na atividade: visitas a clientes, medição de obra, compras. É uma posição de interpretação que se defende com prova, e quem prova é a empresa. Sem controle de quilometragem e agenda, a Receita trata como uso pessoal, glosa o crédito e cobra multa de 75%, ou de 150% se entender que houve fraude. Lançar como frota um carro de passeio sem uso na atividade não é interpretação: é sonegação.`,
+      passos: ['Agenda de visitas e medições ligada a cada deslocamento', 'Controle de quilometragem separando o uso pessoal, que fica fora do crédito', 'Política de veículos aprovada pelos sócios e aplicada'] });
+    else add({ id: 'carrosocio', aplica: false, titulo: 'Carros usados pelos sócios', motivo: 'sem carros de uso dos sócios informados' });
+
+    // 17. Locadora de frota e máquinas
+    const tLoc = 'Empresa locadora de frota e máquinas';
+    if (inp.qBens > 0) {
+      if (rec === 'real') {
+        const aluguel = inp.qBens * 0.012 * 12, gLoc = aluguel * (0.34 - 0.32 * 0.34);
+        add({ id: 'locadora', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: tLoc, rotulo: `estimativa: ${R(gLoc)} por ano`,
+          porque: `Com a fábrica no Lucro Real, os ${R(inp.qBens)} em frota e máquinas podem ficar numa empresa locadora que aluga para a operação. O aluguel reduz o lucro tributado a cerca de 34% na fábrica, e a locadora no Presumido paga IRPJ e CSLL sobre uma base presumida de 32% do aluguel. Com aluguel de mercado de 1,2% ao mês (premissa), a diferença fica perto de ${R(gLoc)} por ano. O IBS/CBS sobre o aluguel se anula: débito na locadora, crédito na fábrica. É planejamento com risco de interpretação: a Receita questiona quando o aluguel foge do mercado ou a locadora não tem estrutura própria.`,
+          passos: ['Laudo de aluguel a preço de mercado', 'Locadora com contrato, contabilidade e gestão próprias', 'Calcular o custo de transferir os bens antes de montar a estrutura'] });
+      } else add({ id: 'locadora', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: tLoc, rotulo: 'ganho patrimonial, não tributário',
+        porque: `No ${NOMES[rec]}, mover os ${R(inp.qBens)} em frota e máquinas para uma locadora não reduz imposto: a dedução do aluguel só pesa no Lucro Real. O ganho fica na proteção do patrimônio e na sucessão, com o custo de montar e manter outra empresa.`,
+        passos: ['Avaliar junto com a holding patrimonial', 'Conferir na aba Comparar regimes se o Lucro Real passa a valer a pena'] });
+    } else add({ id: 'locadora', aplica: false, titulo: tLoc, motivo: 'valor de frota e máquinas não informado' });
+
+    // 18. Frete e logística
+    const freteAno = inp.qFrete * 12, cFrete = freteAno * k27 / (1 + k27), tFrete = 'Frete e logística de entrega';
+    const mesmaAliq = ' No IBS/CBS, frete e produto pagam a mesma alíquota: separar os dois na nota não reduz esse imposto.';
+    if (inp.qEntrega === 'transportadora' && freteAno > 0) {
+      if (credita) add({ id: 'frete', aplica: true, sem: 'verde', valida: 'Contador', titulo: tFrete, ganho: cFrete,
+        porque: `Com transportadora do regime regular, os ${R(freteAno)} por ano em frete geram cerca de ${R(cFrete)} de crédito de IBS/CBS em 2027. Se a transportadora estiver no Simples, o crédito cai para perto de 1,3% do valor.${mesmaAliq}`,
+        passos: ['Confirmar o regime tributário da transportadora', 'Exigir documento de transporte com IBS/CBS destacados', 'Comparar transportadoras pelo preço líquido do crédito'] });
+      else add({ id: 'frete', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tFrete, rotulo: `${R(cFrete)} por ano no híbrido`,
+        porque: `No Simples puro, o frete não gera crédito. No híbrido, os ${R(freteAno)} por ano com transportadora do regime regular renderiam cerca de ${R(cFrete)} em 2027.`, passos: ['Somar esse crédito na decisão de regime'] });
+    } else if (inp.qEntrega === 'grupo') add({ id: 'frete', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: 'Transportadora do grupo',
+      porque: `Uma transportadora do próprio grupo só se sustenta com estrutura própria: veículos e motoristas dela, outros clientes e frete a preço de mercado. Sem isso, a Receita trata o frete como parte da venda, cobra a diferença com multa e pode desconsiderar a empresa.${mesmaAliq}`,
+      passos: ['Conferir veículos, motoristas e clientes próprios da transportadora', 'Frete a preço de mercado, com contrato e documento de transporte', 'Revisar se a estrutura ainda faz sentido com a reforma'] });
+    else if (inp.qEntrega === 'autonomos') add({ id: 'frete', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: 'Frete com transportador autônomo',
+      rotulo: credita && freteAno > 0 ? `até ${R(cFrete)} por ano com transportadora` : null,
+      porque: `O transportador autônomo pessoa física tem regra própria de crédito, a confirmar com o contador. Uma transportadora do regime regular gera o crédito integral${credita && freteAno > 0 ? `: nos ${R(freteAno)} por ano em frete, até ${R(cFrete)} em 2027` : ''}. Compare pelo preço líquido do crédito.${mesmaAliq}`,
+      passos: ['Confirmar com o contador o crédito na contratação de autônomo', 'Cotar transportadoras do regime regular'] });
+    else add({ id: 'frete', aplica: false, titulo: tFrete, motivo: inp.qEntrega === 'propria' ? 'entrega com frota própria (veja a alavanca da frota)' : 'gasto com frete de terceiros não informado' });
 
     const ordem = { verde: 0, amarelo: 1, vermelho: 2 };
     const peso = x => x.ganho || x.pontual || 0;
@@ -958,6 +1013,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     qEmpresa: 'Marcenaria Exemplo', qUf: 'SP', qResp: '', qClin: 10, qAcess: 0, qFornSN: 20, qCarteira: 150000, qMaq: 120000, qRetirada: 30000,
     qCprb: 'naosei', qImovel: 'socio', qSeparar: 'nao',
     qFolha: 36000, qRat: '3', qFap: 1, qDespPJ: 15000, qMontagem: 'mei', qPejot: 'avaliando',
+    qVeicOp: 3, qGastoFrota: 6000, qVeicSocio: 2, qBens: 800000, qEntrega: 'propria', qFrete: 0,
   };
   const NUM = {
     rbt: { tipo: 'brl', max: 1e10 }, icms: { tipo: 'pct', max: 40 }, enc: { tipo: 'pct', max: 60 },
@@ -967,6 +1023,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     qClin: { tipo: 'pct', max: 100 }, qAcess: { tipo: 'pct', max: 100 }, qFornSN: { tipo: 'pct', max: 100 },
     qCarteira: { tipo: 'brl', max: 1e10 }, qMaq: { tipo: 'brl', max: 1e10 }, qRetirada: { tipo: 'brl', max: 1e9 },
     qFolha: { tipo: 'brl', max: 1e9 }, qFap: { tipo: 'pct', min: 0.5, max: 2 }, qDespPJ: { tipo: 'brl', max: 1e9 },
+    qVeicOp: { tipo: 'pct', max: 1000 }, qGastoFrota: { tipo: 'brl', max: 1e9 }, qVeicSocio: { tipo: 'pct', max: 100 }, qBens: { tipo: 'brl', max: 1e10 }, qFrete: { tipo: 'brl', max: 1e9 },
   };
   const CHAVE = 'diametro-app-tributario-v2';
   let est = { ...PADRAO };
@@ -1020,7 +1077,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     const b = e.target.closest('button[data-v]'); if (!b) return; est[chave] = conv(b.dataset.v); atualizar();
   });
   segmentado('atual', 'atual'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente'); segmentado('qCprb', 'qCprb');
-  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar', 'qRat', 'qMontagem', 'qPejot'];
+  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar', 'qRat', 'qMontagem', 'qPejot', 'qEntrega'];
   const preencherQ = () => { TXT.forEach(id => { $(id).value = est[id]; }); SEL.forEach(id => { $(id).value = est[id]; }); };
   TXT.forEach(id => $(id).addEventListener('input', e => { est[id] = e.target.value.slice(0, 80); atualizar(); }));
   SEL.forEach(id => $(id).addEventListener('change', e => { est[id] = e.target.value; atualizar(); }));
