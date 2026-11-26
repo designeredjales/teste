@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Simulador Tributário Moveleiro · Diâmetro</title>
-<meta name="description" content="Simulador tributário para marcenarias: compare Lucro Presumido, Lucro Real, Simples puro e híbrido, com IRPJ e CSLL, custo do cliente PF e PJ e margem de 2026 a 2033.">
+<meta name="description" content="Simulador tributário para marcenarias: Check-up Reforma 2027 com alavancas de elisão fiscal e semáforo de risco, e comparação de Lucro Presumido, Lucro Real, Simples puro e híbrido de 2026 a 2033.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
@@ -215,6 +215,26 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
 .linha-tempo .quem { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 600; }
 .legenda svg { flex: none; }
 .info.destaque-preco b { font-size: 14px; }
+.campos.q3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .campos.q3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .campos.q3 { grid-template-columns: minmax(0, 1fr); } }
+.field input.txt { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 7px 10px; width: 100%; min-width: 0; }
+.field input.txt:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+.vista { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+.alavancas { display: flex; flex-direction: column; }
+.alav { padding: 14px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.alav:first-child { border-top: 0; padding-top: 0; }
+.alav-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.alav-top h3 { font-size: 15px; flex: 1 1 220px; min-width: 0; }
+.alav .num { font-family: var(--font-mono); color: var(--muted); font-size: 12px; min-width: 18px; }
+.alav .valor { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.alav p { max-width: 86ch; line-height: 1.5; }
+.alav ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.alav .quem { font-size: 12px; color: var(--muted); }
+details.na { padding-top: 12px; border-top: 1px solid var(--line); }
+details.na summary { cursor: pointer; color: var(--muted); font-weight: 600; }
+details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+.relatorio { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; overflow-x: auto; max-width: 100%; }
 </style>
 <style>html, body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
 </head>
@@ -250,6 +270,7 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
   </header>
 
   <nav class="abas" id="abas" aria-label="Simuladores">
+    <a href="#checkup" data-aba="checkup">Check-up 2027</a>
     <a href="#comparar" data-aba="comparar">Comparar regimes</a>
     <a href="#presumido" data-aba="presumido"><i class="dot pres"></i>Lucro Presumido</a>
     <a href="#real" data-aba="real"><i class="dot real"></i>Lucro Real</a>
@@ -275,7 +296,7 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
             <div class="inp"><span class="un">R$</span><input id="rbt" inputmode="decimal" autocomplete="off"></div>
             <small>Define a faixa do Simples, o adicional do IRPJ e o acréscimo da LC 224 no Presumido.</small>
           </div>
-          <div class="field full" data-abas="comparar simples">
+          <div class="field full" data-abas="checkup comparar simples">
             <span class="rot" id="anexo-rot">Atividade no Simples</span>
             <div class="seg cheio" id="anexo" role="group" aria-labelledby="anexo-rot">
               <button type="button" data-v="II">Fabricação · Anexo II</button>
@@ -283,7 +304,7 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
             </div>
             <div class="info" id="das-info"></div>
           </div>
-          <div class="field full" data-abas="comparar presumido real">
+          <div class="field full" data-abas="checkup comparar presumido real">
             <label for="tipo">Tipo de produto (regime regular)</label>
             <select id="tipo">
               <option value="movel">Móveis planejados e estofados</option>
@@ -292,15 +313,15 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
             </select>
             <small id="tipo-info"></small>
           </div>
-          <div class="field" data-campo="icms" data-abas="comparar presumido real">
+          <div class="field" data-campo="icms" data-abas="checkup comparar presumido real">
             <label for="icms">ICMS na venda</label>
             <div class="inp"><input id="icms" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
           </div>
-          <div class="field" data-campo="enc" data-abas="comparar presumido real">
+          <div class="field" data-campo="enc" data-abas="checkup comparar presumido real">
             <label for="enc">INSS patronal</label>
             <div class="inp"><input id="enc" inputmode="decimal" autocomplete="off"><span class="un dir">% MO</span></div>
           </div>
-          <div class="field full" data-abas="comparar presumido real"><small>INSS patronal, RAT e terceiros fora do Simples, em % do custo da mão de obra (no Simples, Anexos I e II, está no DAS).</small></div>
+          <div class="field full" data-abas="checkup comparar presumido real"><small>INSS patronal, RAT e terceiros fora do Simples, em % do custo da mão de obra (no Simples, Anexos I e II, está no DAS).</small></div>
           <div class="field full">
             <label for="mix">Vendas para empresas (PJ)</label>
             <div class="faixa"><input type="range" id="mix" min="0" max="100" step="5"><output id="mix-out" for="mix" class="mono">0%</output></div>
@@ -373,7 +394,7 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" data-abas="comparar presumido real simples">
         <header><h2>Como comparar</h2></header>
         <div class="field">
           <div class="seg cheio" id="lente" role="group" aria-label="Critério de comparação">
@@ -388,10 +409,48 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
     </aside>
 
     <main class="resultado">
+      <div id="erro" class="aviso" hidden></div>
+      <div id="vista-checkup" class="vista">
+        <section class="card">
+          <header><h2>Check-up Reforma 2027</h2><span class="etiqueta alerta">Exemplo</span></header>
+          <p class="small muted">A empresa e o projeto típico vêm da coluna ao lado. Responda as perguntas abaixo: as alavancas e o relatório se montam sozinhos.</p>
+          <div class="campos q3">
+            <div class="field"><label for="qEmpresa">Empresa</label><input type="text" id="qEmpresa" class="txt" autocomplete="off"></div>
+            <div class="field"><label for="qUf">Estado da fábrica</label><select id="qUf"><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+            <div class="field"><label for="qResp">Responsável pelo diagnóstico</label><input type="text" id="qResp" class="txt" autocomplete="off"></div>
+            <div class="field" data-campo="qClin"><label for="qClin">Faturamento com mobiliário clínico</label><div class="inp"><input id="qClin" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div></div>
+            <div class="field" data-campo="qAcess"><label for="qAcess">Faturamento com acessibilidade PcD</label><div class="inp"><input id="qAcess" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div></div>
+            <div class="field" data-campo="qFornSN"><label for="qFornSN">Insumos comprados de fornecedor do Simples</label><div class="inp"><input id="qFornSN" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div></div>
+            <div class="field" data-campo="qCarteira"><label for="qCarteira">Contratos assinados com entrega em 2027</label><div class="inp"><span class="un">R$</span><input id="qCarteira" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field" data-campo="qMaq"><label for="qMaq">Máquinas a comprar nos próximos 24 meses</label><div class="inp"><span class="un">R$</span><input id="qMaq" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field" data-campo="qRetirada"><label for="qRetirada">Maior retirada mensal de um sócio</label><div class="inp"><span class="un">R$</span><input id="qRetirada" inputmode="decimal" autocomplete="off"></div><small>Pró-labore mais lucros.</small></div>
+            <div class="field"><span class="rot" id="qCprb-rot">Usa a desoneração da folha?</span><div class="seg cheio" id="qCprb" role="group" aria-labelledby="qCprb-rot"><button type="button" data-v="sim">Sim</button><button type="button" data-v="nao">Não</button><button type="button" data-v="naosei">Não sei</button></div></div>
+            <div class="field"><label for="qImovel">Imóvel da fábrica</label><select id="qImovel"><option value="empresa">Da empresa</option><option value="socio">No nome do sócio</option><option value="alugado">Alugado de terceiros</option></select></div>
+            <div class="field"><label for="qSeparar">Outra empresa para dividir o faturamento</label><select id="qSeparar"><option value="nao">Não pensamos nisso</option><option value="avaliando">Estamos avaliando</option><option value="grupo">O grupo já tem mais de uma</option></select></div>
+          </div>
+        </section>
+        <section class="card destaque">
+          <div>
+            <div class="rotulo">Economia potencial identificada</div>
+            <div class="big" id="ck-big">—</div>
+            <div class="small muted" id="ck-sub"></div>
+          </div>
+          <div class="resumo" id="ck-resumo"></div>
+        </section>
+        <section class="card">
+          <header><h2>Alavancas por prioridade</h2><span class="small muted">Verde: fazer · Amarelo: só com parecer · Vermelho: não fazer</span></header>
+          <div class="alavancas" id="alavancas"></div>
+        </section>
+        <section class="card">
+          <header><h2>Relatório para o cliente</h2><button type="button" id="copiar">Copiar relatório</button></header>
+          <span class="small muted" id="copiado" aria-live="polite"></span>
+          <pre class="relatorio" id="relatorio"></pre>
+        </section>
+      </div>
+      <div id="vista-sim" class="vista">
       <section aria-label="Ano da simulação" class="anos">
         <div class="rolagem"><div class="seg" id="ano" role="group" aria-label="Ano"></div></div>
       </section>
-      <div id="erro" class="aviso" hidden></div>
       <section class="card destaque">
         <div>
           <div class="rotulo" id="big-rot"></div>
@@ -419,6 +478,7 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
         <header><h2 id="tab-tit">Ano a ano</h2><span class="small muted">Alíquotas de 2027 em diante e partilha do Simples de 2029 em diante são estimativas</span></header>
         <div class="tabela"><table id="tab-anos"></table></div>
       </section>
+      </div>
     </main>
   </div>
 
@@ -689,7 +749,141 @@ const ENGINE = (() => {
     return { V, F, pres, real, sn, comp };
   }
 
-  return { rhe, ibscbs, regras, das, partilha, virada, irpjCsllPresumido, taxaReal, margemPreReal, precoMercado, simular, TIPOS, ANOS, FASE_RR, FASE_SN, ANEXOS };
+  // Check-up 2027: catálogo de alavancas com semáforo de risco.
+  const UF_SUDENE = ['AL', 'BA', 'CE', 'PB', 'PE', 'PI', 'RN', 'SE', 'MA', 'MG', 'ES'];
+  const UF_SUDAM = ['AC', 'AM', 'AP', 'PA', 'RO', 'RR', 'TO', 'MT', 'MA'];
+  function checkup(inp) {
+    const sim = simular({ ...inp, lente: 'mercado' });
+    if (sim.erro) return sim;
+    const NOMES = { presumido: 'Lucro Presumido', real: 'Lucro Real', sn: 'Simples puro', hb: 'Simples híbrido' };
+    const R = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0, minimumFractionDigits: 0 });
+    const P = v => (v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+    const N = inp.rbt / sim.V, w = inp.mix / 100, i = inp.icms / 100;
+    const atualId = inp.atual === 'simples' ? 'sn' : inp.atual;
+    const c27 = sim.comp[1], c33 = sim.comp[7];
+    const at27 = c27.op.find(o => o.id === atualId) || c27.op[0];
+    const best = c27.melhor, rec = best.id, best33 = c33.melhor, credita = rec !== 'sn';
+    const k27 = (inp.cbs + 0.1) / 100, k33 = (inp.cbs + inp.ibsUf + inp.ibsMun) / 100;
+    const L = [];
+    const add = o => L.push({ ganho: null, pontual: null, emJogo: null, passos: [], ...o });
+
+    // 1. Regime
+    const muda = rec !== atualId;
+    add({ id: 'regime', aplica: true, sem: 'verde', valida: 'Contador',
+      titulo: muda ? (rec === 'hb' ? 'Optar pelo Simples híbrido em 2027' : `Migrar para o ${NOMES[rec]} em 2027`) : `Manter o ${NOMES[rec]} em 2027`,
+      ganho: muda ? Math.max(0, (best.lucro - at27.lucro) * N) : 0,
+      porque: `Com ${inp.mix}% das vendas para empresas, o lucro líquido por projeto em 2027 é ${R(best.lucro)} no ${NOMES[rec]}` +
+        (muda ? `, contra ${R(at27.lucro)} no ${NOMES[atualId]}.` : ', o melhor entre os caminhos comparados.') +
+        (best33.id !== rec ? ` Em 2033 o melhor passa a ser o ${NOMES[best33.id]}: a escolha precisa ser revista todo ano.` : ''),
+      passos: !muda ? ['Revisar a decisão todo ano com o simulador', 'Acompanhar o faturamento e a parte das vendas para empresas']
+        : rec === 'hb' ? ['Confirmar com o contador o prazo de opção pelo regime regular do IBS e da CBS', 'Ajustar a NF-e (IBS/CBS destacados) e a tabela de preços', 'Rever o caixa: IBS/CBS por fora e créditos nas compras']
+        : ['Planejar a mudança com o contador: a escolha do regime vale para o ano todo', 'Preparar folha (INSS patronal fora do DAS), escrituração e emissão de notas', 'Rever preços e contratos para o novo regime'] });
+
+    // 2. Canal e preço
+    const rOp = c27.op.find(o => o.id === rec), cred = rOp.pj.credito;
+    if (w > 0 && cred > 1) add({ id: 'canal', aplica: true, sem: 'verde', valida: 'Gestão comercial', titulo: 'Tabela de preço por canal (PF × PJ)',
+      emJogo: cred * N * w,
+      porque: `No ${NOMES[rec]}, o cliente empresa recupera ${R(cred)} de IBS/CBS por projeto em 2027. A comparação de regimes supõe que esse valor vira preço; com o mesmo preço para PF e PJ, ele fica todo com o cliente.`,
+      passos: ['Ter tabela de preço separada para PF e PJ', 'Mostrar ao cliente empresa o custo efetivo depois do crédito', 'Treinar o comercial para usar o crédito como argumento'] });
+    else add({ id: 'canal', aplica: false, titulo: 'Tabela de preço por canal (PF × PJ)', motivo: w === 0 ? 'não há vendas para empresas' : 'no caminho recomendado, o crédito do cliente PJ é pequeno' });
+
+    // 3. Nichos com redução
+    const pcl = inp.qClin / 100, pac = inp.qAcess / 100, tNicho = 'Classificação fiscal dos nichos com redução';
+    if (pcl + pac > 0) {
+      if (credita) {
+        const f = rec === 'hb' ? 1 : 1 - i, g = 1 + k27 * f;
+        add({ id: 'nicho', aplica: true, sem: 'verde', valida: 'Contador', titulo: tNicho,
+          ganho: inp.rbt * (pcl * k27 * 0.6 * f + pac * k27 * f) / g,
+          porque: `${P(pcl + pac)} do faturamento vem de mobiliário clínico ou de acessibilidade, que têm redução de 60% (NCM 9402.90, cClassTrib 200030) e de 100% (NCM 8302.41, cClassTrib 200007). Classificados corretamente, pagam menos IBS/CBS ao mesmo preço; o ganho cresce até 2033. Classificar móvel comum nesses códigos é ilegal: a Calculadora da Receita rejeita a combinação (erro REG-011).`,
+          passos: ['Conferir NCM e cClassTrib de cada item vendido nesses nichos', 'Validar o XML da nota antes de emitir', 'Guardar a documentação do uso clínico ou de acessibilidade'] });
+      } else add({ id: 'nicho', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tNicho,
+        porque: `${P(pcl + pac)} do faturamento vem de mobiliário clínico ou de acessibilidade. No regime regular e no híbrido, esses itens têm redução de 60% e de 100% no IBS/CBS; no Simples puro, o efeito dentro do DAS precisa ser confirmado com o contador.`,
+        passos: ['Confirmar com o contador o tratamento no DAS', 'Incluir esse ganho na decisão de regime'] });
+    } else add({ id: 'nicho', aplica: false, titulo: tNicho, motivo: 'sem vendas de mobiliário clínico ou de acessibilidade' });
+
+    // 4. Fornecedores
+    const pfs = inp.qFornSN / 100, insAno = inp.ins * N, tForn = 'Fornecedores que geram crédito';
+    if (!credita) add({ id: 'forn', aplica: false, titulo: tForn, motivo: 'no Simples puro a marcenaria não aproveita crédito; passa a valer se mudar de caminho' });
+    else if (pfs <= 0) add({ id: 'forn', aplica: false, titulo: tForn, motivo: 'as compras de insumos já vêm de fornecedores do regime regular' });
+    else {
+      const g33 = insAno * pfs * (k33 / (1 + k33) - 0.043);
+      add({ id: 'forn', aplica: true, sem: 'verde', valida: 'Contador e compras', titulo: tForn,
+        ganho: insAno * pfs * (k27 / (1 + k27) - 0.013),
+        porque: `${P(pfs)} das compras de insumos (cerca de ${R(insAno * pfs)} por ano) vêm de fornecedores do Simples, que geram crédito de cerca de 1,3% do preço, contra ${P(k27 / (1 + k27))} de quem está no regime regular. Em 2033 a perda sobe para cerca de ${R(g33)} por ano.`,
+        passos: ['Listar os fornecedores do Simples e comparar o preço líquido do crédito', 'Negociar desconto equivalente ao crédito perdido ou trocar de fornecedor', 'Registrar o regime tributário no cadastro de fornecedores'] });
+    }
+
+    // 5. Máquinas
+    const tMaq = 'Crédito de IBS/CBS na compra de máquinas';
+    if (inp.qMaq > 0) {
+      const cr = inp.qMaq * k27 / (1 + k27);
+      if (credita) add({ id: 'maq', aplica: true, sem: 'verde', valida: 'Contador', titulo: tMaq, pontual: cr,
+        porque: `Dos ${R(inp.qMaq)} previstos em máquinas, cerca de ${R(cr)} são IBS/CBS que voltam como crédito no ${NOMES[rec]}, pela alíquota de 2027.`,
+        passos: ['Comprar de fornecedor do regime regular, com IBS/CBS destacados', 'Planejar o caixa: o crédito abate o IBS/CBS a recolher', 'Conferir o XML de entrada antes de lançar o crédito'] });
+      else add({ id: 'maq', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tMaq,
+        porque: `No Simples puro não há crédito. Os ${R(inp.qMaq)} em máquinas trariam cerca de ${R(cr)} de crédito no híbrido ou no regime regular: inclua esse valor na decisão de regime antes de comprar.`,
+        passos: ['Simular o híbrido incluindo o crédito da máquina', 'Decidir o regime antes de fechar a compra'] });
+    } else add({ id: 'maq', aplica: false, titulo: tMaq, motivo: 'sem investimento em máquinas previsto' });
+
+    // 6. Cláusula de reajuste
+    const tCont = 'Cláusula de reajuste tributário nos contratos';
+    if (inp.qCarteira > 0) {
+      let exp = 0;
+      if (rec === 'presumido' || rec === 'real') { const pc = rec === 'real' ? 0.0925 : 0.0365, f = 1 - i, g = 1 + k27 * f; exp = inp.qCarteira * ((1 - 1 / g) - pc * f); }
+      else if (rec === 'hb') { const d = das(inp.anexo, inp.rbt); const s = d ? d.efetiva / 100 * (d.A.cbs2027 + d.A.ibs2027) / 100 : 0.013; exp = inp.qCarteira * ((1 - 1 / (1 + k27)) - s); }
+      exp = Math.max(0, exp);
+      add({ id: 'contrato', aplica: true, sem: 'verde', valida: 'Advogado', titulo: tCont, pontual: exp,
+        porque: exp > 0 ? `Dos ${R(inp.qCarteira)} em contratos com entrega em 2027, cerca de ${R(exp)} viram tributo a mais no ${NOMES[rec]} se o preço foi fechado com os tributos de 2026.`
+          : `No ${NOMES[rec]}, a carga sobre a carteira de 2027 quase não muda, mas a cláusula protege contra mudanças de alíquota até 2033.`,
+        passos: ['Incluir cláusula de reajuste por mudança de tributo nos novos contratos', 'Negociar aditivo nos contratos já assinados com entrega em 2027', 'Separar no orçamento o valor do IBS/CBS'] });
+    } else add({ id: 'contrato', aplica: false, titulo: tCont, motivo: 'sem contratos assinados com entrega em 2027' });
+
+    // 7. Folha e sócios
+    const alto = inp.qRetirada > 50000, regular = rec !== 'sn', partes = [];
+    if (alto) partes.push(`Lucros acima de R$ 50 mil por mês, da mesma empresa para o mesmo sócio, têm retenção de 10% sobre o total desde 2026 (Lei 15.270/2025), e rendas acima de R$ 600 mil por ano entram no IR mínimo. Com retirada de ${R(inp.qRetirada)} por mês, a retenção pode chegar a ${R(inp.qRetirada * 12 * 0.1)} por ano se tudo sair como lucro.`);
+    if (regular && inp.qCprb === 'sim') partes.push('A desoneração da folha está acabando: em 2027 a empresa paga 15% sobre a folha mais 40% da contribuição sobre a receita, e em 2028 volta aos 20%. O custo da mão de obra sobe ano a ano.');
+    if (regular && inp.qCprb === 'naosei') partes.push('Confirme se a atividade da empresa está na desoneração da folha (CPRB), que acaba em 2028.');
+    const tFolha = 'Folha e remuneração dos sócios';
+    if (partes.length) add({ id: 'folha', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tFolha, porque: partes.join(' '),
+      passos: [alto ? 'Rever o equilíbrio entre pró-labore, lucros e reinvestimento' : null, 'Projetar o custo da folha até 2028', 'Formalizar a política de distribuição de lucros'].filter(Boolean) });
+    else add({ id: 'folha', aplica: false, titulo: tFolha, motivo: 'retiradas de até R$ 50 mil por mês por sócio e sem desoneração da folha no caminho recomendado' });
+
+    // 8. Incentivos
+    const uf = inp.qUf, naSudene = UF_SUDENE.includes(uf), naSudam = UF_SUDAM.includes(uf), parcial = ['MG', 'ES', 'MA'].includes(uf);
+    let txt = '';
+    if (naSudene || naSudam) txt += `${uf} está ${parcial ? 'em parte ' : ''}na área da ${naSudene && naSudam ? 'SUDENE e da SUDAM' : naSudene ? 'SUDENE' : 'SUDAM'}: projetos aprovados no Lucro Real podem reduzir 75% do IRPJ sobre o lucro da exploração${parcial ? ' (confira se o município está na área)' : ''}. `;
+    txt += rec === 'sn' ? 'No Simples, os benefícios estaduais de ICMS costumam ser limitados: confira se o estado tem regra própria para a indústria do Simples.'
+      : 'Benefícios estaduais de ICMS para a indústria (crédito presumido, diferimento) valem até 2032, quando o ICMS acaba: confira os programas do estado.';
+    add({ id: 'incentivo', aplica: true, sem: 'amarelo', valida: 'Contador e advogado', titulo: 'Incentivos estaduais e regionais', porque: txt,
+      passos: ['Levantar os programas de ICMS do estado para a indústria moveleira', (naSudene || naSudam) ? 'Avaliar a redução do IRPJ na SUDENE/SUDAM (exige Lucro Real)' : null, 'Comparar o ganho com o custo de cumprir as exigências'].filter(Boolean) });
+
+    // 9. Holding
+    const tHold = 'Holding patrimonial';
+    if (inp.qImovel === 'alugado') add({ id: 'holding', aplica: false, titulo: tHold, motivo: 'o imóvel da fábrica é alugado de terceiros' });
+    else add({ id: 'holding', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: tHold,
+      porque: `O imóvel da fábrica está ${inp.qImovel === 'empresa' ? 'no nome da empresa' : 'no nome do sócio'}. Uma holding patrimonial pode organizar a sucessão, proteger o patrimônio e formalizar o aluguel para a operação. Tem custos (ITBI, ITCMD, contabilidade própria) e precisa de propósito além da economia de imposto.`,
+      passos: ['Avaliar sucessão e proteção patrimonial com advogado', 'Comparar o custo de montar e manter a holding com o ganho', 'Se fizer sentido, formalizar o aluguel a valor de mercado'] });
+
+    // 10. Separação de atividades
+    if (inp.qSeparar === 'avaliando') add({ id: 'separar', aplica: true, sem: 'vermelho', valida: 'Advogado', titulo: 'Dividir o faturamento em outra empresa',
+      porque: `Abrir outra empresa para dividir o faturamento e continuar no Simples, com os mesmos sócios, a mesma estrutura ou a mesma operação, é planejamento abusivo: a Receita soma as receitas, exclui do Simples e cobra a diferença com multa.${inp.rbt > 3600000 ? ' Acima de R$ 3,6 milhões a tentação é maior, e o risco também.' : ''} Compare antes com o Lucro Presumido e o híbrido.`,
+      passos: ['Não separar sem operação real e independente', 'Comparar o Presumido e o híbrido no simulador', 'Se houver um negócio de fato diferente, estruturar com advogado'] });
+    else if (inp.qSeparar === 'grupo') add({ id: 'separar', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: 'Substância das empresas do grupo',
+      porque: 'O grupo já tem mais de uma empresa. Cada uma precisa de substância própria: sócios, funcionários, endereço, contabilidade e clientes. Sem isso, a Receita pode somar as receitas e excluir do Simples.',
+      passos: ['Conferir sócios, funcionários, endereço e contabilidade de cada empresa', 'Documentar o motivo de negócio de cada uma', 'Revisar os contratos entre as empresas do grupo'] });
+    else add({ id: 'separar', aplica: false, titulo: 'Dividir o faturamento em outra empresa', motivo: 'não há plano de dividir o faturamento' });
+
+    const ordem = { verde: 0, amarelo: 1, vermelho: 2 };
+    const peso = x => x.ganho || x.pontual || 0;
+    const ap = L.filter(x => x.aplica).sort((a, b) => ((b.id === 'regime') - (a.id === 'regime')) || (ordem[a.sem] - ordem[b.sem]) || (peso(b) - peso(a)));
+    const na = L.filter(x => !x.aplica);
+    const total = ap.filter(x => x.sem === 'verde' && x.ganho > 0).reduce((s, x) => s + x.ganho, 0);
+    const pontual = ap.reduce((s, x) => s + (x.pontual > 0 ? x.pontual : 0), 0);
+    const cont = { verde: ap.filter(x => x.sem === 'verde').length, amarelo: ap.filter(x => x.sem === 'amarelo').length, vermelho: ap.filter(x => x.sem === 'vermelho').length };
+    return { sim, N, rec, atualId, best, at27, best33, muda, ap, na, total, pontual, cont, NOMES };
+  }
+
+  return { rhe, ibscbs, regras, das, partilha, virada, irpjCsllPresumido, taxaReal, margemPreReal, precoMercado, simular, checkup, TIPOS, ANOS, FASE_RR, FASE_SN, ANEXOS };
 })();
 // ENGINE END
 if (typeof module !== 'undefined') module.exports = ENGINE;
@@ -699,29 +893,33 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
 (() => {
   if (typeof document === 'undefined') return;
   const { rhe, ibscbs, das, partilha, simular, irpjCsllPresumido, TIPOS, ANOS, FASE_RR, FASE_SN } = ENGINE;
-  const ABAS = ['comparar', 'presumido', 'real', 'simples'];
+  const ABAS = ['checkup', 'comparar', 'presumido', 'real', 'simples'];
   const NOME = { presumido: 'Lucro Presumido', real: 'Lucro Real', sn: 'Simples puro', hb: 'Simples híbrido', simples: 'Simples Nacional' };
   const COR = { presumido: '--pres', real: '--real', sn: '--sn', hb: '--hb' };
 
   const PADRAO = {
-    atual: 'simples', anexo: 'II', rbt: 1200000, tipo: 'movel', icms: 18, enc: 20, mix: 30,
+    atual: 'simples', anexo: 'II', rbt: 2400000, tipo: 'movel', icms: 18, enc: 20, mix: 70,
     ins: 30000, mo: 16000, outros: 4000, rt: 8, fix: 12, m: 12,
     icmsF: 18, pcF: 9.25, cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85, lente: 'mercado', ano: 2027,
+    qEmpresa: 'Marcenaria Exemplo', qUf: 'SP', qResp: '', qClin: 10, qAcess: 0, qFornSN: 20, qCarteira: 150000, qMaq: 120000, qRetirada: 30000,
+    qCprb: 'naosei', qImovel: 'socio', qSeparar: 'nao',
   };
   const NUM = {
     rbt: { tipo: 'brl', max: 1e10 }, icms: { tipo: 'pct', max: 40 }, enc: { tipo: 'pct', max: 60 },
     ins: { tipo: 'brl', max: 1e9 }, mo: { tipo: 'brl', max: 1e9 }, outros: { tipo: 'brl', max: 1e9 },
     rt: { tipo: 'pct', max: 60 }, fix: { tipo: 'pct', max: 80 }, m: { tipo: 'pct', max: 80 },
     icmsF: { tipo: 'pct', max: 40 }, pcF: { tipo: 'pct', max: 20 }, cbs: { tipo: 'pct', max: 30 }, ibsUf: { tipo: 'pct', max: 30 }, ibsMun: { tipo: 'pct', max: 30 },
+    qClin: { tipo: 'pct', max: 100 }, qAcess: { tipo: 'pct', max: 100 }, qFornSN: { tipo: 'pct', max: 100 },
+    qCarteira: { tipo: 'brl', max: 1e10 }, qMaq: { tipo: 'brl', max: 1e10 }, qRetirada: { tipo: 'brl', max: 1e9 },
   };
-  const CHAVE = 'diametro-app-tributario-v1';
+  const CHAVE = 'diametro-app-tributario-v2';
   let est = { ...PADRAO };
   try {
     const salvo = JSON.parse(localStorage.getItem(CHAVE) || 'null');
     if (salvo && typeof salvo === 'object') for (const k of Object.keys(PADRAO)) if (k in salvo && typeof salvo[k] === typeof PADRAO[k]) est[k] = salvo[k];
   } catch (e) {}
   const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(est)); } catch (e) {} };
-  let aba = ABAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'comparar';
+  let aba = ABAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'checkup';
 
   const $ = id => document.getElementById(id);
   const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -765,14 +963,19 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
   const segmentado = (id, chave, conv = v => v) => $(id).addEventListener('click', e => {
     const b = e.target.closest('button[data-v]'); if (!b) return; est[chave] = conv(b.dataset.v); atualizar();
   });
-  segmentado('atual', 'atual'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente');
+  segmentado('atual', 'atual'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente'); segmentado('qCprb', 'qCprb');
+  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar'];
+  const preencherQ = () => { TXT.forEach(id => { $(id).value = est[id]; }); SEL.forEach(id => { $(id).value = est[id]; }); };
+  TXT.forEach(id => $(id).addEventListener('input', e => { est[id] = e.target.value.slice(0, 80); atualizar(); }));
+  SEL.forEach(id => $(id).addEventListener('change', e => { est[id] = e.target.value; atualizar(); }));
+  preencherQ();
   $('ano').innerHTML = ANOS.map(a => `<button type="button" data-v="${a}">${a}</button>`).join('');
   segmentado('ano', 'ano', Number);
   const marcar = (id, v) => $(id).querySelectorAll('button[data-v]').forEach(b => { const on = String(b.dataset.v) === String(v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
   $('restaurar').addEventListener('click', () => {
     est = { ...PADRAO };
     for (const [id, cfg] of Object.entries(NUM)) { $(id).value = numFmt(est[id], cfg.tipo); const c = $(id).closest('.field'); c.classList.remove('erro'); const mm = c.querySelector('.msg'); if (mm) mm.remove(); }
-    $('tipo').value = est.tipo; $('mix').value = est.mix; atualizar();
+    $('tipo').value = est.tipo; $('mix').value = est.mix; preencherQ(); atualizar();
   });
   const setAno = a => { est.ano = a; atualizar(); };
   window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (ABAS.includes(h)) { aba = h; atualizar(); } });
@@ -860,7 +1063,8 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     salvar();
     const merc = est.lente === 'mercado';
     document.querySelectorAll('#abas a').forEach(a => { const on = a.dataset.aba === aba; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-    marcar('atual', est.atual); marcar('anexo', est.anexo); marcar('lente', est.lente); marcar('ano', est.ano);
+    marcar('atual', est.atual); marcar('anexo', est.anexo); marcar('lente', est.lente); marcar('ano', est.ano); marcar('qCprb', est.qCprb);
+    $('vista-checkup').hidden = aba !== 'checkup'; $('vista-sim').hidden = aba === 'checkup';
     document.querySelectorAll('[data-abas]').forEach(e => { e.hidden = !e.dataset.abas.split(' ').includes(aba); });
     $('mix-out').textContent = est.mix + '%';
     $('pleno').value = numFmt(rhe(est.cbs + est.ibsUf + est.ibsMun, 4), 'pct');
@@ -876,14 +1080,15 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     const sim = simular(est);
     if (sim.erro) {
       $('erro').textContent = sim.erro; $('erro').hidden = false; $('preco-info').innerHTML = '';
-      document.querySelectorAll('.resultado > :not(#erro):not(.anos)').forEach(e => e.style.opacity = .35);
+      document.querySelectorAll('.vista').forEach(e => e.style.opacity = .35);
       return;
     }
     $('erro').hidden = true;
-    document.querySelectorAll('.resultado > *').forEach(e => e.style.opacity = '');
+    document.querySelectorAll('.vista').forEach(e => e.style.opacity = '');
     ultimo = sim;
     $('preco-info').innerHTML = `<span>Preço de mercado em 2026: <b>${brl(sim.V)}</b></span><span>Formado no ${esc(NOME[est.atual])} com margem líquida de ${numFmt(est.m, 'pct')}%.</span>`;
-    if (aba === 'comparar') renderComparar(sim);
+    if (aba === 'checkup') renderCheckup();
+    else if (aba === 'comparar') renderComparar(sim);
     else if (aba === 'simples') {
       if (sim.sn.fora) renderSemSimples(); else renderSN(sim.sn);
     } else renderRR(aba === 'real' ? sim.real : sim.pres);
@@ -1074,8 +1279,58 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     ligarTabela();
   }
 
+  // ───────── Check-up 2027 ─────────
+  const SEM = { verde: '<span class="etiqueta ok">Verde · fazer</span>', amarelo: '<span class="etiqueta alerta">Amarelo · com parecer</span>', vermelho: '<span class="etiqueta perigo">Vermelho · não fazer</span>' };
+  const SEMTXT = { verde: 'VERDE', amarelo: 'AMARELO', vermelho: 'VERMELHO' };
+  const valorAlav = x => x.ganho > 0 ? `${brl0(x.ganho)} por ano` : x.ganho === 0 ? 'já no melhor caminho' : x.pontual > 0 ? `${brl0(x.pontual)} pontual` : x.pontual === 0 ? 'sem perda relevante' : x.emJogo > 0 ? `${brl0(x.emJogo)} por ano em jogo` : x.sem === 'vermelho' ? 'não fazer' : 'a quantificar com parecer';
+  function renderCheckup() {
+    const ck = ENGINE.checkup(est);
+    if (ck.erro) { $('erro').textContent = ck.erro; $('erro').hidden = false; return; }
+    const V = ck.sim.V, nomeAtual = ck.NOMES[ck.atualId], nomeRec = ck.NOMES[ck.rec];
+    $('ck-big').textContent = `${brl0(ck.total)} por ano`;
+    $('ck-sub').textContent = `${ck.pontual > 0 ? `Mais ${brl0(ck.pontual)} de impacto pontual · ` : ''}${ck.cont.verde} verdes · ${ck.cont.amarelo} amarelas · ${ck.cont.vermelho} vermelhas`;
+    $('ck-resumo').innerHTML = [
+      `Caminho recomendado para 2027: <b>${esc(nomeRec)}</b>${ck.muda ? ` (hoje: ${esc(nomeAtual)})` : ', o regime atual'}.${ck.best33.id !== ck.rec ? ` Em 2033 o melhor passa a ser o <b>${esc(ck.NOMES[ck.best33.id])}</b>.` : ''}`,
+      `O ganho soma as alavancas verdes com valor anual. Impacto pontual é crédito na compra de máquinas e tributo evitado na carteira de 2027. Base: ${ck.N.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} projetos por ano (faturamento dividido pelo contrato típico de ${brl(V)}).`,
+      'Comece pelas verdes. As amarelas pedem parecer de contador ou advogado; as vermelhas não devem ser feitas.',
+    ].map(f => `<p>${f}</p>`).join('');
+    $('alavancas').innerHTML = ck.ap.map((x, n) => `<article class="alav"><div class="alav-top"><span class="num">${n + 1}</span>${SEM[x.sem]}<h3>${esc(x.titulo)}</h3><span class="valor">${esc(valorAlav(x))}</span></div>
+      <p>${esc(x.porque)}</p><ul>${x.passos.map(p => `<li>${esc(p)}</li>`).join('')}</ul><span class="quem">Quem valida: ${esc(x.valida)}</span></article>`).join('')
+      + (ck.na.length ? `<details class="na"><summary>Não se aplica agora (${ck.na.length})</summary><ul>${ck.na.map(x => `<li>${esc(x.titulo)}: ${esc(x.motivo)}</li>`).join('')}</ul></details>` : '');
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const t = [];
+    t.push('CHECK-UP REFORMA TRIBUTÁRIA 2027');
+    t.push(`${est.qEmpresa || 'Empresa'} · ${est.qUf}`);
+    t.push(`Data: ${hoje} · Responsável: ${est.qResp || '—'}`);
+    t.push('Base de regras: LC 214/2025, LC 123/2006, LC 224/2025 e Lei 15.270/2025 · Simulador Tributário Moveleiro (Diâmetro), regras de nov/2026');
+    t.push('', 'PERFIL');
+    t.push(`Regime atual: ${nomeAtual} · Faturamento anual: ${brl0(est.rbt)} · Vendas para empresas: ${est.mix}%`);
+    t.push(`Contrato típico: ${brl(V)} · Projetos por ano: ${ck.N.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}`);
+    t.push('', 'RESULTADO');
+    t.push(`Economia potencial identificada: ${brl0(ck.total)} por ano`);
+    if (ck.pontual > 0) t.push(`Impacto pontual: ${brl0(ck.pontual)} (crédito em máquinas e tributo evitado na carteira de 2027)`);
+    t.push(`Caminho recomendado para 2027: ${nomeRec}${ck.best33.id !== ck.rec ? ` · em 2033: ${ck.NOMES[ck.best33.id]}` : ''}`);
+    t.push('', 'RECOMENDAÇÕES');
+    ck.ap.forEach((x, n) => {
+      t.push(`${n + 1}. [${SEMTXT[x.sem]}] ${x.titulo} · ${valorAlav(x)}`);
+      t.push(`   Por quê: ${x.porque}`);
+      t.push(`   Próximos passos: ${x.passos.join('; ')}.`);
+      t.push(`   Quem valida: ${x.valida}`);
+    });
+    if (ck.na.length) { t.push('', 'NÃO SE APLICA AGORA'); ck.na.forEach(x => t.push(`- ${x.titulo}: ${x.motivo}`)); }
+    t.push('', 'IMPORTANTE');
+    t.push('Simulação gerencial feita com o projeto típico informado. As alíquotas de 2027 em diante são estimativas. Nenhuma recomendação deve ser implementada sem a validação do profissional indicado em cada item.');
+    $('relatorio').textContent = t.join('\n');
+  }
+  $('copiar').addEventListener('click', () => {
+    const txt = $('relatorio').textContent;
+    const ok = () => { $('copiado').textContent = 'Relatório copiado.'; setTimeout(() => { $('copiado').textContent = ''; }, 2500); };
+    const falha = () => { const r = document.createRange(); r.selectNodeContents($('relatorio')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); $('copiado').textContent = 'Texto selecionado: use Ctrl+C para copiar.'; };
+    try { navigator.clipboard.writeText(txt).then(ok, falha); } catch (e) { falha(); }
+  });
+
   function desenhar() {
-    if (!ultimo) return;
+    if (!ultimo || aba === 'checkup') return;
     const merc = est.lente === 'mercado';
     const graficosVisiveis = !(aba === 'simples' && ultimo.sn.fora);
     document.querySelector('.graficos').hidden = !graficosVisiveis;
