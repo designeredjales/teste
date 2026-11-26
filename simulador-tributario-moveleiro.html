@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Simulador Tributário Moveleiro · Diâmetro</title>
-<meta name="description" content="Simulador tributário para marcenarias: Check-up Reforma 2027 com alavancas de elisão fiscal e semáforo de risco, e comparação de Lucro Presumido, Lucro Real, Simples puro e híbrido de 2026 a 2033.">
+<meta name="description" content="Simulador tributário para marcenarias: Check-up Reforma 2027 com alavancas de elisão fiscal e semáforo de risco, assistente de teses e comparação de Lucro Presumido, Lucro Real, Simples puro e híbrido de 2026 a 2033.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
@@ -234,6 +234,27 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
 details.na { padding-top: 12px; border-top: 1px solid var(--line); }
 details.na summary { cursor: pointer; color: var(--muted); font-weight: 600; }
 details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+textarea { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 10px; width: 100%; min-width: 0; resize: vertical; font: inherit; color: inherit; }
+textarea:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+button.sm { padding: 4px 10px; font-size: 13px; }
+.atalhos { display: flex; flex-wrap: wrap; gap: 8px; }
+.atalhos button { background: var(--panel); color: var(--text); border: 1px solid var(--line); font-size: 13px; padding: 6px 12px; white-space: normal; text-align: left; }
+.atalhos button:hover { border-color: var(--accent); filter: none; }
+.conversa { display: flex; flex-direction: column; gap: 12px; max-height: 62vh; overflow-y: auto; min-width: 0; }
+.conversa .vazio { color: var(--muted); }
+.msg { border-radius: var(--radius); padding: 10px 14px; max-width: 94%; line-height: 1.55; min-width: 0; overflow-wrap: anywhere; }
+.msg.eu { align-self: flex-end; background: color-mix(in srgb, var(--accent) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); white-space: pre-wrap; }
+.msg.ia { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--line); }
+.msg.ia h4 { margin: 12px 0 4px; font-size: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.msg.ia h4:first-child { margin-top: 0; }
+.msg.ia p { margin: 4px 0; }
+.msg.ia ul, .msg.ia ol { margin: 4px 0; padding-left: 20px; }
+.msg.ia code { font-family: var(--font-mono); font-size: 12.5px; }
+.caixa { display: flex; gap: 8px; align-items: flex-end; }
+.caixa textarea { flex: 1; }
+.acoes { display: flex; flex-direction: column; gap: 6px; }
+.rodape-chat { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.spacer { flex: 1; }
 .relatorio { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; overflow-x: auto; max-width: 100%; }
 </style>
 <style>html, body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
@@ -271,6 +292,7 @@ details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); displa
 
   <nav class="abas" id="abas" aria-label="Simuladores">
     <a href="#checkup" data-aba="checkup">Check-up 2027</a>
+    <a href="#assistente" data-aba="assistente">Assistente de teses</a>
     <a href="#comparar" data-aba="comparar">Comparar regimes</a>
     <a href="#presumido" data-aba="presumido"><i class="dot pres"></i>Lucro Presumido</a>
     <a href="#real" data-aba="real"><i class="dot real"></i>Lucro Real</a>
@@ -296,7 +318,7 @@ details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); displa
             <div class="inp"><span class="un">R$</span><input id="rbt" inputmode="decimal" autocomplete="off"></div>
             <small>Define a faixa do Simples, o adicional do IRPJ e o acréscimo da LC 224 no Presumido.</small>
           </div>
-          <div class="field full" data-abas="checkup comparar simples">
+          <div class="field full" data-abas="checkup assistente comparar simples">
             <span class="rot" id="anexo-rot">Atividade no Simples</span>
             <div class="seg cheio" id="anexo" role="group" aria-labelledby="anexo-rot">
               <button type="button" data-v="II">Fabricação · Anexo II</button>
@@ -304,7 +326,7 @@ details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); displa
             </div>
             <div class="info" id="das-info"></div>
           </div>
-          <div class="field full" data-abas="checkup comparar presumido real">
+          <div class="field full" data-abas="checkup assistente comparar presumido real">
             <label for="tipo">Tipo de produto (regime regular)</label>
             <select id="tipo">
               <option value="movel">Móveis planejados e estofados</option>
@@ -313,15 +335,15 @@ details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); displa
             </select>
             <small id="tipo-info"></small>
           </div>
-          <div class="field" data-campo="icms" data-abas="checkup comparar presumido real">
+          <div class="field" data-campo="icms" data-abas="checkup assistente comparar presumido real">
             <label for="icms">ICMS na venda</label>
             <div class="inp"><input id="icms" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
           </div>
-          <div class="field" data-campo="enc" data-abas="checkup comparar presumido real">
+          <div class="field" data-campo="enc" data-abas="checkup assistente comparar presumido real">
             <label for="enc">INSS patronal</label>
             <div class="inp"><input id="enc" inputmode="decimal" autocomplete="off"><span class="un dir">% MO</span></div>
           </div>
-          <div class="field full" data-abas="checkup comparar presumido real"><small>INSS patronal, RAT e terceiros fora do Simples, em % do custo da mão de obra (no Simples, Anexos I e II, está no DAS).</small></div>
+          <div class="field full" data-abas="checkup assistente comparar presumido real"><small>INSS patronal, RAT e terceiros fora do Simples, em % do custo da mão de obra (no Simples, Anexos I e II, está no DAS).</small></div>
           <div class="field full">
             <label for="mix">Vendas para empresas (PJ)</label>
             <div class="faixa"><input type="range" id="mix" min="0" max="100" step="5"><output id="mix-out" for="mix" class="mono">0%</output></div>
@@ -438,6 +460,7 @@ details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); displa
             <div class="field" data-campo="qVeicOp"><label for="qVeicOp">Veículos usados na operação</label><div class="inp"><input id="qVeicOp" inputmode="decimal" autocomplete="off"><span class="un dir">veículos</span></div><small>Entrega, montagem e medição.</small></div>
             <div class="field" data-campo="qGastoFrota"><label for="qGastoFrota">Gasto mensal da frota</label><div class="inp"><span class="un">R$</span><input id="qGastoFrota" inputmode="decimal" autocomplete="off"></div><small>Manutenção, peças, seguro e combustível.</small></div>
             <div class="field" data-campo="qVeicSocio"><label for="qVeicSocio">Carros usados pelos sócios</label><div class="inp"><input id="qVeicSocio" inputmode="decimal" autocomplete="off"><span class="un dir">carros</span></div></div>
+            <div class="field"><label for="qTurnos">Turnos de operação das máquinas</label><select id="qTurnos"><option value="1">1 turno (8 h)</option><option value="2">2 turnos (16 h)</option><option value="3">3 turnos (24 h)</option></select></div>
             <div class="field" data-campo="qBens"><label for="qBens">Valor da frota e das máquinas</label><div class="inp"><span class="un">R$</span><input id="qBens" inputmode="decimal" autocomplete="off"></div></div>
             <div class="field"><label for="qEntrega">Como a entrega é feita</label><select id="qEntrega"><option value="propria">Frota própria</option><option value="transportadora">Transportadora contratada</option><option value="grupo">Transportadora do grupo</option><option value="autonomos">Transportador autônomo</option></select></div>
             <div class="field" data-campo="qFrete"><label for="qFrete">Gasto mensal com frete de terceiros</label><div class="inp"><span class="un">R$</span><input id="qFrete" inputmode="decimal" autocomplete="off"></div></div>
@@ -459,6 +482,21 @@ details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); displa
           <header><h2>Relatório para o cliente</h2><button type="button" id="copiar">Copiar relatório</button></header>
           <span class="small muted" id="copiado" aria-live="polite"></span>
           <pre class="relatorio" id="relatorio"></pre>
+        </section>
+      </div>
+      <div id="vista-assist" class="vista" hidden>
+        <section class="card">
+          <header><h2>Assistente de teses</h2><span class="etiqueta acao">IA · usa o Claude de quem abre o app</span></header>
+          <p class="small muted">Converse sobre a empresa e monte teses de elisão fiscal. O assistente lê os dados da coluna ao lado, as respostas do Check-up, a comparação de regimes e o que você contar aqui. Toda tese sai com semáforo de risco, conta aberta e quem precisa validar.</p>
+          <div class="field"><label for="ctxExtra">O que o Check-up não captura</label><textarea id="ctxExtra" rows="4" placeholder="Ex.: galpão próprio no nome do sócio, duas CNCs e uma coladeira compradas em 2023, loja própria em outra cidade, filho entrando na sociedade, plano de abrir unidade no Nordeste."></textarea></div>
+          <div class="atalhos" id="atalhos"></div>
+        </section>
+        <div id="assist-off" class="aviso" hidden></div>
+        <section class="card" id="assist-chat">
+          <div class="conversa" id="conversa" aria-live="polite"></div>
+          <div class="caixa"><textarea id="pergunta" rows="2" placeholder="Pergunte sobre a empresa. Enter envia; Shift+Enter quebra a linha."></textarea>
+            <div class="acoes"><button type="button" id="enviar">Enviar</button><button type="button" class="ghost" id="parar" hidden>Parar</button></div></div>
+          <div class="rodape-chat"><span class="small muted" id="assist-status" aria-live="polite"></span><span class="spacer"></span><button type="button" class="ghost sm" id="copiar-chat">Copiar conversa</button><button type="button" class="ghost sm" id="limpar-chat">Limpar conversa</button></div>
         </section>
       </div>
       <div id="vista-sim" class="vista">
@@ -828,14 +866,20 @@ const ENGINE = (() => {
     }
 
     // 5. Máquinas
-    const tMaq = 'Crédito de IBS/CBS na compra de máquinas';
+    const tMaq = 'Máquinas: crédito, momento da compra e depreciação';
     if (inp.qMaq > 0) {
       const cr = inp.qMaq * k27 / (1 + k27);
+      const espera = rec === 'presumido' ? inp.qMaq * (1 - inp.icmsF / 100) * inp.pcF / 100 : rec === 'hb' ? inp.qMaq * inp.pcF / 100 : 0;
+      const turnos = Number(inp.qTurnos) || 1, fatorT = turnos >= 3 ? 2 : turnos === 2 ? 1.5 : 1;
+      const dep = rec !== 'real' ? '' : turnos > 1
+        ? ` No Lucro Real, a depreciação e a manutenção reduzem o IRPJ e a CSLL; com ${turnos} turnos de operação, a taxa de depreciação das máquinas pode ser multiplicada por ${fatorT.toLocaleString('pt-BR')}, antecipando a dedução.`
+        : ' No Lucro Real, a depreciação e a manutenção reduzem o IRPJ e a CSLL.';
+      const txtEspera = espera > 0 ? ` Se a compra puder esperar janeiro de 2027, o PIS/Cofins embutido no preço sai e a CBS entra como crédito: economia de cerca de ${R(espera)}, se o fornecedor repassar a mudança.` : '';
       if (credita) add({ id: 'maq', aplica: true, sem: 'verde', valida: 'Contador', titulo: tMaq, pontual: cr,
-        porque: `Dos ${R(inp.qMaq)} previstos em máquinas, cerca de ${R(cr)} são IBS/CBS que voltam como crédito no ${NOMES[rec]}, pela alíquota de 2027.`,
-        passos: ['Comprar de fornecedor do regime regular, com IBS/CBS destacados', 'Planejar o caixa: o crédito abate o IBS/CBS a recolher', 'Conferir o XML de entrada antes de lançar o crédito'] });
+        porque: `Dos ${R(inp.qMaq)} previstos em máquinas, cerca de ${R(cr)} são IBS/CBS que voltam como crédito no ${NOMES[rec]}, pela alíquota de 2027.${txtEspera}${dep}`,
+        passos: ['Comprar de fornecedor do regime regular, com IBS/CBS destacados', espera > 0 ? 'Adiar para janeiro de 2027 as compras que podem esperar' : null, 'Planejar o caixa: o crédito abate o IBS/CBS a recolher', rec === 'real' && turnos > 1 ? 'Documentar as horas de operação para a depreciação por turnos' : null].filter(Boolean) });
       else add({ id: 'maq', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tMaq,
-        porque: `No Simples puro não há crédito. Os ${R(inp.qMaq)} em máquinas trariam cerca de ${R(cr)} de crédito no híbrido ou no regime regular: inclua esse valor na decisão de regime antes de comprar.`,
+        porque: `No Simples puro não há crédito. Os ${R(inp.qMaq)} em máquinas trariam cerca de ${R(cr)} de crédito no híbrido ou no regime regular, e esperar janeiro de 2027 ainda evitaria o PIS/Cofins embutido no preço (cerca de ${R(inp.qMaq * inp.pcF / 100)} no híbrido). Inclua esses valores na decisão de regime antes de comprar.`,
         passos: ['Simular o híbrido incluindo o crédito da máquina', 'Decidir o regime antes de fechar a compra'] });
     } else add({ id: 'maq', aplica: false, titulo: tMaq, motivo: 'sem investimento em máquinas previsto' });
 
@@ -1002,7 +1046,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
 (() => {
   if (typeof document === 'undefined') return;
   const { rhe, ibscbs, das, partilha, simular, irpjCsllPresumido, TIPOS, ANOS, FASE_RR, FASE_SN } = ENGINE;
-  const ABAS = ['checkup', 'comparar', 'presumido', 'real', 'simples'];
+  const ABAS = ['checkup', 'assistente', 'comparar', 'presumido', 'real', 'simples'];
   const NOME = { presumido: 'Lucro Presumido', real: 'Lucro Real', sn: 'Simples puro', hb: 'Simples híbrido', simples: 'Simples Nacional' };
   const COR = { presumido: '--pres', real: '--real', sn: '--sn', hb: '--hb' };
 
@@ -1013,7 +1057,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     qEmpresa: 'Marcenaria Exemplo', qUf: 'SP', qResp: '', qClin: 10, qAcess: 0, qFornSN: 20, qCarteira: 150000, qMaq: 120000, qRetirada: 30000,
     qCprb: 'naosei', qImovel: 'socio', qSeparar: 'nao',
     qFolha: 36000, qRat: '3', qFap: 1, qDespPJ: 15000, qMontagem: 'mei', qPejot: 'avaliando',
-    qVeicOp: 3, qGastoFrota: 6000, qVeicSocio: 2, qBens: 800000, qEntrega: 'propria', qFrete: 0,
+    qVeicOp: 3, qGastoFrota: 6000, qVeicSocio: 2, qBens: 800000, qEntrega: 'propria', qFrete: 0, qTurnos: '1', ctxExtra: '',
   };
   const NUM = {
     rbt: { tipo: 'brl', max: 1e10 }, icms: { tipo: 'pct', max: 40 }, enc: { tipo: 'pct', max: 60 },
@@ -1077,7 +1121,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     const b = e.target.closest('button[data-v]'); if (!b) return; est[chave] = conv(b.dataset.v); atualizar();
   });
   segmentado('atual', 'atual'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente'); segmentado('qCprb', 'qCprb');
-  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar', 'qRat', 'qMontagem', 'qPejot', 'qEntrega'];
+  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar', 'qRat', 'qMontagem', 'qPejot', 'qEntrega', 'qTurnos'];
   const preencherQ = () => { TXT.forEach(id => { $(id).value = est[id]; }); SEL.forEach(id => { $(id).value = est[id]; }); };
   TXT.forEach(id => $(id).addEventListener('input', e => { est[id] = e.target.value.slice(0, 80); atualizar(); }));
   SEL.forEach(id => $(id).addEventListener('change', e => { est[id] = e.target.value; atualizar(); }));
@@ -1088,7 +1132,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
   $('restaurar').addEventListener('click', () => {
     est = { ...PADRAO };
     for (const [id, cfg] of Object.entries(NUM)) { $(id).value = numFmt(est[id], cfg.tipo); const c = $(id).closest('.field'); c.classList.remove('erro'); const mm = c.querySelector('.msg'); if (mm) mm.remove(); }
-    $('tipo').value = est.tipo; $('mix').value = est.mix; preencherQ(); atualizar();
+    $('tipo').value = est.tipo; $('mix').value = est.mix; preencherQ(); $('ctxExtra').value = est.ctxExtra; atualizar();
   });
   const setAno = a => { est.ano = a; atualizar(); };
   window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (ABAS.includes(h)) { aba = h; atualizar(); } });
@@ -1177,7 +1221,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     const merc = est.lente === 'mercado';
     document.querySelectorAll('#abas a').forEach(a => { const on = a.dataset.aba === aba; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     marcar('atual', est.atual); marcar('anexo', est.anexo); marcar('lente', est.lente); marcar('ano', est.ano); marcar('qCprb', est.qCprb);
-    $('vista-checkup').hidden = aba !== 'checkup'; $('vista-sim').hidden = aba === 'checkup';
+    $('vista-checkup').hidden = aba !== 'checkup'; $('vista-assist').hidden = aba !== 'assistente'; $('vista-sim').hidden = aba === 'checkup' || aba === 'assistente';
     document.querySelectorAll('[data-abas]').forEach(e => { e.hidden = !e.dataset.abas.split(' ').includes(aba); });
     $('mix-out').textContent = est.mix + '%';
     $('pleno').value = numFmt(rhe(est.cbs + est.ibsUf + est.ibsMun, 4), 'pct');
@@ -1201,6 +1245,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     ultimo = sim;
     $('preco-info').innerHTML = `<span>Preço de mercado em 2026: <b>${brl(sim.V)}</b></span><span>Formado no ${esc(NOME[est.atual])} com margem líquida de ${numFmt(est.m, 'pct')}%.</span>`;
     if (aba === 'checkup') renderCheckup();
+    else if (aba === 'assistente') { /* conversa renderizada sob demanda */ }
     else if (aba === 'comparar') renderComparar(sim);
     else if (aba === 'simples') {
       if (sim.sn.fora) renderSemSimples(); else renderSN(sim.sn);
@@ -1442,8 +1487,185 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     try { navigator.clipboard.writeText(txt).then(ok, falha); } catch (e) { falha(); }
   });
 
+  // ───────── Assistente de teses (capacidade sample) ─────────
+  const REGRAS = `Você é o assistente de teses tributárias da Diâmetro, consultoria de gestão para marcenarias e fábricas de móveis no Brasil. Você conversa com o consultor sobre uma empresa cliente e propõe teses de elisão fiscal: economia lícita, planejada antes do fato gerador, com propósito negocial e prova.
+
+Contexto legal (novembro de 2026; confirme o que for usar):
+- Reforma do consumo (LC 214/2025): CBS e IBS substituem PIS/Cofins (2027), ICMS e ISS (transição de 2029 a 2032, IBS pleno em 2033). Crédito amplo: gera crédito o que é usado na atividade, exceto uso e consumo pessoal. Alíquota cheia estimada em 26,5% (CBS 8,8% + IBS 17,7%), ainda a ser fixada.
+- Simples Nacional (LC 123): a partir de 2027 a empresa pode recolher IBS e CBS por fora (híbrido). No Simples puro, o comprador do regime regular só credita o IBS/CBS que está no DAS (LC 214, art. 47, §9º). Nos Anexos I e II, o DAS inclui IRPJ, CSLL e o INSS patronal com RAT.
+- Lucro Presumido: presunção de 8% (IRPJ) e 12% (CSLL) na venda de mercadorias e produtos, com acréscimo de 10% sobre a receita acima de R$ 5 milhões por ano (LC 224/2025, com divergências e ações judiciais). IRPJ de 15% mais adicional de 10% sobre a base acima de R$ 240 mil por ano; CSLL de 9%. Despesas não reduzem esse imposto.
+- Lucro Real: IRPJ de 15% mais adicional de 10% sobre o lucro acima de R$ 240 mil por ano; CSLL de 9%. Despesas necessárias, depreciação e manutenção reduzem o imposto. A depreciação de bens móveis pode ser acelerada pelo número de turnos (1,5 vez com dois turnos de 8 horas, 2 vezes com três). Gasto que aumenta a vida útil do bem em mais de um ano é capitalizado. Veículos só são dedutíveis se ligados à produção ou à venda.
+- Lucros e dividendos (Lei 15.270/2025): retenção de 10% sobre o total pago no mês acima de R$ 50 mil, da mesma empresa ao mesmo sócio; IR mínimo para rendas acima de R$ 600 mil por ano.
+- Folha: fim da desoneração (CPRB) em 2028 (Lei 14.973/2024). RAT de 1% a 3% multiplicado pelo FAP (0,5 a 2), contestável todo ano; estabelecimento com CNPJ próprio pode ter o RAT do próprio risco (Súmula 351 do STJ).
+- Pessoa jurídica no lugar de empregado: tema em julgamento no STF (Tema 1389), sem decisão final. Havendo subordinação, horário, exclusividade e pessoalidade, há vínculo.
+- Norma antielisiva (CTN, art. 116, parágrafo único): atos sem propósito negocial ou com abuso de forma podem ser desconsiderados.
+
+Como classificar cada tese:
+- [VERDE]: aplicação direta da lei, com documentação normal.
+- [AMARELO]: risco de interpretação. A posição se defende com prova e parecer, mas a Receita pode discutir. Diga qual prova sustenta a tese.
+- [VERMELHO]: depende de fato que não existe ou de ocultação (simulação, nota fria, uso pessoal lançado como da empresa sem prova, funcionário com subordinação contratado como PJ, divisão artificial de empresa para ficar no Simples, subfaturamento). Não recomende. Explique a consequência (multa de 75% ou 150%, crime contra a ordem tributária, responsabilidade dos sócios e de quem orientou) e ofereça o caminho lícito para o mesmo objetivo.
+Se o consultor pedir algo [VERMELHO], responda com essa explicação e com a alternativa lícita, sem montar o esquema.
+
+Como responder:
+- Português do Brasil, direto, no tom de um consultor sênior. Não use tabelas.
+- Use os dados da empresa abaixo. Quando der, quantifique com a conta aberta (valor × taxa = resultado) e marque como estimativa. Não invente números da empresa: se faltar um dado, diga qual e faça uma suposição explícita.
+- Cite base legal só quando tiver certeza; caso contrário, escreva "base legal a confirmar com o contador". Não invente números de artigo.
+- Para cada tese, use este formato:
+### Título da tese [VERDE] (ou [AMARELO] ou [VERMELHO])
+- Como funciona: ...
+- Ganho estimado: ... (com a conta)
+- O que precisa ser verdade: requisitos e provas
+- Riscos: ...
+- Quem valida: contador, advogado tributarista ou advogado trabalhista
+- Próximo passo: ...
+- Termine com no máximo 3 perguntas objetivas que melhorariam a análise.
+- É análise gerencial: nenhuma tese deve ser implementada sem validação profissional.`;
+  const ATALHOS = [
+    ['Gerar teses para esta empresa', 'Monte as melhores teses de elisão fiscal para esta empresa, da maior para a menor economia, com o semáforo de cada uma. Use os números do contexto e mostre as contas.'],
+    ['Patrimônio e imóveis', 'Analise patrimônio e imóveis: imóvel próprio ou no nome do sócio, holding, aluguel para a operação, sucessão e o efeito no IRPJ/CSLL, no IBS/CBS, no ITBI e no ITCMD. Quais teses fazem sentido para esta empresa?'],
+    ['Máquinas, frota e investimentos', 'Analise máquinas, frota e investimentos: crédito de IBS/CBS na compra, momento da compra (2026 ou 2027), depreciação e turnos no Lucro Real, manutenção, leasing e locadora de ativos. Quais teses fazem sentido para esta empresa?'],
+    ['Folha, sócios e lucros', 'Analise folha e remuneração dos sócios: pró-labore, distribuição de lucros com a Lei 15.270/2025, RAT e FAP, terceirização da montagem. Quais teses fazem sentido para esta empresa?'],
+    ['Onde está o maior risco?', 'Onde esta empresa corre mais risco fiscal hoje, ou pode cair numa armadilha vendida como planejamento? Liste e explique como se proteger.'],
+  ];
+  const CHAVE_CHAT = 'diametro-assistente-v1';
+  let conversa = [];
+  try { const c = JSON.parse(localStorage.getItem(CHAVE_CHAT) || '[]'); if (Array.isArray(c)) conversa = c.filter(t => t && (t.role === 'user' || t.role === 'assistant') && typeof t.content === 'string' && t.content.trim()); } catch (e) {}
+  const salvarConversa = () => { try { localStorage.setItem(CHAVE_CHAT, JSON.stringify(conversa.slice(-30))); } catch (e) {} };
+  let pedirClaude = null, ctlChat = null, ocupado = false;
+
+  function contextoEmpresa() {
+    const L = [];
+    const q = (rot, v) => L.push(`- ${rot}: ${v}`);
+    L.push('Empresa e projeto típico:');
+    q('Empresa', est.qEmpresa || 'não informada'); q('Estado da fábrica', est.qUf);
+    q('Regime atual', NOME[est.atual]); q('Faturamento anual', brl0(est.rbt)); q('Atividade no Simples', `Anexo ${est.anexo}`);
+    q('Vendas para empresas (PJ)', `${est.mix}%`); q('ICMS na venda', `${numFmt(est.icms, 'pct')}%`); q('INSS patronal fora do Simples', `${numFmt(est.enc, 'pct')}% da mão de obra`);
+    q('Tipo de produto (regime regular)', TIPOS[est.tipo].info);
+    q('Projeto típico', `insumos ${brl0(est.ins)} pelo preço pago; mão de obra ${brl0(est.mo)}; outros custos sem crédito ${brl0(est.outros)}; RT ${numFmt(est.rt, 'pct')}% do contrato; despesas fixas ${numFmt(est.fix, 'pct')}% do faturamento; margem líquida em 2026 ${numFmt(est.m, 'pct')}%`);
+    q('Fornecedor', `ICMS ${numFmt(est.icmsF, 'pct')}%, PIS/Cofins ${numFmt(est.pcF, 'pct')}%`);
+    q('Alíquotas cheias usadas', `CBS ${numFmt(est.cbs, 'pct')}%, IBS ${numFmt(est.ibsUf, 'pct')}% + ${numFmt(est.ibsMun, 'pct')}%`);
+    L.push('Respostas do Check-up:');
+    q('Faturamento com mobiliário clínico', `${numFmt(est.qClin, 'pct')}%`); q('Faturamento com acessibilidade', `${numFmt(est.qAcess, 'pct')}%`);
+    q('Insumos de fornecedor do Simples', `${numFmt(est.qFornSN, 'pct')}%`); q('Contratos com entrega em 2027', brl0(est.qCarteira));
+    q('Máquinas a comprar em 24 meses', brl0(est.qMaq)); q('Turnos de operação', `${est.qTurnos}`); q('Maior retirada mensal de um sócio', brl0(est.qRetirada));
+    q('Desoneração da folha', { sim: 'usa', nao: 'não usa', naosei: 'não sabe' }[est.qCprb]);
+    q('Imóvel da fábrica', { empresa: 'da empresa', socio: 'no nome do sócio', alugado: 'alugado de terceiros' }[est.qImovel]);
+    q('Outra empresa para dividir o faturamento', { nao: 'não', avaliando: 'avaliando', grupo: 'o grupo já tem mais de uma' }[est.qSeparar]);
+    q('Folha mensal de salários', brl0(est.qFolha)); q('RAT e FAP', `${est.qRat}% × ${numFmt(est.qFap, 'pct')}`);
+    q('Despesas mensais com empresas do regime regular', brl0(est.qDespPJ));
+    q('Montagem', { clt: 'equipe própria registrada', mei: 'montadores MEI ou autônomos', empresa: 'empresa de montagem' }[est.qMontagem]);
+    q('Converter funcionários em PJ', est.qPejot === 'avaliando' ? 'avaliando' : 'não');
+    q('Frota', `${est.qVeicOp} veículos de operação; gasto mensal ${brl0(est.qGastoFrota)}; ${est.qVeicSocio} carros usados pelos sócios; frota e máquinas valem ${brl0(est.qBens)}`);
+    q('Entrega', `${{ propria: 'frota própria', transportadora: 'transportadora contratada', grupo: 'transportadora do grupo', autonomos: 'transportador autônomo' }[est.qEntrega]}; frete de terceiros ${brl0(est.qFrete)} por mês`);
+    const ck = ENGINE.checkup(est);
+    if (!ck.erro) {
+      L.push('Resultados já calculados pelo simulador (estimativas):');
+      q('Preço de mercado do projeto em 2026', `${brl0(ck.sim.V)}; cerca de ${ck.N.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} projetos por ano`);
+      for (const [i, t] of [[1, 2027], [7, 2033]]) {
+        const c = ck.sim.comp[i];
+        q(`Lucro líquido por projeto pelo mix em ${t}`, c.op.map(o => `${NOME[o.id]} ${brl0(o.lucro)}`).join('; ') + `; melhor: ${NOME[c.melhor.id]}`);
+      }
+      q('Economia identificada no Check-up', `${brl0(ck.total)} por ano, mais ${brl0(ck.pontual)} de impacto pontual`);
+      L.push('Alavancas do Check-up:');
+      ck.ap.forEach(x => L.push(`- [${SEMTXT[x.sem]}] ${x.titulo}: ${valorAlav(x)}`));
+      ck.na.forEach(x => L.push(`- [NÃO SE APLICA] ${x.titulo}: ${x.motivo}`));
+    }
+    if (est.ctxExtra.trim()) { L.push('Informações do consultor sobre a empresa:'); L.push(est.ctxExtra.trim().slice(0, 4000)); }
+    return L.join('\n');
+  }
+
+  function md(texto) {
+    const inl = t => t.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\[VERDE\]/g, '<span class="etiqueta ok">Verde</span>').replace(/\[AMARELO\]/g, '<span class="etiqueta alerta">Amarelo</span>').replace(/\[VERMELHO\]/g, '<span class="etiqueta perigo">Vermelho</span>');
+    let html = '', lista = null;
+    const fechar = () => { if (lista) { html += `</${lista}>`; lista = null; } };
+    for (const bruta of esc(texto).split('\n')) {
+      const l = bruta.trimEnd(); let m;
+      if ((m = l.match(/^#{1,6}\s+(.*)$/))) { fechar(); html += `<h4>${inl(m[1])}</h4>`; }
+      else if ((m = l.match(/^\s*[-*•]\s+(.*)$/))) { if (lista !== 'ul') { fechar(); html += '<ul>'; lista = 'ul'; } html += `<li>${inl(m[1])}</li>`; }
+      else if ((m = l.match(/^\s*\d+[.)]\s+(.*)$/))) { if (lista !== 'ol') { fechar(); html += '<ol>'; lista = 'ol'; } html += `<li>${inl(m[1])}</li>`; }
+      else if (!l.trim()) fechar();
+      else { fechar(); html += `<p>${inl(l)}</p>`; }
+    }
+    fechar();
+    return html;
+  }
+  const rolarFim = () => { const c = $('conversa'); c.scrollTop = c.scrollHeight; };
+  function renderConversa() {
+    const c = $('conversa');
+    if (!conversa.length) { c.innerHTML = '<p class="vazio">Comece por um dos atalhos acima ou faça uma pergunta. Quanto mais você contar sobre patrimônio, imóveis, máquinas e planos, melhores ficam as teses.</p>'; return; }
+    c.innerHTML = '';
+    for (const t of conversa) {
+      const d = document.createElement('div');
+      d.className = 'msg ' + (t.role === 'user' ? 'eu' : 'ia');
+      if (t.role === 'user') d.textContent = t.content; else d.innerHTML = md(t.content);
+      c.appendChild(d);
+    }
+    rolarFim();
+  }
+  const ERROS = {
+    cancelled: 'Resposta interrompida.',
+    not_granted: 'O assistente precisa da sua permissão para usar o Claude. Sem ela, ele fica desligado nesta visita.',
+    rate_limited: 'Muitas perguntas seguidas ou limite de uso atingido. Tente de novo em alguns minutos.',
+    session_expired: 'Sua sessão expirou. Entre de novo no Claude e tente outra vez.',
+    refused: 'O Claude não respondeu a esse pedido. Reformule a pergunta.',
+    prompt_too_large: 'Contexto grande demais. Encurte as informações sobre a empresa ou limpe a conversa.',
+    empty_completion: 'O Claude não devolveu texto. Reformule ou peça uma parte de cada vez.',
+  };
+  const DESLIGA = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
+  const status = t => { $('assist-status').textContent = t || ''; };
+  function desligarAssistente(texto) {
+    $('assist-off').textContent = texto; $('assist-off').hidden = false;
+    $('assist-chat').hidden = true; $('atalhos').querySelectorAll('button').forEach(b => { b.disabled = true; });
+  }
+  async function perguntar(texto) {
+    texto = String(texto || '').trim();
+    if (!texto || ocupado) return;
+    if (!pedirClaude) { desligarAssistente('O assistente funciona quando o app é aberto pelo Claude (claude.ai). Nesta cópia, use o Check-up e as outras abas.'); return; }
+    conversa.push({ role: 'user', content: texto }); salvarConversa(); renderConversa();
+    $('pergunta').value = '';
+    const bolha = document.createElement('div'); bolha.className = 'msg ia'; bolha.textContent = 'Pensando…';
+    $('conversa').appendChild(bolha); rolarFim();
+    ocupado = true; ctlChat = new AbortController(); $('parar').hidden = false; $('enviar').disabled = true; status('');
+    const hist = conversa.slice(-12);
+    const entrada = [{ role: 'user', content: `${REGRAS}\n\nDADOS DA EMPRESA (atualizados agora)\n${contextoEmpresa()}` }, ...(hist[0].role === 'assistant' ? hist.slice(1) : hist)];
+    try {
+      const r = await pedirClaude(entrada, { cache: false, signal: ctlChat.signal, onText: ({ text }) => { bolha.innerHTML = md(text); rolarFim(); } });
+      conversa.push({ role: 'assistant', content: r.text }); salvarConversa();
+      if (r.truncated) status('A resposta foi cortada no limite de tamanho. Peça uma parte de cada vez.');
+    } catch (e) {
+      const code = e && e.code;
+      if (e && e.text) { conversa.push({ role: 'assistant', content: `${e.text}\n\n(resposta interrompida)` }); salvarConversa(); }
+      else if (code !== 'cancelled') { conversa.pop(); salvarConversa(); $('pergunta').value = texto; }
+      else { conversa.pop(); salvarConversa(); $('pergunta').value = texto; }
+      if (DESLIGA.includes(code)) desligarAssistente(code === 'not_granted' ? ERROS.not_granted : 'O Claude não está disponível para este app nesta conta.');
+      else status(ERROS[code] || 'Não foi possível responder agora. Tente de novo.');
+    } finally {
+      ocupado = false; ctlChat = null; $('parar').hidden = true; $('enviar').disabled = false; renderConversa();
+    }
+  }
+  $('atalhos').innerHTML = ATALHOS.map(([rot], i) => `<button type="button" data-i="${i}">${esc(rot)}</button>`).join('');
+  $('atalhos').addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (b) perguntar(ATALHOS[Number(b.dataset.i)][1]); });
+  $('enviar').addEventListener('click', () => perguntar($('pergunta').value));
+  $('pergunta').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); perguntar($('pergunta').value); } });
+  $('parar').addEventListener('click', () => { if (ctlChat) ctlChat.abort(); });
+  $('limpar-chat').addEventListener('click', () => { if (ocupado) return; conversa = []; salvarConversa(); renderConversa(); status('Conversa limpa.'); });
+  $('copiar-chat').addEventListener('click', () => {
+    const txt = conversa.map(t => `${t.role === 'user' ? 'CONSULTOR' : 'ASSISTENTE'}:\n${t.content}`).join('\n\n');
+    if (!txt) { status('Nada para copiar ainda.'); return; }
+    try { navigator.clipboard.writeText(txt).then(() => status('Conversa copiada.'), () => status('Não deu para copiar automaticamente. Selecione o texto e copie.')); }
+    catch (e) { status('Não deu para copiar automaticamente. Selecione o texto e copie.'); }
+  });
+  $('ctxExtra').value = est.ctxExtra;
+  $('ctxExtra').addEventListener('input', e => { est.ctxExtra = e.target.value.slice(0, 4000); salvar(); });
+  renderConversa();
+  (async () => {
+    try { pedirClaude = window.claude && typeof window.claude.use === 'function' ? await window.claude.use('sample') : null; } catch (e) { pedirClaude = null; }
+    if (!pedirClaude) desligarAssistente('O assistente funciona quando o app é aberto pelo Claude (claude.ai). Nesta cópia, use o Check-up e as outras abas.');
+  })();
+
   function desenhar() {
-    if (!ultimo || aba === 'checkup') return;
+    if (!ultimo || aba === 'checkup' || aba === 'assistente') return;
     const merc = est.lente === 'mercado';
     const graficosVisiveis = !(aba === 'simples' && ultimo.sn.fora);
     document.querySelector('.graficos').hidden = !graficosVisiveis;
