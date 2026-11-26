@@ -427,6 +427,13 @@ details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); displa
             <div class="field"><span class="rot" id="qCprb-rot">Usa a desoneração da folha?</span><div class="seg cheio" id="qCprb" role="group" aria-labelledby="qCprb-rot"><button type="button" data-v="sim">Sim</button><button type="button" data-v="nao">Não</button><button type="button" data-v="naosei">Não sei</button></div></div>
             <div class="field"><label for="qImovel">Imóvel da fábrica</label><select id="qImovel"><option value="empresa">Da empresa</option><option value="socio">No nome do sócio</option><option value="alugado">Alugado de terceiros</option></select></div>
             <div class="field"><label for="qSeparar">Outra empresa para dividir o faturamento</label><select id="qSeparar"><option value="nao">Não pensamos nisso</option><option value="avaliando">Estamos avaliando</option><option value="grupo">O grupo já tem mais de uma</option></select></div>
+            <div class="full"><h2>Folha, montagem e despesas</h2></div>
+            <div class="field" data-campo="qFolha"><label for="qFolha">Folha mensal de salários</label><div class="inp"><span class="un">R$</span><input id="qFolha" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field"><label for="qRat">RAT da empresa</label><select id="qRat"><option value="1">1% · risco leve</option><option value="2">2% · risco médio</option><option value="3">3% · risco grave</option></select></div>
+            <div class="field" data-campo="qFap"><label for="qFap">FAP da empresa</label><div class="inp"><input id="qFap" inputmode="decimal" autocomplete="off"><span class="un dir">0,5 a 2</span></div></div>
+            <div class="field" data-campo="qDespPJ"><label for="qDespPJ">Despesas mensais com empresas do regime regular</label><div class="inp"><span class="un">R$</span><input id="qDespPJ" inputmode="decimal" autocomplete="off"></div><small>Energia, aluguel pago a empresa, frete, software, contabilidade.</small></div>
+            <div class="field"><label for="qMontagem">Quem faz a montagem</label><select id="qMontagem"><option value="clt">Equipe própria registrada</option><option value="mei">Montadores MEI ou autônomos</option><option value="empresa">Empresa de montagem</option></select></div>
+            <div class="field"><label for="qPejot">Converter funcionários em PJ</label><select id="qPejot"><option value="nao">Não pensamos nisso</option><option value="avaliando">Estamos avaliando</option></select></div>
           </div>
         </section>
         <section class="card destaque">
@@ -873,6 +880,53 @@ const ENGINE = (() => {
       passos: ['Conferir sócios, funcionários, endereço e contabilidade de cada empresa', 'Documentar o motivo de negócio de cada uma', 'Revisar os contratos entre as empresas do grupo'] });
     else add({ id: 'separar', aplica: false, titulo: 'Dividir o faturamento em outra empresa', motivo: 'não há plano de dividir o faturamento' });
 
+    // 11. RAT e FAP
+    const folhaAno = inp.qFolha * 12, rat = Number(inp.qRat) / 100, fap = inp.qFap, tRat = 'RAT e FAP (seguro de acidente sobre a folha)';
+    const sumula = ' Se houver estabelecimento com CNPJ próprio só administrativo ou de venda, o RAT dele pode seguir o risco daquele estabelecimento (STJ, Súmula 351).';
+    if (rec === 'sn' || rec === 'hb') add({ id: 'rat', aplica: false, titulo: tRat, motivo: 'no Simples (Anexos I e II) o RAT está dentro do DAS' });
+    else if (!(folhaAno > 0)) add({ id: 'rat', aplica: false, titulo: tRat, motivo: 'folha de salários não informada' });
+    else {
+      const custo = folhaAno * rat * fap, passo = folhaAno * rat * 0.1;
+      if (fap > 1.0001) add({ id: 'rat', aplica: true, sem: 'verde', valida: 'Contador e segurança do trabalho', titulo: tRat, ganho: folhaAno * rat * (fap - 1),
+        porque: `O RAT de ${P(rat)} multiplicado pelo FAP de ${fap.toLocaleString('pt-BR', { maximumFractionDigits: 4 })} custa ${R(custo)} por ano sobre a folha. Com o FAP acima de 1, a empresa paga mais que a média do setor: contestar erros do cálculo e reduzir afastamentos traz o FAP para 1,0 e economiza ${R(folhaAno * rat * (fap - 1))} por ano. Cada 0,1 a menos no FAP vale ${R(passo)} por ano.${sumula}`,
+        passos: ['Conferir o FAP publicado e contestar erros no prazo anual', 'Prevenção: CIPA, EPI, treinamento e controle de afastamentos', 'Conferir CNAE e grau de risco do RAT e pedir de volta o que foi pago a mais nos últimos 5 anos, se houver erro'] });
+      else add({ id: 'rat', aplica: true, sem: 'amarelo', valida: 'Contador e segurança do trabalho', titulo: tRat, rotulo: `${R(passo)} por ano a cada 0,1 de FAP`,
+        porque: `O RAT de ${P(rat)} multiplicado pelo FAP de ${fap.toLocaleString('pt-BR', { maximumFractionDigits: 4 })} custa ${R(custo)} por ano sobre a folha. O FAP já está na média ou abaixo; com prevenção, ele pode cair até 0,5, e cada 0,1 a menos vale ${R(passo)} por ano.${sumula}`,
+        passos: ['Conferir se CNAE e grau de risco do RAT estão corretos', 'Manter a prevenção e o controle de afastamentos', 'Conferir o FAP publicado todo ano'] });
+    }
+
+    // 12. Créditos sobre despesas gerais
+    const despAno = inp.qDespPJ * 12, tDesp = 'Créditos sobre despesas gerais';
+    const cDesp27 = despAno * k27 / (1 + k27), cDesp33 = despAno * k33 / (1 + k33);
+    if (!(despAno > 0)) add({ id: 'despesas', aplica: false, titulo: tDesp, motivo: 'despesas com fornecedores do regime regular não informadas' });
+    else if (credita) add({ id: 'despesas', aplica: true, sem: 'verde', valida: 'Contador', titulo: tDesp, ganho: cDesp27,
+      porque: `Com o crédito amplo do IBS/CBS, despesas pagas a empresas do regime regular também geram crédito: energia elétrica, aluguel pago a empresa, frete com transportadora, software, contabilidade, marketing. Nos ${R(despAno)} por ano informados, isso dá cerca de ${R(cDesp27)} em 2027 e ${R(cDesp33)} em 2033. A comparação de regimes trata as despesas fixas como sem crédito, então esse valor soma ao resultado.`,
+      passos: ['Mapear as despesas por fornecedor e regime tributário', 'Exigir nota com IBS/CBS destacados e guardar os XMLs', 'Conferir os créditos todo mês, antes da apuração'] });
+    else add({ id: 'despesas', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tDesp, rotulo: `${R(cDesp27)} por ano no híbrido`,
+      porque: `No Simples puro, despesas não geram crédito. No híbrido ou no regime regular, os ${R(despAno)} por ano pagos a empresas do regime regular renderiam cerca de ${R(cDesp27)} de crédito em 2027 e ${R(cDesp33)} em 2033. Esse valor pesa a favor do híbrido e não está na comparação de regimes.`,
+      passos: ['Somar esse crédito na decisão de regime', 'Mapear desde já as despesas por fornecedor'] });
+
+    // 13. Contratar funcionário como PJ (pejotização)
+    const simples = rec === 'sn' || rec === 'hb', fatorEnc = simples ? 0.29 : 0.63, econ = folhaAno * fatorEnc;
+    if (inp.qPejot === 'avaliando' && folhaAno > 0) add({ id: 'pejot', aplica: true, sem: 'vermelho', valida: 'Advogado trabalhista', titulo: 'Transformar funcionários em PJ', rotulo: `aparente: ${R(econ)} por ano`,
+      porque: `A conta vendida é economizar os encargos da CLT (${simples ? 'FGTS, férias e 13º; no Simples o INSS patronal já está no DAS' : 'INSS patronal, RAT, terceiros, FGTS, férias e 13º'}) e ainda tomar crédito. Na sua folha, a economia aparente é de ${R(econ)} por ano. Mas se a pessoa continua com horário, chefe, exclusividade e trabalho pessoal, é emprego: a Justiça reconhece o vínculo e a Receita cobra o INSS com multa de 75% a 150%, até 5 anos para trás, o que dá cerca de ${R(econ * 5)} mais multas e juros. E o crédito não vem: um montador MEI gera crédito de IBS/CBS praticamente nulo. O STF ainda julga o tema (Tema 1389), sem decisão final.`,
+      passos: ['Não converter em PJ quem trabalha com subordinação', 'Se o objetivo é custo, atacar produtividade, perdas e retrabalho na fábrica', 'Se a montagem pode ser terceirizada de verdade, contratar empresa com estrutura própria'] });
+    else add({ id: 'pejot', aplica: false, titulo: 'Transformar funcionários em PJ', motivo: folhaAno > 0 ? 'não há plano de converter funcionários em PJ' : 'folha de salários não informada' });
+
+    // 14. Montagem terceirizada
+    const montAno = inp.outros * N, cMont = montAno * k27 / (1 + k27);
+    if (inp.qMontagem === 'mei') add({ id: 'montagem', aplica: true, sem: 'amarelo', valida: 'Advogado trabalhista e contador', titulo: 'Montadores MEI e autônomos',
+      rotulo: credita ? `até ${R(cMont)} por ano em crédito` : null,
+      porque: 'A montagem é feita por MEI ou autônomos. Para não virar vínculo, cada um precisa de autonomia de verdade: vários clientes, ferramentas próprias, preço por serviço e agenda própria. E o MEI gera crédito de IBS/CBS praticamente nulo.' +
+        (credita ? ` Com uma empresa de montagem do regime regular pelo mesmo preço líquido, os cerca de ${R(montAno)} por ano em montagem e frete renderiam até ${R(cMont)} de crédito em 2027.` : ''),
+      passos: ['Conferir a autonomia de cada montador: clientes, ferramentas, agenda e preço', 'Contrato por serviço, sem exclusividade e sem horário', credita ? 'Cotar empresas de montagem do regime regular e comparar o preço líquido do crédito' : null].filter(Boolean) });
+    else if (inp.qMontagem === 'empresa') add({ id: 'montagem', aplica: true, sem: credita ? 'verde' : 'amarelo', valida: 'Contador', titulo: 'Montagem terceirizada com empresa',
+      rotulo: credita ? `até ${R(cMont)} por ano em crédito` : null,
+      porque: credita ? `Com a empresa de montagem no regime regular, os cerca de ${R(montAno)} por ano em montagem e frete geram até ${R(cMont)} de crédito de IBS/CBS em 2027. Se ela estiver no Simples, o crédito cai para cerca de 1,3% do valor.`
+        : 'No Simples puro não há crédito sobre a montagem terceirizada; no híbrido ou no regime regular, a contratação de empresa do regime regular passaria a gerar crédito.',
+      passos: ['Confirmar o regime tributário da empresa de montagem', 'Contrato com escopo, prazo e preço por serviço', 'Exigir nota com IBS/CBS destacados'] });
+    else add({ id: 'montagem', aplica: false, titulo: 'Montagem terceirizada', motivo: 'a montagem é feita por equipe própria registrada' });
+
     const ordem = { verde: 0, amarelo: 1, vermelho: 2 };
     const peso = x => x.ganho || x.pontual || 0;
     const ap = L.filter(x => x.aplica).sort((a, b) => ((b.id === 'regime') - (a.id === 'regime')) || (ordem[a.sem] - ordem[b.sem]) || (peso(b) - peso(a)));
@@ -903,6 +957,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     icmsF: 18, pcF: 9.25, cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85, lente: 'mercado', ano: 2027,
     qEmpresa: 'Marcenaria Exemplo', qUf: 'SP', qResp: '', qClin: 10, qAcess: 0, qFornSN: 20, qCarteira: 150000, qMaq: 120000, qRetirada: 30000,
     qCprb: 'naosei', qImovel: 'socio', qSeparar: 'nao',
+    qFolha: 36000, qRat: '3', qFap: 1, qDespPJ: 15000, qMontagem: 'mei', qPejot: 'avaliando',
   };
   const NUM = {
     rbt: { tipo: 'brl', max: 1e10 }, icms: { tipo: 'pct', max: 40 }, enc: { tipo: 'pct', max: 60 },
@@ -911,6 +966,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     icmsF: { tipo: 'pct', max: 40 }, pcF: { tipo: 'pct', max: 20 }, cbs: { tipo: 'pct', max: 30 }, ibsUf: { tipo: 'pct', max: 30 }, ibsMun: { tipo: 'pct', max: 30 },
     qClin: { tipo: 'pct', max: 100 }, qAcess: { tipo: 'pct', max: 100 }, qFornSN: { tipo: 'pct', max: 100 },
     qCarteira: { tipo: 'brl', max: 1e10 }, qMaq: { tipo: 'brl', max: 1e10 }, qRetirada: { tipo: 'brl', max: 1e9 },
+    qFolha: { tipo: 'brl', max: 1e9 }, qFap: { tipo: 'pct', min: 0.5, max: 2 }, qDespPJ: { tipo: 'brl', max: 1e9 },
   };
   const CHAVE = 'diametro-app-tributario-v2';
   let est = { ...PADRAO };
@@ -943,12 +999,12 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     el.value = numFmt(est[id], cfg.tipo);
     el.addEventListener('input', () => {
       const v = lerNumero(el.value);
-      const ok = Number.isFinite(v) && v >= 0 && v <= cfg.max;
+      const ok = Number.isFinite(v) && v >= (cfg.min ?? 0) && v <= cfg.max;
       campo.classList.toggle('erro', !ok);
       let msg = campo.querySelector('.msg');
       if (!ok) {
         if (!msg) { msg = document.createElement('span'); msg.className = 'msg'; campo.appendChild(msg); }
-        msg.textContent = Number.isFinite(v) ? `Use um valor entre 0 e ${numFmt(cfg.max, cfg.tipo)}.` : 'Digite só números, como 30.000,00.';
+        msg.textContent = Number.isFinite(v) ? `Use um valor entre ${numFmt(cfg.min ?? 0, cfg.tipo)} e ${numFmt(cfg.max, cfg.tipo)}.` : 'Digite só números, como 30.000,00.';
         return;
       }
       if (msg) msg.remove();
@@ -964,7 +1020,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     const b = e.target.closest('button[data-v]'); if (!b) return; est[chave] = conv(b.dataset.v); atualizar();
   });
   segmentado('atual', 'atual'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente'); segmentado('qCprb', 'qCprb');
-  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar'];
+  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar', 'qRat', 'qMontagem', 'qPejot'];
   const preencherQ = () => { TXT.forEach(id => { $(id).value = est[id]; }); SEL.forEach(id => { $(id).value = est[id]; }); };
   TXT.forEach(id => $(id).addEventListener('input', e => { est[id] = e.target.value.slice(0, 80); atualizar(); }));
   SEL.forEach(id => $(id).addEventListener('change', e => { est[id] = e.target.value; atualizar(); }));
@@ -1282,7 +1338,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
   // ───────── Check-up 2027 ─────────
   const SEM = { verde: '<span class="etiqueta ok">Verde · fazer</span>', amarelo: '<span class="etiqueta alerta">Amarelo · com parecer</span>', vermelho: '<span class="etiqueta perigo">Vermelho · não fazer</span>' };
   const SEMTXT = { verde: 'VERDE', amarelo: 'AMARELO', vermelho: 'VERMELHO' };
-  const valorAlav = x => x.ganho > 0 ? `${brl0(x.ganho)} por ano` : x.ganho === 0 ? 'já no melhor caminho' : x.pontual > 0 ? `${brl0(x.pontual)} pontual` : x.pontual === 0 ? 'sem perda relevante' : x.emJogo > 0 ? `${brl0(x.emJogo)} por ano em jogo` : x.sem === 'vermelho' ? 'não fazer' : 'a quantificar com parecer';
+  const valorAlav = x => x.rotulo ? x.rotulo : x.ganho > 0 ? `${brl0(x.ganho)} por ano` : x.ganho === 0 ? 'já no melhor caminho' : x.pontual > 0 ? `${brl0(x.pontual)} pontual` : x.pontual === 0 ? 'sem perda relevante' : x.emJogo > 0 ? `${brl0(x.emJogo)} por ano em jogo` : x.sem === 'vermelho' ? 'não fazer' : 'a quantificar com parecer';
   function renderCheckup() {
     const ck = ENGINE.checkup(est);
     if (ck.erro) { $('erro').textContent = ck.erro; $('erro').hidden = false; return; }
