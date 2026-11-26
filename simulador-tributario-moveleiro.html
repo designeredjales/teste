@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Simulador Tributário Moveleiro · Diâmetro</title>
-<meta name="description" content="Simulador tributário para marcenarias: Check-up Reforma 2027 com alavancas de elisão fiscal e semáforo de risco, assistente de teses e comparação de Lucro Presumido, Lucro Real, Simples puro e híbrido de 2026 a 2033.">
+<meta name="description" content="Simulador tributário para marcenarias e consultorias: Check-up Reforma 2027 com alavancas de elisão fiscal, assistente de teses, consulta oficial de NCM e NBS e comparação de Lucro Presumido, Lucro Real, Simples puro e híbrido.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
@@ -255,6 +255,27 @@ button.sm { padding: 4px 10px; font-size: 13px; }
 .acoes { display: flex; flex-direction: column; gap: 6px; }
 .rodape-chat { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .spacer { flex: 1; }
+.busca { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.busca input.txt { flex: 1 1 260px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 7px 10px; min-width: 0; }
+.busca select { width: auto; }
+.cs-res { display: flex; flex-direction: column; }
+.cs-item { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; padding: 8px 6px; border-top: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 0; text-align: left; font-weight: 400; white-space: normal; }
+.cs-item:first-child { border-top: 0; }
+.cs-item:hover { background: var(--panel-2); filter: none; }
+.cs-item .cod { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--accent); }
+.cs-item .pai { display: block; font-size: 12px; color: var(--muted); }
+.trilha { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted); }
+.trilha b { color: var(--text); font-family: var(--font-mono); font-weight: 600; margin-right: 6px; }
+.cls { padding: 12px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.cls:first-of-type { border-top: 0; }
+.cls-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cls-top .cod { font-family: var(--font-mono); font-weight: 700; }
+.cls .nums { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.cls .nums b { color: var(--text); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.cls details summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+.cls details p { font-size: 12.5px; white-space: pre-wrap; margin-top: 6px; color: var(--muted); }
+.valor-sim { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.valor-sim .inp { width: 200px; }
 .relatorio { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; overflow-x: auto; max-width: 100%; }
 </style>
 <style>html, body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
@@ -293,6 +314,7 @@ button.sm { padding: 4px 10px; font-size: 13px; }
   <nav class="abas" id="abas" aria-label="Simuladores">
     <a href="#checkup" data-aba="checkup">Check-up 2027</a>
     <a href="#assistente" data-aba="assistente">Assistente de teses</a>
+    <a href="#consulta" data-aba="consulta">Consulta NCM/NBS</a>
     <a href="#comparar" data-aba="comparar">Comparar regimes</a>
     <a href="#presumido" data-aba="presumido"><i class="dot pres"></i>Lucro Presumido</a>
     <a href="#real" data-aba="real"><i class="dot real"></i>Lucro Real</a>
@@ -499,6 +521,20 @@ button.sm { padding: 4px 10px; font-size: 13px; }
             <div class="acoes"><button type="button" id="enviar">Enviar</button><button type="button" class="ghost" id="parar" hidden>Parar</button></div></div>
           <div class="rodape-chat"><span class="small muted" id="assist-status" aria-live="polite"></span><span class="spacer"></span><button type="button" class="ghost sm" id="copiar-chat">Copiar conversa</button><button type="button" class="ghost sm" id="limpar-chat">Limpar conversa</button></div>
         </section>
+      </div>
+      <div id="vista-consulta" class="vista" hidden>
+        <section class="card">
+          <header><h2>Consulta de NCM e NBS</h2><span class="etiqueta neutra" id="cs-base">Base oficial da Receita</span></header>
+          <p class="small muted">Digite o código ou parte da descrição de um produto (NCM) ou de um serviço (NBS). A consulta mostra as classificações de IBS e CBS que valem para o código no ano escolhido, com redução, crédito do cliente e base legal. Os vínculos entre código e classificação foram conferidos com a Calculadora da Receita.</p>
+          <div class="busca">
+            <div class="seg" id="cs-tipo" role="group" aria-label="Tipo de código"><button type="button" data-v="ncm">Produto (NCM)</button><button type="button" data-v="nbs">Serviço (NBS)</button></div>
+            <input type="search" id="cs-q" class="txt" placeholder="Ex.: 9403.60.00, móveis de madeira, 1.1401.11.00, consultoria em gestão" aria-label="Código ou descrição">
+            <select id="cs-ano" aria-label="Ano"><option value="2026-06-01">2026</option><option value="2027-03-15">2027</option><option value="2033-03-15">2033</option></select>
+          </div>
+          <div class="atalhos" id="cs-atalhos"></div>
+          <div id="cs-res" class="cs-res"></div>
+        </section>
+        <section class="card" id="cs-det" hidden></section>
       </div>
       <div id="vista-sim" class="vista">
       <section aria-label="Ano da simulação" class="anos">
@@ -1048,6 +1084,39 @@ const ENGINE = (() => {
   return { rhe, ibscbs, regras, das, partilha, virada, irpjCsllPresumido, taxaReal, margemPreReal, precoMercado, simular, checkup, TIPOS, ANOS, FASE_RR, FASE_SN, ANEXOS };
 })();
 // ENGINE END
+// CONSULTA START
+const CONSULTA = (() => {
+  const vale = (ini, fim, data) => ini <= data && data <= fim;
+  function classesDoCodigo(D, tipo, cod, data) {
+    const ids = new Set();
+    if (tipo === 'ncm') {
+      for (const [id, pref, cl, ini, fim] of D.ncmApl) {
+        if (!cod.startsWith(pref) || !vale(ini, fim, data)) continue;
+        if (D.ncmExc.some(([nid, ncm, i2, f2]) => nid === id && cod.startsWith(ncm) && vale(i2, f2, data))) continue;
+        ids.add(cl);
+      }
+    } else {
+      for (const [pref, cl, ini, fim] of D.nbsApl) if (cod.startsWith(pref) && vale(ini, fim, data)) ids.add(cl);
+    }
+    return [...ids].map(id => ({ id, ...D.classes[String(id)] })).filter(c => c.cd && vale(c.ini, c.fim, data)).sort((a, b) => a.cd.localeCompare(b.cd));
+  }
+  // Classificações que não dependem de lista de códigos: regra geral e as que dependem da operação ou de quem fornece.
+  function classesSemLista(D, tipo, data) {
+    const comLista = new Set([...D.ncmApl.map(r => r[2]), ...D.nbsApl.map(r => r[1])]);
+    const aceita = tipo === 'ncm' ? ['NCM', 'NBS ou NCM'] : ['NBS', 'NBS ou NCM'];
+    return Object.entries(D.classes).map(([id, c]) => ({ id: Number(id), ...c }))
+      .filter(c => !comLista.has(c.id) && aceita.includes(c.nom) && vale(c.ini, c.fim, data));
+  }
+  function sujeitoIS(D, cod, data) { return D.isNcm.some(([pref, ini, fim]) => cod.startsWith(pref) && vale(ini, fim, data)); }
+  function hierarquia(lista, cod) { // lista ordenada [[codigo, descricao]]
+    const mapa = new Map(lista.map(r => [r[0], r[1]]));
+    const out = [];
+    for (let n = 1; n <= cod.length; n++) { const p = cod.slice(0, n); if (mapa.has(p)) out.push([p, mapa.get(p)]); }
+    return out;
+  }
+  return { classesDoCodigo, classesSemLista, sujeitoIS, hierarquia };
+})();
+// CONSULTA END
 if (typeof module !== 'undefined') module.exports = ENGINE;
 </script>
 
@@ -1055,7 +1124,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
 (() => {
   if (typeof document === 'undefined') return;
   const { rhe, ibscbs, das, partilha, simular, irpjCsllPresumido, TIPOS, ANOS, FASE_RR, FASE_SN } = ENGINE;
-  const ABAS = ['checkup', 'assistente', 'comparar', 'presumido', 'real', 'simples'];
+  const ABAS = ['checkup', 'assistente', 'consulta', 'comparar', 'presumido', 'real', 'simples'];
   const NOME = { presumido: 'Lucro Presumido', real: 'Lucro Real', sn: 'Simples puro', hb: 'Simples híbrido', simples: 'Simples Nacional' };
   const COR = { presumido: '--pres', real: '--real', sn: '--sn', hb: '--hb' };
 
@@ -1230,7 +1299,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     const merc = est.lente === 'mercado';
     document.querySelectorAll('#abas a').forEach(a => { const on = a.dataset.aba === aba; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     marcar('atual', est.atual); marcar('anexo', est.anexo); marcar('lente', est.lente); marcar('ano', est.ano); marcar('qCprb', est.qCprb);
-    $('vista-checkup').hidden = aba !== 'checkup'; $('vista-assist').hidden = aba !== 'assistente'; $('vista-sim').hidden = aba === 'checkup' || aba === 'assistente';
+    $('vista-checkup').hidden = aba !== 'checkup'; $('vista-assist').hidden = aba !== 'assistente'; $('vista-consulta').hidden = aba !== 'consulta'; $('vista-sim').hidden = ['checkup', 'assistente', 'consulta'].includes(aba);
     document.querySelectorAll('[data-abas]').forEach(e => { e.hidden = !e.dataset.abas.split(' ').includes(aba); });
     $('mix-out').textContent = est.mix + '%';
     $('pleno').value = numFmt(rhe(est.cbs + est.ibsUf + est.ibsMun, 4), 'pct');
@@ -1255,6 +1324,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     $('preco-info').innerHTML = `<span>Preço de mercado em 2026: <b>${brl(sim.V)}</b></span><span>Formado no ${esc(NOME[est.atual])} com margem líquida de ${numFmt(est.m, 'pct')}%.</span>`;
     if (aba === 'checkup') renderCheckup();
     else if (aba === 'assistente') { /* conversa renderizada sob demanda */ }
+    else if (aba === 'consulta') abrirConsulta();
     else if (aba === 'comparar') renderComparar(sim);
     else if (aba === 'simples') {
       if (sim.sn.fora) renderSemSimples(); else renderSN(sim.sn);
@@ -1673,8 +1743,107 @@ Como responder:
     if (!pedirClaude) desligarAssistente('O assistente funciona quando o app é aberto pelo Claude (claude.ai). Nesta cópia, use o Check-up e as outras abas.');
   })();
 
+  // ───────── Consulta NCM/NBS (base oficial) ─────────
+  const CS = { D: null, NCM: null, carregando: null, tipo: 'nbs', sel: null, valor: 10000 };
+  const ATALHOS_CS = [['nbs', '114011100', 'Consultoria em gestão estratégica'], ['nbs', '122051900', 'Treinamento'], ['ncm', '94036000', 'Móveis de madeira'], ['ncm', '94029090', 'Mobiliário clínico'], ['ncm', '83024100', 'Ferragens de acessibilidade']];
+  const fmtNcm = c => c.length <= 4 ? c : c.length <= 6 ? `${c.slice(0, 4)}.${c.slice(4)}` : `${c.slice(0, 4)}.${c.slice(4, 6)}.${c.slice(6)}`;
+  const fmtNbs = c => c.length <= 1 ? c : c[0] + '.' + c.slice(1, 5) + (c.length > 5 ? '.' + c.slice(5, 7) : '') + (c.length > 7 ? '.' + c.slice(7, 9) : '');
+  const fmtCod = (t, c) => t === 'ncm' ? fmtNcm(c) : fmtNbs(c);
+  const semAcento = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  function abrirConsulta() {
+    marcar('cs-tipo', CS.tipo);
+    if (CS.D || CS.carregando) return;
+    $('cs-res').innerHTML = '<p class="vazio">Carregando a base oficial…</p>';
+    CS.carregando = Promise.all([fetch('dados/classificacao.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }), fetch('dados/ncm.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })])
+      .then(([d, n]) => {
+        CS.D = d; CS.NCM = n; CS.nbsLista = d.nbs.map(r => [r[0], r[1]]);
+        CS.idxNcm = n.map(r => [r[0], semAcento(r[1])]); CS.idxNbs = d.nbs.map(r => [r[0], semAcento(r[1])]);
+        $('cs-base').textContent = `Base oficial da Receita · ${d.base.versao} de ${String(d.base.data).slice(0, 10).split('-').reverse().join('/')}`;
+        buscar();
+      })
+      .catch(() => { CS.carregando = null; $('cs-res').innerHTML = '<p class="vazio">Não foi possível carregar a base de classificações. Recarregue a página para tentar de novo.</p>'; });
+  }
+  function buscar() {
+    if (!CS.D) return;
+    const q = $('cs-q').value.trim();
+    const lista = CS.tipo === 'ncm' ? CS.NCM : CS.nbsLista, idx = CS.tipo === 'ncm' ? CS.idxNcm : CS.idxNbs;
+    const desc = new Map(lista);
+    let res = [];
+    const dig = q.replace(/[.\s-]/g, '');
+    if (!q) { $('cs-res').innerHTML = '<p class="vazio">Digite um código ou uma descrição, ou use um dos atalhos.</p>'; return; }
+    if (/^\d+$/.test(dig)) res = lista.filter(r => r[0].startsWith(dig)).slice(0, 60).map(r => r[0]);
+    else {
+      const palavras = semAcento(q).split(/\s+/).filter(w => w.length > 1);
+      res = idx.filter(([c, d]) => palavras.every(w => d.includes(w))).slice(0, 60).map(r => r[0]);
+    }
+    if (!res.length) { $('cs-res').innerHTML = '<p class="vazio">Nada encontrado. Tente outra palavra ou só o começo do código.</p>'; return; }
+    const pai = c => { for (let n = c.length - 1; n >= 2; n--) if (desc.has(c.slice(0, n))) return `${fmtCod(CS.tipo, c.slice(0, n))} · ${desc.get(c.slice(0, n))}`; return ''; };
+    $('cs-res').innerHTML = res.map(c => `<button type="button" class="cs-item" data-c="${c}"><span class="cod">${fmtCod(CS.tipo, c)}</span><span>${esc(desc.get(c))}<span class="pai">${esc(pai(c))}</span></span></button>`).join('');
+  }
+  function aliqAno(data) {
+    if (data < '2027-01-01') return { cbs: 0.9, ibsUf: 0.1, ibsMun: 0 };
+    if (data < '2029-01-01') return { cbs: est.cbs, ibsUf: 0.05, ibsMun: 0.05 };
+    return { cbs: est.cbs, ibsUf: est.ibsUf, ibsMun: est.ibsMun };
+  }
+  function linhaClasse(c, data, destaque) {
+    const a = aliqAno(data), red = c.red, efet = [a.cbs * (1 - red[0] / 100), a.ibsUf * (1 - red[1] / 100), a.ibsMun * (1 - red[2] / 100)];
+    const tot = efet.reduce((x, y) => x + y, 0), tributo = ENGINE.ibscbs(CS.valor, { cbs: efet[0], ibsUf: efet[1], ibsMun: efet[2] }).total;
+    const credito = c.credAdq[0] || c.credAdq[1] ? '<span class="etiqueta ok">cliente PJ credita</span>' : '<span class="etiqueta neutra">sem crédito para o cliente</span>';
+    const redTxt = Math.max(...red) > 0 ? `<span class="etiqueta acao">redução de ${numFmt(Math.max(...red), 'pct')}%</span>` : '';
+    return `<div class="cls"><div class="cls-top"><span class="cod">${esc(c.cd)}</span><span class="etiqueta neutra">CST ${esc(c.cst)}</span>${redTxt}${credito}${destaque ? `<span class="etiqueta alerta">${esc(destaque)}</span>` : ''}</div>
+      <div>${esc(c.d)}</div>
+      <div class="nums"><span>Alíquota efetiva no ano: <b>${pp(rhe(tot, 4), 2)}</b></span><span>IBS/CBS sobre ${brl0(CS.valor)}: <b>${brl(tributo)}</b></span>${c.anexo ? `<span>Anexo ${esc(c.anexo)} da LC 214</span>` : ''}</div>
+      ${c.fund ? `<details><summary>Base legal: ${esc(c.fundCurta || 'LC 214/2025')}</summary><p>${esc(c.fund)}</p></details>` : ''}</div>`;
+  }
+  function detalhe(cod) {
+    CS.sel = cod;
+    const data = $('cs-ano').value, t = CS.tipo, D = CS.D;
+    const lista = t === 'ncm' ? CS.NCM : CS.nbsLista;
+    const trilha = CONSULTA.hierarquia(lista, cod);
+    const folha = t === 'ncm' ? cod.length === 8 : cod.length === 9;
+    const det = $('cs-det'); det.hidden = false;
+    if (!folha) {
+      const filhos = lista.filter(r => r[0].startsWith(cod) && r[0].length === (t === 'ncm' ? 8 : 9)).slice(0, 80);
+      det.innerHTML = `<header><h2>${fmtCod(t, cod)}</h2></header><div class="trilha">${trilha.map(([c, d]) => `<span><b>${fmtCod(t, c)}</b>${esc(d)}</span>`).join('')}</div>
+        <p class="small muted">Esse é um agrupamento. Escolha o código completo, que é o usado na nota:</p><div class="cs-res">${filhos.map(([c, d]) => `<button type="button" class="cs-item" data-c="${c}"><span class="cod">${fmtCod(t, c)}</span><span>${esc(d)}</span></button>`).join('') || '<p class="vazio">Sem códigos completos abaixo deste.</p>'}</div>`;
+      return;
+    }
+    const especificas = CONSULTA.classesDoCodigo(D, t, cod, data);
+    const semLista = CONSULTA.classesSemLista(D, t, data);
+    const geral = semLista.find(c => c.cd === '000001');
+    const condicionais = semLista.filter(c => Math.max(...c.red) > 0).sort((a, b) => Math.max(...b.red) - Math.max(...a.red));
+    const is = t === 'ncm' && CONSULTA.sujeitoIS(D, cod, data);
+    const lc116 = t === 'nbs' ? (D.nbs.find(r => r[0] === cod) || [])[2] : null;
+    const ano = data.slice(0, 4);
+    det.innerHTML = `<header><h2>${fmtCod(t, cod)} · ${ano}</h2>${is ? '<span class="etiqueta perigo">sujeito ao Imposto Seletivo</span>' : ''}</header>
+      <div class="trilha">${trilha.map(([c, d]) => `<span><b>${fmtCod(t, c)}</b>${esc(d)}</span>`).join('')}${lc116 ? `<span><b>LC 116</b>item ${esc(lc116)}</span>` : ''}</div>
+      <div class="valor-sim"><label for="cs-valor" class="small muted">Valor para simular</label><div class="inp"><span class="un">R$</span><input id="cs-valor" inputmode="decimal" autocomplete="off" value="${numFmt(CS.valor, 'brl')}"></div></div>
+      <h2>Classificações específicas deste código</h2>
+      ${especificas.length ? especificas.map(c => linhaClasse(c, data)).join('') : '<p class="vazio">Nenhuma classificação com lista inclui este código: vale a regra geral, salvo as situações que dependem da operação ou de quem fornece.</p>'}
+      <h2>Regra geral</h2>
+      ${geral ? linhaClasse(geral, data) : '<p class="vazio">Regra geral não encontrada para o ano.</p>'}
+      <details><summary class="small"><b>Dependem da operação ou de quem fornece (${condicionais.length})</b>: profissões intelectuais, autônomos, locação e venda de imóveis e outras</summary>
+        ${condicionais.map(c => linhaClasse(c, data, c.cd === '200052' ? 'exige profissional com conselho' : c.cd === '200027' || c.cd === '200046' ? 'operações com imóveis' : '')).join('')}</details>
+      <p class="small muted">Alíquotas cheias de 2029 em diante usam as estimativas da coluna ao lado. A escolha da classificação depende da operação real; confirme com o contador antes de emitir a nota.</p>`;
+    const inp = $('cs-valor');
+    inp.addEventListener('change', () => { const v = lerNumero(inp.value); if (Number.isFinite(v) && v >= 0 && v <= 1e10) { CS.valor = v; detalhe(cod); } else inp.value = numFmt(CS.valor, 'brl'); });
+  }
+  $('cs-atalhos').innerHTML = ATALHOS_CS.map(([t, c, rot], i) => `<button type="button" data-i="${i}">${esc(rot)} · ${fmtCod(t, c)}</button>`).join('');
+  $('cs-atalhos').addEventListener('click', e => {
+    const b = e.target.closest('button[data-i]'); if (!b) return;
+    const [t, c] = ATALHOS_CS[Number(b.dataset.i)];
+    const ir = () => { CS.tipo = t; marcar('cs-tipo', t); $('cs-q').value = fmtCod(t, c); buscar(); detalhe(c); $('cs-det').scrollIntoView({ block: 'start', behavior: 'smooth' }); };
+    if (CS.D) ir(); else { abrirConsulta(); if (CS.carregando) CS.carregando.then(() => { if (CS.D) ir(); }); }
+  });
+  $('cs-tipo').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; CS.tipo = b.dataset.v; marcar('cs-tipo', CS.tipo); $('cs-det').hidden = true; buscar(); });
+  let tBusca = 0; $('cs-q').addEventListener('input', () => { clearTimeout(tBusca); tBusca = setTimeout(buscar, 150); });
+  $('cs-res').addEventListener('click', e => { const b = e.target.closest('.cs-item'); if (b) { detalhe(b.dataset.c); $('cs-det').scrollIntoView({ block: 'start', behavior: 'smooth' }); } });
+  $('cs-det').addEventListener('click', e => { const b = e.target.closest('.cs-item'); if (b) detalhe(b.dataset.c); });
+  $('cs-ano').value = '2027-03-15';
+  $('cs-ano').addEventListener('change', () => { if (CS.sel) detalhe(CS.sel); });
+
   function desenhar() {
-    if (!ultimo || aba === 'checkup' || aba === 'assistente') return;
+    if (!ultimo || ['checkup', 'assistente', 'consulta'].includes(aba)) return;
     const merc = est.lente === 'mercado';
     const graficosVisiveis = !(aba === 'simples' && ultimo.sn.fora);
     document.querySelector('.graficos').hidden = !graficosVisiveis;
