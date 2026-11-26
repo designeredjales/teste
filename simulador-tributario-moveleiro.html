@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Simulador Tributário Moveleiro · Diâmetro</title>
-<meta name="description" content="Simulador da Reforma Tributária para marcenarias: Lucro Presumido, Lucro Real e Simples Nacional, com custo do cliente PF e PJ, margem de 2026 a 2033 e decisão entre Simples puro e híbrido.">
+<meta name="description" content="Simulador tributário para marcenarias: compare Lucro Presumido, Lucro Real, Simples puro e híbrido, com IRPJ e CSLL, custo do cliente PF e PJ e margem de 2026 a 2033.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
@@ -183,21 +183,38 @@ thead tr.grupo th { text-align: center; border-bottom: 0; padding-bottom: 0; }
 @media (prefers-reduced-motion: no-preference) { .seg button, button.ghost, tbody tr td { transition: background-color .15s; } }
 </style>
 <style>
-.dot.pf { background: var(--sn); } .dot.pj { background: var(--hb); }
+:root { --pres: #e8590c; --real: #a61e4d; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pres: #f76707; --real: #c2255c; } }
+:root[data-theme="dark"] { --pres: #f76707; --real: #c2255c; }
 select { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 7px 10px; width: 100%; min-width: 0; }
 select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
-.regime-seg button { padding: 8px 6px; font-size: 13px; }
-.premissas h3 { font-size: 13px; margin-top: 4px; }
+.dot.pres { background: var(--pres); } .dot.real { background: var(--real); }
+.abas { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; max-width: 100%; }
+.abas a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; color: var(--muted); text-decoration: none; font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.abas a:hover { color: var(--text); }
+.abas a.on { color: var(--accent); border-bottom-color: var(--accent); }
+.abas a:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: -2px; border-radius: 6px; }
 .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
 @media (max-width: 720px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.cards > .span2 { grid-column: 1 / -1; }
 .cards .card header { align-items: center; justify-content: flex-start; }
 .cards .card header p { flex-basis: 100%; color: var(--muted); font-size: 13px; }
 .linhas .etiqueta { margin-right: 6px; }
-.barra-regime { padding: 14px 18px; }
-.barra-regime .field { gap: 8px; }
-.barra-regime .seg { max-width: 640px; }
-.barra-regime .seg button { padding: 9px 10px; font-size: 14px; }
 .anexos { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+.ranking td:first-child { font-family: var(--font-sans); }
+.ranking td .sub { display: block; font-size: 11px; color: var(--muted); }
+.ranking tr.melhor td { background: color-mix(in srgb, var(--green) 9%, transparent); }
+.ranking tr.fora td { color: var(--muted); }
+.nome { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.linha-tempo { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 720px) { .linha-tempo { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.linha-tempo button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 6px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 400; white-space: normal; text-align: left; }
+.linha-tempo button:hover { background: var(--panel-2); filter: none; }
+.linha-tempo button.on { border-color: var(--accent); }
+.linha-tempo .ano { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.linha-tempo .quem { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 600; }
+.legenda svg { flex: none; }
+.info.destaque-preco b { font-size: 14px; }
 </style>
 <style>html, body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
 </head>
@@ -224,45 +241,50 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
     <div class="tit">
       <h2>Diâmetro · Reforma Tributária do Consumo</h2>
       <h1>Simulador Tributário Moveleiro</h1>
-      <p>Para marcenarias e fábricas de móveis: quanto o mesmo projeto custa para o cliente PF e para o cliente empresa, o que sobra de margem de 2026 a 2033 e, no Simples, se vale recolher IBS e CBS por fora.</p>
+      <p>Para marcenarias e fábricas de móveis: em qual regime o mesmo projeto deixa mais lucro de 2026 a 2033, quanto ele custa para o cliente PF e para o cliente empresa e, no Simples, se vale recolher IBS e CBS por fora.</p>
     </div>
     <div class="chips">
-      <span class="etiqueta neutra md">LC 123/2006 · LC 214/2025</span>
+      <span class="etiqueta neutra md">LC 123 · LC 214 · LC 224</span>
       <span class="etiqueta acao md">Motor conferido com as Calculadoras da Receita</span>
     </div>
   </header>
 
-  <section class="card barra-regime" aria-labelledby="regime-rot">
-    <div class="field">
-      <h2 id="regime-rot">Regime tributário da marcenaria</h2>
-      <div class="seg cheio regime-seg" id="regime" role="group" aria-labelledby="regime-rot">
-        <button type="button" data-v="presumido">Lucro Presumido</button>
-        <button type="button" data-v="real">Lucro Real</button>
-        <button type="button" data-v="simples">Simples Nacional</button>
-      </div>
-      <small id="regime-info"></small>
-    </div>
-  </section>
+  <nav class="abas" id="abas" aria-label="Simuladores">
+    <a href="#comparar" data-aba="comparar">Comparar regimes</a>
+    <a href="#presumido" data-aba="presumido"><i class="dot pres"></i>Lucro Presumido</a>
+    <a href="#real" data-aba="real"><i class="dot real"></i>Lucro Real</a>
+    <a href="#simples" data-aba="simples"><i class="dot sn"></i>Simples Nacional</a>
+  </nav>
 
   <div class="layout">
     <aside class="lateral" aria-label="Premissas">
       <section class="card">
         <header><h2>Empresa</h2><span class="etiqueta alerta">Exemplo</span></header>
         <div class="campos">
-          <div class="field full" data-modo="sn">
+          <div class="field full">
+            <span class="rot" id="atual-rot">Regime atual</span>
+            <div class="seg cheio" id="atual" role="group" aria-labelledby="atual-rot">
+              <button type="button" data-v="presumido">Presumido</button>
+              <button type="button" data-v="real">Real</button>
+              <button type="button" data-v="simples">Simples</button>
+            </div>
+            <div class="info destaque-preco" id="preco-info"></div>
+          </div>
+          <div class="field full" data-campo="rbt">
+            <label for="rbt">Faturamento anual da empresa</label>
+            <div class="inp"><span class="un">R$</span><input id="rbt" inputmode="decimal" autocomplete="off"></div>
+            <small>Define a faixa do Simples, o adicional do IRPJ e o acréscimo da LC 224 no Presumido.</small>
+          </div>
+          <div class="field full" data-abas="comparar simples">
             <span class="rot" id="anexo-rot">Atividade no Simples</span>
             <div class="seg cheio" id="anexo" role="group" aria-labelledby="anexo-rot">
               <button type="button" data-v="II">Fabricação · Anexo II</button>
               <button type="button" data-v="I">Revenda · Anexo I</button>
             </div>
-          </div>
-          <div class="field full" data-campo="rbt" data-modo="sn">
-            <label for="rbt">Faturamento dos últimos 12 meses</label>
-            <div class="inp"><span class="un">R$</span><input id="rbt" inputmode="decimal" autocomplete="off"></div>
             <div class="info" id="das-info"></div>
           </div>
-          <div class="field full" data-modo="rr">
-            <label for="tipo">Tipo de produto</label>
+          <div class="field full" data-abas="comparar presumido real">
+            <label for="tipo">Tipo de produto (regime regular)</label>
             <select id="tipo">
               <option value="movel">Móveis planejados e estofados</option>
               <option value="clinico">Mobiliário clínico (redução de 60%)</option>
@@ -270,10 +292,15 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
             </select>
             <small id="tipo-info"></small>
           </div>
-          <div class="field full" data-campo="icms" data-modo="rr">
-            <label for="icms">ICMS na venda hoje (hipótese)</label>
+          <div class="field" data-campo="icms" data-abas="comparar presumido real">
+            <label for="icms">ICMS na venda</label>
             <div class="inp"><input id="icms" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
           </div>
+          <div class="field" data-campo="enc" data-abas="comparar presumido real">
+            <label for="enc">INSS patronal</label>
+            <div class="inp"><input id="enc" inputmode="decimal" autocomplete="off"><span class="un dir">% MO</span></div>
+          </div>
+          <div class="field full" data-abas="comparar presumido real"><small>INSS patronal, RAT e terceiros fora do Simples, em % do custo da mão de obra (no Simples, Anexos I e II, está no DAS).</small></div>
           <div class="field full">
             <label for="mix">Vendas para empresas (PJ)</label>
             <div class="faixa"><input type="range" id="mix" min="0" max="100" step="5"><output id="mix-out" for="mix" class="mono">0%</output></div>
@@ -288,11 +315,12 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
           <div class="field full" data-campo="ins">
             <label for="ins">Insumos, pelo preço pago hoje</label>
             <div class="inp"><span class="un">R$</span><input id="ins" inputmode="decimal" autocomplete="off"></div>
-            <small>MDF, ferragens, fitas, vidros, com os impostos que vêm na nota. O simulador desconta o que cada regime recupera.</small>
+            <small>MDF, ferragens, fitas, vidros, com os impostos da nota. O simulador desconta o que cada regime recupera.</small>
           </div>
           <div class="field full" data-campo="mo">
             <label for="mo">Mão de obra própria</label>
             <div class="inp"><span class="un">R$</span><input id="mo" inputmode="decimal" autocomplete="off"></div>
+            <small>Salários, FGTS, férias e 13º, sem o INSS patronal.</small>
           </div>
           <div class="field full" data-campo="outros">
             <label for="outros">Outros custos sem crédito</label>
@@ -308,9 +336,9 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
             <div class="inp"><input id="fix" inputmode="decimal" autocomplete="off"><span class="un dir">% fatur.</span></div>
           </div>
           <div class="field full" data-campo="m">
-            <label for="m">Margem em 2026</label>
+            <label for="m">Margem líquida hoje, no regime atual</label>
             <div class="inp"><input id="m" inputmode="decimal" autocomplete="off"><span class="un dir">% da receita</span></div>
-            <small id="m-info"></small>
+            <small>Depois de todos os tributos, IRPJ e CSLL inclusive. Forma o preço de mercado de 2026.</small>
           </div>
         </div>
       </section>
@@ -346,21 +374,13 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
       </section>
 
       <section class="card">
-        <header><h2>Política de preço</h2></header>
-        <div class="campos">
-          <div class="field full">
-            <span class="rot" id="lente-rot">Cliente PF</span>
-            <div class="seg cheio" id="lente" role="group" aria-labelledby="lente-rot">
-              <button type="button" data-v="mercado">Preço de mercado</button>
-              <button type="button" data-v="margem">Margem constante</button>
-            </div>
-            <small id="lente-info"></small>
+        <header><h2>Como comparar</h2></header>
+        <div class="field">
+          <div class="seg cheio" id="lente" role="group" aria-label="Critério de comparação">
+            <button type="button" data-v="mercado">Preço de mercado</button>
+            <button type="button" data-v="margem">Margem constante</button>
           </div>
-          <div class="field full" data-modo="rr">
-            <label for="captura">Cliente PJ: parte da vantagem de crédito que vira preço</label>
-            <div class="faixa"><input type="range" id="captura" min="0" max="100" step="5"><output id="captura-out" for="captura" class="mono">0%</output></div>
-            <small>0% cobra do PJ o mesmo preço do PF. 100% cobra do PJ até o custo efetivo dele igualar o contrato do PF.</small>
-          </div>
+          <small id="lente-info"></small>
         </div>
       </section>
 
@@ -371,9 +391,7 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
       <section aria-label="Ano da simulação" class="anos">
         <div class="rolagem"><div class="seg" id="ano" role="group" aria-label="Ano"></div></div>
       </section>
-
       <div id="erro" class="aviso" hidden></div>
-
       <section class="card destaque">
         <div>
           <div class="rotulo" id="big-rot"></div>
@@ -382,9 +400,7 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
         </div>
         <div class="resumo" id="resumo"></div>
       </section>
-
       <div class="cards" id="cards"></div>
-
       <div class="graficos">
         <section class="card">
           <header><h2 id="g1-tit"></h2><div class="legenda" id="g1-leg"></div></header>
@@ -395,48 +411,44 @@ select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, 
           <div class="grafico" id="g2"></div>
         </section>
       </div>
-
       <section class="card">
         <header><h2 id="dre-tit">Resultado do projeto</h2><span class="small muted">Clique num ano do gráfico ou da tabela para trocar</span></header>
         <div class="tabela"><table class="dre" id="dre"></table></div>
       </section>
-
       <section class="card">
-        <header><h2>Ano a ano</h2><span class="small muted">Alíquotas de 2027 em diante e partilha do Simples de 2029 em diante são estimativas</span></header>
+        <header><h2 id="tab-tit">Ano a ano</h2><span class="small muted">Alíquotas de 2027 em diante e partilha do Simples de 2029 em diante são estimativas</span></header>
         <div class="tabela"><table id="tab-anos"></table></div>
       </section>
-
     </main>
   </div>
 
   <div class="anexos">
-      <section class="card">
-        <header><h2>Conferência do motor</h2><span id="conf-status"></span></header>
-        <p class="small muted">Regime regular: casos rodados na Calculadora de Tributos da Receita Federal (calculadora-rtc-regime-regular 1.7.2, perfil offline), com o mesmo arredondamento (base com 2 casas, alíquota efetiva com 4, valor com 2, empate para o par). Simples: linha real da Tabela de Alíquotas Efetivas do PGDAS (março/2027) usada nos testes da calculadora-rtc-simples-nacional 1.0.2.</p>
-        <div class="conf" id="conf"></div>
-      </section>
-
-      <section class="card">
-        <header><h2>Premissas do modelo</h2></header>
-        <ul class="premissas">
-          <li><b>2026:</b> no regime regular, CBS de 0,9% e IBS de 0,1% saem destacados na nota e são compensáveis com PIS/Cofins; no Simples, não se aplicam. O projeto de 2026 é a base da comparação.</li>
-          <li><b>Regime regular, 2027 a 2033:</b> CBS cheia a partir de 2027 com IBS de 0,05% + 0,05% até 2028; ICMS a 90%, 80%, 70% e 60% de 2029 a 2032 e extinto em 2033, com o IBS assumindo 10%, 20%, 30%, 40% e 100% da alíquota cheia. O ICMS sai da base do IBS/CBS durante a transição. O padrão de 26,5% é a estimativa usada nos exemplos da Calculadora; o Senado ainda fixa as alíquotas.</li>
-          <li><b>Compras:</b> o fornecedor do regime regular mantém o preço sem tributos. O Presumido credita o ICMS das compras e o Real, também o PIS/Cofins; a partir de 2027 os dois creditam todo o IBS/CBS. O Simples puro não credita nada; o híbrido credita o IBS/CBS.</li>
-          <li><b>Cliente PJ:</b> empresa do regime regular comprando para uso próprio. Recupera 100% do IBS/CBS destacado (cClassTrib 000001) e, por hipótese, não credita ICMS hoje. De fornecedor no Simples puro, credita só o IBS/CBS que está no DAS (LC 214, art. 47, §9º). Empresa do Simples se comporta como cliente PF.</li>
-          <li><b>Simples Nacional:</b> alíquota efetiva pela tabela vigente da LC 123 (faixas 1 a 5, até R$ 3,6 milhões); o total do DAS não muda, muda a partilha. Em 2027–2028 a CBS fica com 13,85% do DAS no Anexo II (15,33% no I) e o IBS com 0,15% (0,17%), conferido com o PGDAS de teste. De 2029 em diante, o IBS assume 10% a 100% da fatia do ICMS (estimativa). O híbrido calcula IBS/CBS sobre o preço do produto e tira essas fatias do DAS; a opção tem prazo definido pelo Comitê Gestor do Simples: confirme com o contador.</li>
-          <li><b>Preço de mercado:</b> o cliente PF paga o mesmo contrato de 2026. <b>Margem constante:</b> o preço se ajusta para manter a margem de 2026. No Simples, o cliente PJ acompanha: mesmo custo efetivo de 2026 no preço de mercado, mesmo preço do PF na margem constante.</li>
-          <li><b>Margem:</b> no regime regular, lucro antes de IRPJ/CSLL; no Simples, lucro líquido, porque o DAS já inclui IRPJ e CSLL. Por isso as margens dos dois regimes não se comparam diretamente. Despesas fixas constantes em reais; RT sobre o valor do contrato; IPI, frete e descontos fora do modelo.</li>
-        </ul>
-      </section>
-
-      <p class="rodape">Simulação gerencial para decisão de preço, canal e regime. Não substitui a apuração fiscal nem a orientação do contador.</p>
+    <section class="card">
+      <header><h2>Conferência do motor</h2><span id="conf-status"></span></header>
+      <p class="small muted">IBS/CBS no regime regular: casos rodados na Calculadora de Tributos da Receita Federal (calculadora-rtc-regime-regular 1.7.2), com o mesmo arredondamento (base com 2 casas, alíquota efetiva com 4, valor com 2, empate para o par). Simples: linha real da Tabela de Alíquotas Efetivas do PGDAS (março/2027) usada nos testes da calculadora-rtc-simples-nacional 1.0.2. IRPJ e CSLL seguem as regras descritas nas premissas.</p>
+      <div class="conf" id="conf"></div>
+    </section>
+    <section class="card">
+      <header><h2>Premissas do modelo</h2></header>
+      <ul class="premissas">
+        <li><b>Preço de mercado:</b> o contrato de 2026 é formado no regime atual, com os custos do projeto e a margem líquida informada. Os outros regimes são avaliados a esse mesmo preço. Despesas fixas ficam constantes em reais.</li>
+        <li><b>Preço de mercado × margem constante:</b> no preço de mercado, o cliente PF paga o mesmo contrato de 2026 e o cliente PJ tem o mesmo custo efetivo de 2026; compara-se o lucro. Na margem constante, cada regime ajusta o preço para manter a margem líquida; compara-se o custo do cliente.</li>
+        <li><b>IRPJ e CSLL no Presumido:</b> presunção de 8% (IRPJ) e 12% (CSLL) da receita, que sobem para 8,8% e 13,2% sobre a parcela acima de R$ 5 milhões por ano (LC 224/2025; há divergência sobre o limite da CSLL e ações judiciais em curso). IRPJ de 15% mais adicional de 10% sobre a base acima de R$ 240 mil por ano; CSLL de 9%. Alíquota efetiva da empresa aplicada à receita do projeto, sem IBS/CBS por fora.</li>
+        <li><b>IRPJ e CSLL no Real:</b> 15% + 9% sobre o lucro, mais adicional de 10% sobre o lucro anual acima de R$ 240 mil, estimado pela margem do projeto aplicada ao faturamento. Prejuízo não gera imposto nem crédito no modelo.</li>
+        <li><b>Simples Nacional:</b> o DAS já inclui IRPJ, CSLL e o INSS patronal (Anexos I e II). Alíquota efetiva pela tabela vigente da LC 123 (até R$ 3,6 milhões). Em 2027–2028 a CBS fica com 13,85% do DAS no Anexo II (15,33% no I) e o IBS com 0,15% (0,17%), conferido com o PGDAS de teste; de 2029 em diante, o IBS assume 10% a 100% da fatia do ICMS (estimativa). No híbrido, IBS/CBS por fora sobre o preço do produto e essas fatias saem do DAS; a opção tem prazo definido pelo Comitê Gestor do Simples.</li>
+        <li><b>Regime regular, IBS/CBS:</b> 2026 é ano de teste (0,9% + 0,1%, compensáveis com PIS/Cofins). A partir de 2027, CBS cheia e IBS de 0,05% + 0,05% até 2028; ICMS a 90%, 80%, 70% e 60% de 2029 a 2032 e extinto em 2033, com o IBS assumindo 10% a 100% da alíquota cheia. O padrão de 26,5% é a estimativa usada nos exemplos da Calculadora.</li>
+        <li><b>Compras:</b> o fornecedor do regime regular mantém o preço sem tributos. O Presumido credita o ICMS; o Real, ICMS e PIS/Cofins; a partir de 2027 os dois creditam todo o IBS/CBS. O Simples puro não credita; o híbrido credita o IBS/CBS.</li>
+        <li><b>Cliente PJ:</b> empresa do regime regular comprando para uso próprio. Recupera o IBS/CBS destacado e, por hipótese, não credita ICMS. De fornecedor no Simples puro, credita só o IBS/CBS que está no DAS (LC 214, art. 47, §9º).</li>
+        <li><b>Fora do modelo:</b> desoneração da folha do setor moveleiro (em transição até 2028), IPI, frete, descontos, créditos sobre despesas gerais, compensação de prejuízos e distribuição de lucros.</li>
+      </ul>
+    </section>
+    <p class="rodape">Simulação gerencial para decisão de regime, preço e canal. Não substitui o planejamento tributário nem a orientação do contador.</p>
   </div>
 </div>
 
 <script>
 // ENGINE START
 const ENGINE = (() => {
-  // Arredondamento meio-par, como na Calculadora ("empates continuam indo para o par").
   function rhe(x, d) {
     const neg = x < 0;
     const s = Math.abs(x).toFixed(10);
@@ -463,8 +475,6 @@ const ENGINE = (() => {
   const FASE_RR = { 2026: 'Ano de teste', 2027: 'CBS cheia', 2028: 'CBS cheia', 2029: 'IBS 10%', 2030: 'IBS 20%', 2031: 'IBS 30%', 2032: 'IBS 40%', 2033: 'Alíquota cheia' };
   const FASE_SN = { 2026: 'Base', 2027: 'CBS no DAS', 2028: 'CBS no DAS', 2029: 'IBS 10%', 2030: 'IBS 20%', 2031: 'IBS 30%', 2032: 'IBS 40%', 2033: 'Pleno' };
   const fatorIcms = t => t <= 2028 ? 1 : (t >= 2033 ? 0 : 1 - FRAC[t]);
-
-  // Alíquotas do regime regular por ano (venda no regime regular, híbrido e fornecedores).
   function regras(t, p) {
     if (t === 2026) return { t, cbs: 0.9, ibsUf: 0.1, ibsMun: 0, icms: p.icms, pc: p.pc, cobrado: false };
     if (t <= 2028) return { t, cbs: p.cbs, ibsUf: 0.05, ibsMun: 0.05, icms: p.icms, pc: 0, cobrado: true };
@@ -472,86 +482,51 @@ const ENGINE = (() => {
     return { t, cbs: p.cbs, ibsUf: p.ibsUf, ibsMun: p.ibsMun, icms: 0, pc: 0, cobrado: true };
   }
   const kCheio = r => (rhe(r.cbs, 4) + rhe(r.ibsUf, 4) + rhe(r.ibsMun, 4)) / 100;
-
-  // Compras: N é o insumo sem tributos; o preço pago e o crédito mudam por ano e por regime.
   function compras(inp, t, p) {
     const N = inp.ins * (1 - inp.icmsF / 100) * (1 - inp.pcF / 100);
-    if (t <= 2026) return { N, pago: inp.ins, k: 0 };
+    if (t <= 2026) return { N, pago: inp.ins, k: 0, credIbsCbs: 0 };
     const r = regras(t, p), k = kCheio(r), iF = inp.icmsF / 100 * fatorIcms(t);
-    return { N, pago: rhe(N / (1 - iF) + k * N, 2), k, credIbsCbs: rhe(N * k, 2), icmsCompra: rhe(N / (1 - iF) * iF, 2) };
+    return { N, pago: rhe(N / (1 - iF) + k * N, 2), k, credIbsCbs: rhe(N * k, 2) };
   }
 
-  // ───────── Regime regular (Lucro Presumido ou Real) ─────────
+  // IRPJ e CSLL
+  const LIM_LC224 = 5000000;
+  function irpjCsllPresumido(R) {
+    if (!(R > 0)) return { taxa: 0, irpj: 0, csll: 0 };
+    const exc = Math.max(0, R - LIM_LC224), ate = R - exc;
+    const baseIr = 0.08 * ate + 0.088 * exc, baseCs = 0.12 * ate + 0.132 * exc;
+    const irpj = 0.15 * baseIr + 0.10 * Math.max(0, baseIr - 240000), csll = 0.09 * baseCs;
+    return { taxa: (irpj + csll) / R, irpj, csll, baseIr, baseCs };
+  }
+  const taxaReal = L => L > 0 ? 0.24 + 0.10 * Math.max(0, L - 240000) / L : 0.24;
+  function margemPreReal(m, R) { let t = 0.24; for (let i = 0; i < 40; i++) t = taxaReal(m / (1 - t) * R); return m / (1 - t); }
+
+  // Regime regular
   const TIPOS = {
-    movel:   { red: 0,   credito: true,  info: 'NCM 9401/9403 · cClassTrib 000001 · tributação integral · cliente PJ recupera o crédito' },
-    clinico: { red: 60,  credito: true,  info: 'NCM 9402.90 · cClassTrib 200030 · Anexo IV · camas e mesas de exame · redução de 60%' },
-    acess:   { red: 100, credito: false, info: 'NCM 8302.41 · cClassTrib 200007 · Anexo XIII · barras de apoio · redução de 100%' },
+    movel:   { red: 0,   credito: true,  info: 'NCM 9401/9403 · cClassTrib 000001 · tributação integral' },
+    clinico: { red: 60,  credito: true,  info: 'NCM 9402.90 · cClassTrib 200030 · Anexo IV · redução de 60%. No Simples, sem redução no modelo.' },
+    acess:   { red: 100, credito: false, info: 'NCM 8302.41 · cClassTrib 200007 · Anexo XIII · redução de 100%. No Simples, sem redução no modelo.' },
   };
-  function simularRR(inp) {
-    const tipo = TIPOS[inp.tipo] || TIPOS.movel, red = tipo.red;
-    const pc = inp.regime === 'real' ? 9.25 : 3.65;
-    const p = { icms: inp.icms, pc, cbs: inp.cbs, ibsUf: inp.ibsUf, ibsMun: inp.ibsMun };
-    // Custo líquido do insumo: Presumido credita ICMS; Real credita ICMS e PIS/Cofins; de 2027 em diante, ambos chegam ao valor sem tributos.
-    const insLiq = t => {
-      const c = compras(inp, t, p);
-      if (t >= 2027 || inp.regime === 'real') return c.N;
-      return inp.ins * (1 - inp.icmsF / 100);
-    };
-    const custo = t => rhe(insLiq(t) + inp.mo + inp.outros, 2);
-    const r0 = regras(2026, p);
-    const den0 = 1 - r0.icms / 100 - (r0.pc / 100) * (1 - r0.icms / 100) - inp.rt / 100 - inp.fix / 100 - inp.m / 100;
-    if (den0 <= 0.02) return { erro: 'ICMS, PIS/Cofins, RT, despesas fixas e margem somam mais de 98% do preço de 2026. Reduza algum desses percentuais.' };
-    if (!(custo(2026) > 0)) return { erro: 'Informe ao menos um custo maior que zero.' };
-    const P0 = rhe(custo(2026) / den0, 2);
-    const F = rhe(P0 * inp.fix / 100, 2);
-
-    function avaliar(P, r, C, credita) {
-      const icms = rhe(P * r.icms / 100, 2), pcv = rhe((P - icms) * r.pc / 100, 2);
-      const trib = ibscbs(P - icms - pcv, r, red);
-      const cobrado = r.cobrado ? trib.total : 0;
-      const contrato = rhe(P + cobrado, 2);
-      const credito = credita && r.cobrado ? trib.total : 0;
-      const comissao = rhe(contrato * inp.rt / 100, 2);
-      const lucro = rhe(P - icms - pcv - comissao - C - F, 2);
-      return { P, icms, pc: pcv, trib, cobrado, contrato, credito, custo: rhe(contrato - credito, 2), comissao, lucro, margem: P > 0 ? lucro / P : 0 };
-    }
-    const anos = [];
-    for (const t of ANOS) {
-      const r = regras(t, p);
-      const kEf = (rhe(r.cbs * (1 - red / 100), 4) + rhe(r.ibsUf * (1 - red / 100), 4) + rhe(r.ibsMun * (1 - red / 100), 4)) / 100;
-      const g = r.cobrado ? 1 + kEf * (1 - r.icms / 100) : 1;
-      const C = custo(t);
-      let Ppf;
-      if (inp.lente === 'mercado') Ppf = P0 / g;
-      else {
-        const den = 1 - r.icms / 100 - (r.pc / 100) * (1 - r.icms / 100) - (inp.rt / 100) * g - inp.m / 100;
-        if (den <= 0.02) return { erro: `Em ${t}, RT, tributos e margem passam de 98% do preço. Reduza a RT ou a margem.` };
-        Ppf = (C + F) / den;
-      }
-      Ppf = rhe(Ppf, 2);
-      const pf = avaliar(Ppf, r, C, false);
-      const Ppj = rhe(Ppf + (inp.captura / 100) * (pf.contrato - Ppf), 2);
-      const pj = avaliar(Ppj, r, C, tipo.credito);
-      const cp = compras(inp, t, p);
-      const credCompras = t >= 2027 ? cp.credIbsCbs : 0;
-      const w = inp.mix / 100;
-      anos.push({ t, fase: FASE_RR[t], r, kEf, C, F, insLiq: rhe(insLiq(t), 2), pago: cp.pago, pf, pj, credCompras, recolher: rhe(pf.trib.total - credCompras, 2), blend: w * pj.margem + (1 - w) * pf.margem });
-    }
-    return { modo: 'rr', P0, F, tipo, pc, anos };
+  const pcRegime = rg => rg === 'real' ? 9.25 : 3.65;
+  function insLiqRR(inp, rg, t) {
+    const N = inp.ins * (1 - inp.icmsF / 100) * (1 - inp.pcF / 100);
+    if (t >= 2027 || rg === 'real') return N;
+    return inp.ins * (1 - inp.icmsF / 100);
   }
+  const moRR = inp => rhe(inp.mo * (1 + inp.enc / 100), 2);
+  const custoRR = (inp, rg, t) => rhe(insLiqRR(inp, rg, t) + moRR(inp) + inp.outros, 2);
 
-  // ───────── Simples Nacional: puro × híbrido ─────────
-  const LIMITE = 3600000;
+  // Simples
   const ANEXOS = {
     II: { nome: 'Anexo II · indústria', faixas: [[180000, 4.5, 0], [360000, 7.8, 5940], [720000, 10, 13860], [1800000, 11.2, 22500], [3600000, 14.7, 85500]], pisCofins: 14.00, icms: [32, 32, 32, 32, 32], cbs2027: 13.85, ibs2027: 0.15 },
     I:  { nome: 'Anexo I · comércio',  faixas: [[180000, 4, 0], [360000, 7.3, 5940], [720000, 9.5, 13860], [1800000, 10.7, 22500], [3600000, 14.3, 87300]], pisCofins: 15.50, icms: [34, 34, 33.5, 33.5, 33.5], cbs2027: 15.33, ibs2027: 0.17 },
   };
   function das(anexo, rbt) {
-    const A = ANEXOS[anexo];
-    const i = A.faixas.findIndex(f => rbt <= f[0]);
+    if (!(rbt > 0)) return null;
+    const A = ANEXOS[anexo], i = A.faixas.findIndex(f => rbt <= f[0]);
     if (i < 0) return null;
     const [, nom, pd] = A.faixas[i];
-    return { faixa: i + 1, nominal: nom, deduzir: pd, efetiva: rbt > 0 ? (rbt * nom / 100 - pd) / rbt * 100 : nom, icms: A.icms[i], A };
+    return { faixa: i + 1, nominal: nom, deduzir: pd, efetiva: (rbt * nom / 100 - pd) / rbt * 100, icms: A.icms[i], A };
   }
   function partilha(d, t) {
     if (t <= 2026) return { cbs: 0, ibs: 0 };
@@ -565,16 +540,74 @@ const ENGINE = (() => {
     const w = gPF / (gPF - gPJ);
     return gPJ > 0 ? { tipo: 'acima', w } : { tipo: 'abaixo', w };
   }
-  function simularSN(inp) {
-    if (!(inp.rbt > 0)) return { erro: 'Informe o faturamento dos últimos 12 meses.' };
-    const d = das(inp.anexo, inp.rbt);
-    if (!d) return { erro: 'Acima de R$ 3,6 milhões em 12 meses, o ICMS e o IBS saem do DAS (sublimite). O Simples está coberto até R$ 3,6 milhões.' };
-    const a = d.efetiva / 100, rt = inp.rt / 100, m = inp.m / 100, w = inp.mix / 100;
-    const den0 = 1 - a - rt - inp.fix / 100 - m;
-    if (den0 <= 0.02) return { erro: 'DAS, RT, despesas fixas e margem somam mais de 98% do preço. Reduza algum desses percentuais.' };
-    const C0 = inp.ins + inp.mo + inp.outros;
+
+  // Preço de mercado de 2026, formado no regime atual.
+  function precoMercado(inp) {
+    const rt = inp.rt / 100, fix = inp.fix / 100, m = inp.m / 100;
+    if (!(inp.rbt > 0)) return { erro: 'Informe o faturamento anual da empresa.' };
+    if (inp.atual === 'simples') {
+      const d = das(inp.anexo, inp.rbt);
+      if (!d) return { erro: 'Com faturamento acima de R$ 3,6 milhões, o Simples sai do modelo (sublimite). Escolha Presumido ou Real como regime atual.' };
+      const den = 1 - d.efetiva / 100 - rt - fix - m;
+      if (den <= 0.02) return { erro: 'DAS, RT, despesas fixas e margem somam mais de 98% do preço. Reduza algum desses percentuais.' };
+      const C0 = inp.ins + inp.mo + inp.outros;
+      if (!(C0 > 0)) return { erro: 'Informe ao menos um custo maior que zero.' };
+      return { V: rhe(C0 / den, 2) };
+    }
+    const i = inp.icms / 100, pc = pcRegime(inp.atual) / 100;
+    const tax = inp.atual === 'presumido' ? irpjCsllPresumido(inp.rbt).taxa : 0;
+    const mEq = inp.atual === 'real' ? margemPreReal(m, inp.rbt) : m;
+    const den = 1 - i - pc * (1 - i) - rt - fix - tax - mEq;
+    if (den <= 0.02) return { erro: 'ICMS, PIS/Cofins, IRPJ/CSLL, RT, despesas fixas e margem somam mais de 98% do preço. Reduza algum desses percentuais.' };
+    const C0 = custoRR(inp, inp.atual, 2026);
     if (!(C0 > 0)) return { erro: 'Informe ao menos um custo maior que zero.' };
-    const P0 = rhe(C0 / den0, 2), F = rhe(P0 * inp.fix / 100, 2);
+    return { V: rhe(C0 / den, 2) };
+  }
+
+  function simularRR(inp, rg, V, F) {
+    const tipo = TIPOS[inp.tipo] || TIPOS.movel, red = tipo.red, R = inp.rbt;
+    const p = { icms: inp.icms, pc: pcRegime(rg), cbs: inp.cbs, ibsUf: inp.ibsUf, ibsMun: inp.ibsMun };
+    const ir = irpjCsllPresumido(R), tp = rg === 'presumido' ? ir.taxa : 0;
+    const mEq = rg === 'real' ? margemPreReal(inp.m / 100, R) : inp.m / 100;
+    const MO = moRR(inp);
+    function avaliar(P, r, C, credita) {
+      const icms = rhe(P * r.icms / 100, 2), pcv = rhe((P - icms) * r.pc / 100, 2);
+      const trib = ibscbs(P - icms - pcv, r, red);
+      const cobrado = r.cobrado ? trib.total : 0;
+      const contrato = rhe(P + cobrado, 2);
+      const credito = credita && r.cobrado ? trib.total : 0;
+      const comissao = rhe(contrato * inp.rt / 100, 2);
+      const antes = rhe(P - icms - pcv - comissao - C - F, 2);
+      const ircs = rg === 'presumido' ? rhe(P * tp, 2) : (antes > 0 ? rhe(antes * taxaReal(antes / P * R), 2) : 0);
+      const lucro = rhe(antes - ircs, 2);
+      return { P, icms, pc: pcv, trib, cobrado, contrato, credito, custo: rhe(contrato - credito, 2), comissao, antes, ircs, lucro, margem: P > 0 ? lucro / P : 0 };
+    }
+    const anos = [];
+    for (const t of ANOS) {
+      const r = regras(t, p);
+      const kEf = (rhe(r.cbs * (1 - red / 100), 4) + rhe(r.ibsUf * (1 - red / 100), 4) + rhe(r.ibsMun * (1 - red / 100), 4)) / 100;
+      const g = r.cobrado ? 1 + kEf * (1 - r.icms / 100) : 1;
+      const C = custoRR(inp, rg, t);
+      let Ppf, Ppj;
+      if (inp.lente === 'mercado') { Ppf = rhe(V / g, 2); Ppj = V; }
+      else {
+        const den = 1 - r.icms / 100 - (r.pc / 100) * (1 - r.icms / 100) - (inp.rt / 100) * g - tp - mEq;
+        if (den <= 0.02) return { erro: `Em ${t}, tributos, RT e margem passam de 98% do preço no ${rg === 'real' ? 'Lucro Real' : 'Lucro Presumido'}.` };
+        Ppf = Ppj = rhe((C + F) / den, 2);
+      }
+      const pf = avaliar(Ppf, r, C, false), pj = avaliar(Ppj, r, C, tipo.credito);
+      const cp = compras(inp, t, p), w = inp.mix / 100;
+      anos.push({ t, fase: FASE_RR[t], r, C, F, MO, insLiq: rhe(insLiqRR(inp, rg, t), 2), pago: cp.pago, pf, pj,
+        recolher: t >= 2027 ? rhe(pf.trib.total - cp.credIbsCbs, 2) : null,
+        blendLucro: w * pj.lucro + (1 - w) * pf.lucro, blendMargem: w * pj.margem + (1 - w) * pf.margem, blendCusto: w * pj.custo + (1 - w) * pf.custo });
+    }
+    return { modo: 'rr', rg, V, F, tp, ir, anos };
+  }
+
+  function simularSN(inp, V, F) {
+    const d = das(inp.anexo, inp.rbt);
+    if (!d) return { fora: true };
+    const a = d.efetiva / 100, rt = inp.rt / 100, m = inp.m / 100, w = inp.mix / 100;
     const p = { icms: 0, pc: 0, cbs: inp.cbs, ibsUf: inp.ibsUf, ibsMun: inp.ibsMun };
     const anos = [];
     for (const t of ANOS) {
@@ -602,10 +635,12 @@ const ENGINE = (() => {
       let sn, hb = null;
       const c = (pC + pI) / 100;
       if (inp.lente === 'mercado') {
-        sn = { pf: avalSN(P0, false), pj: avalSN(rhe(t <= 2026 ? P0 : P0 / (1 - c), 2), true) };
-        if (t >= 2027) hb = { pf: avalHB(rhe(P0 / (1 + k), 2), false), pj: avalHB(P0, true) };
+        sn = { pf: avalSN(V, false), pj: avalSN(rhe(t <= 2026 ? V : V / (1 - c), 2), true) };
+        if (t >= 2027) hb = { pf: avalHB(rhe(V / (1 + k), 2), false), pj: avalHB(V, true) };
       } else {
-        const Ps = rhe((G + inp.mo + inp.outros + F) / (1 - a - rt - m), 2);
+        const den = 1 - a - rt - m;
+        if (den <= 0.02) return { erro: 'No Simples, DAS, RT e margem passam de 98% do preço.' };
+        const Ps = rhe((G + inp.mo + inp.outros + F) / den, 2);
         sn = { pf: avalSN(Ps, false), pj: avalSN(Ps, true) };
         if (t >= 2027) {
           const denH = 1 - a * (1 - (pt.cbs + pt.ibs) / 100) - rt * (1 + k) - m;
@@ -614,21 +649,47 @@ const ENGINE = (() => {
           hb = { pf: avalHB(Ph, false), pj: avalHB(Ph, true) };
         }
       }
-      let blendSN, blendHB = null, vir = null;
-      if (inp.lente === 'mercado') {
-        blendSN = w * sn.pj.margem + (1 - w) * sn.pf.margem;
-        if (hb) { blendHB = w * hb.pj.margem + (1 - w) * hb.pf.margem; vir = virada(hb.pf.margem - sn.pf.margem, hb.pj.margem - sn.pj.margem); }
-      } else {
-        blendSN = w * sn.pj.custo + (1 - w) * sn.pf.custo;
-        if (hb) { blendHB = w * hb.pj.custo + (1 - w) * hb.pf.custo; vir = virada(sn.pf.custo / hb.pf.custo - 1, sn.pj.custo / hb.pj.custo - 1); }
-      }
-      anos.push({ t, fase: FASE_SN[t], G, cred, F, pt, pC, pI, rr, k, sn, hb, blendSN, blendHB, vir });
+      const bl = x => ({ lucro: w * x.pj.lucro + (1 - w) * x.pf.lucro, margem: w * x.pj.margem + (1 - w) * x.pf.margem, custo: w * x.pj.custo + (1 - w) * x.pf.custo });
+      const bSN = bl(sn), bHB = hb ? bl(hb) : null;
+      const vir = !hb ? null : inp.lente === 'mercado'
+        ? virada(hb.pf.lucro - sn.pf.lucro, hb.pj.lucro - sn.pj.lucro)
+        : virada(sn.pf.custo / hb.pf.custo - 1, sn.pj.custo / hb.pj.custo - 1);
+      anos.push({ t, fase: FASE_SN[t], G, cred, F, pt, pC, pI, k, sn, hb, bSN, bHB, vir });
     }
-    return { modo: 'sn', d, P0, F, anos };
+    return { modo: 'sn', d, V, F, anos };
   }
 
-  const simular = inp => inp.regime === 'simples' ? simularSN(inp) : simularRR(inp);
-  return { rhe, tributo, ibscbs, regras, compras, das, partilha, virada, simular, simularRR, simularSN, TIPOS, ANOS, FASE_RR, FASE_SN, ANEXOS };
+  // Tudo de uma vez: mesmo preço de mercado e mesmas despesas fixas para os quatro caminhos.
+  function simular(inp) {
+    const pm = precoMercado(inp);
+    if (pm.erro) return pm;
+    const V = pm.V, F = rhe(V * inp.fix / 100, 2);
+    const pres = simularRR(inp, 'presumido', V, F); if (pres.erro) return pres;
+    const real = simularRR(inp, 'real', V, F); if (real.erro) return real;
+    const sn = simularSN(inp, V, F); if (sn.erro) return sn;
+    const w = inp.mix / 100, merc = inp.lente === 'mercado';
+    const comp = ANOS.map((t, i) => {
+      const op = [
+        { id: 'presumido', x: pres.anos[i] },
+        { id: 'real', x: real.anos[i] },
+      ];
+      if (!sn.fora) {
+        op.push({ id: 'sn', x: { pf: sn.anos[i].sn.pf, pj: sn.anos[i].sn.pj } });
+        if (sn.anos[i].hb) op.push({ id: 'hb', x: { pf: sn.anos[i].hb.pf, pj: sn.anos[i].hb.pj } });
+      }
+      for (const o of op) {
+        o.pf = o.x.pf; o.pj = o.x.pj;
+        o.lucro = w * o.pj.lucro + (1 - w) * o.pf.lucro;
+        o.custo = w * o.pj.custo + (1 - w) * o.pf.custo;
+        o.valor = merc ? o.lucro : -o.custo;
+      }
+      const melhor = op.reduce((a, b) => b.valor > a.valor + 1e-6 ? b : a);
+      return { t, op, melhor };
+    });
+    return { V, F, pres, real, sn, comp };
+  }
+
+  return { rhe, ibscbs, regras, das, partilha, virada, irpjCsllPresumido, taxaReal, margemPreReal, precoMercado, simular, TIPOS, ANOS, FASE_RR, FASE_SN, ANEXOS };
 })();
 // ENGINE END
 if (typeof module !== 'undefined') module.exports = ENGINE;
@@ -637,26 +698,30 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
 <script>
 (() => {
   if (typeof document === 'undefined') return;
-  const { rhe, ibscbs, das, partilha, simular, TIPOS, ANOS, FASE_RR, FASE_SN } = ENGINE;
+  const { rhe, ibscbs, das, partilha, simular, irpjCsllPresumido, TIPOS, ANOS, FASE_RR, FASE_SN } = ENGINE;
+  const ABAS = ['comparar', 'presumido', 'real', 'simples'];
+  const NOME = { presumido: 'Lucro Presumido', real: 'Lucro Real', sn: 'Simples puro', hb: 'Simples híbrido', simples: 'Simples Nacional' };
+  const COR = { presumido: '--pres', real: '--real', sn: '--sn', hb: '--hb' };
 
   const PADRAO = {
-    regime: 'simples', anexo: 'II', rbt: 1200000, tipo: 'movel', icms: 18, mix: 30,
+    atual: 'simples', anexo: 'II', rbt: 1200000, tipo: 'movel', icms: 18, enc: 20, mix: 30,
     ins: 30000, mo: 16000, outros: 4000, rt: 8, fix: 12, m: 12,
-    icmsF: 18, pcF: 9.25, cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85, lente: 'mercado', captura: 30, ano: 2027,
+    icmsF: 18, pcF: 9.25, cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85, lente: 'mercado', ano: 2027,
   };
   const NUM = {
-    rbt: { tipo: 'brl', max: 1e10 }, icms: { tipo: 'pct', max: 40 },
+    rbt: { tipo: 'brl', max: 1e10 }, icms: { tipo: 'pct', max: 40 }, enc: { tipo: 'pct', max: 60 },
     ins: { tipo: 'brl', max: 1e9 }, mo: { tipo: 'brl', max: 1e9 }, outros: { tipo: 'brl', max: 1e9 },
     rt: { tipo: 'pct', max: 60 }, fix: { tipo: 'pct', max: 80 }, m: { tipo: 'pct', max: 80 },
     icmsF: { tipo: 'pct', max: 40 }, pcF: { tipo: 'pct', max: 20 }, cbs: { tipo: 'pct', max: 30 }, ibsUf: { tipo: 'pct', max: 30 }, ibsMun: { tipo: 'pct', max: 30 },
   };
-  const CHAVE = 'diametro-simulador-moveleiro-v1';
+  const CHAVE = 'diametro-app-tributario-v1';
   let est = { ...PADRAO };
   try {
     const salvo = JSON.parse(localStorage.getItem(CHAVE) || 'null');
     if (salvo && typeof salvo === 'object') for (const k of Object.keys(PADRAO)) if (k in salvo && typeof salvo[k] === typeof PADRAO[k]) est[k] = salvo[k];
   } catch (e) {}
   const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(est)); } catch (e) {} };
+  let aba = ABAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'comparar';
 
   const $ = id => document.getElementById(id);
   const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -666,6 +731,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
   const numFmt = (v, tipo) => tipo === 'brl' ? v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const sinal = v => Math.abs(v) < 0.0005 ? '' : (v > 0 ? '+' : '−');
+  const difBRL = v => (Math.abs(v) < 0.5 ? '' : v > 0 ? '+' : '−') + brl0(Math.abs(v));
   function lerNumero(txt) {
     let s = String(txt).trim().replace(/\s|R\$|%/g, '');
     if (!s) return NaN;
@@ -696,28 +762,26 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
   $('tipo').addEventListener('change', e => { est.tipo = e.target.value; atualizar(); });
   $('mix').value = est.mix;
   $('mix').addEventListener('input', e => { est.mix = Number(e.target.value); atualizar(); });
-  $('captura').value = est.captura;
-  $('captura').addEventListener('input', e => { est.captura = Number(e.target.value); atualizar(); });
   const segmentado = (id, chave, conv = v => v) => $(id).addEventListener('click', e => {
     const b = e.target.closest('button[data-v]'); if (!b) return; est[chave] = conv(b.dataset.v); atualizar();
   });
-  segmentado('regime', 'regime'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente');
+  segmentado('atual', 'atual'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente');
   $('ano').innerHTML = ANOS.map(a => `<button type="button" data-v="${a}">${a}</button>`).join('');
   segmentado('ano', 'ano', Number);
   const marcar = (id, v) => $(id).querySelectorAll('button[data-v]').forEach(b => { const on = String(b.dataset.v) === String(v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
   $('restaurar').addEventListener('click', () => {
-    const regime = est.regime;
-    est = { ...PADRAO, regime };
+    est = { ...PADRAO };
     for (const [id, cfg] of Object.entries(NUM)) { $(id).value = numFmt(est[id], cfg.tipo); const c = $(id).closest('.field'); c.classList.remove('erro'); const mm = c.querySelector('.msg'); if (mm) mm.remove(); }
-    $('tipo').value = est.tipo; $('mix').value = est.mix; $('captura').value = est.captura; atualizar();
+    $('tipo').value = est.tipo; $('mix').value = est.mix; atualizar();
   });
   const setAno = a => { est.ano = a; atualizar(); };
+  window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (ABAS.includes(h)) { aba = h; atualizar(); } });
 
-  // Gráfico de linhas: um eixo, rótulo direto no fim, crosshair com tooltip, valores nulos aceitos.
+  // Gráfico de linhas: um eixo, rótulos diretos no fim, crosshair com tooltip, nulos e linha tracejada aceitos.
   function grafico(el, cfg) {
     const { series, fmtEixo, fmtTip, extra, dominio, ref, fase } = cfg;
     const W = Math.max(280, el.clientWidth || 520), H = 236;
-    const m = { l: 62, r: 40, t: 14, b: 30 };
+    const m = { l: 62, r: 48, t: 14, b: 30 };
     const n = ANOS.length, iw = W - m.l - m.r, ih = H - m.t - m.b;
     let y0, y1, ticks = [];
     if (dominio) { [y0, y1] = dominio; for (let v = y0; v <= y1 + 1e-9; v += (y1 - y0) / 4) ticks.push(v); }
@@ -746,14 +810,17 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     for (const sr of series) {
       let d = '', pen = false;
       sr.v.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`; pen = true; });
-      s += `<path d="${d}" fill="none" stroke="var(${sr.cor})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>`;
+      s += `<path d="${d}" fill="none" stroke="var(${sr.cor})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${sr.tracejado ? ' stroke-dasharray="6 4"' : ''}></path>`;
     }
-    for (const sr of series) sr.v.forEach((v, i) => { if (v != null) s += `<circle cx="${X(i)}" cy="${Y(v)}" r="${i === si ? 5 : 4}" fill="var(${sr.cor})" stroke="var(--panel)" stroke-width="2"></circle>`; });
-    if (series.length > 1) {
-      const fim = series.map(sr => ({ sr, y: Y(sr.v[n - 1]) }));
-      if (Math.abs(fim[0].y - fim[1].y) < 14) { const mid = (fim[0].y + fim[1].y) / 2, up = fim[0].y <= fim[1].y ? 0 : 1; fim[up].y = mid - 7; fim[1 - up].y = mid + 7; }
-      for (const f of fim) s += `<text x="${X(n - 1) + 10}" y="${f.y + 4}" fill="var(--text)" font-weight="600">${esc(f.sr.curto)}</text>`;
-    }
+    for (const sr of series) sr.v.forEach((v, i) => {
+      if (v == null) return;
+      s += sr.tracejado
+        ? `<circle cx="${X(i)}" cy="${Y(v)}" r="${i === si ? 5 : 4}" fill="var(--panel)" stroke="var(${sr.cor})" stroke-width="2"></circle>`
+        : `<circle cx="${X(i)}" cy="${Y(v)}" r="${i === si ? 5 : 4}" fill="var(${sr.cor})" stroke="var(--panel)" stroke-width="2"></circle>`;
+    });
+    const fim = series.filter(sr => sr.curto && sr.v[n - 1] != null).map(sr => ({ sr, y: Y(sr.v[n - 1]) })).sort((a, b) => a.y - b.y);
+    for (let it = 0; it < 6; it++) for (let j = 1; j < fim.length; j++) if (fim[j].y - fim[j - 1].y < 13) { const mid = (fim[j].y + fim[j - 1].y) / 2; fim[j - 1].y = mid - 6.5; fim[j].y = mid + 6.5; }
+    for (const f of fim) s += `<text x="${X(n - 1) + 10}" y="${f.y + 4}" fill="var(--text)" font-weight="600">${esc(f.sr.curto)}</text>`;
     s += `<line class="cruz" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"></line>`;
     ANOS.forEach((a, i) => { s += `<rect class="alvo" data-i="${i}" x="${X(i) - col / 2}" y="${m.t}" width="${col}" height="${ih + m.b}" fill="transparent" style="cursor:pointer"></rect>`; });
     s += '</svg>';
@@ -766,7 +833,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
         tip.innerHTML = `<b>${ANOS[i]} · ${esc(fase[ANOS[i]])}</b>` + series.map(sr => `<div class="l"><span><i class="dot" style="background:var(${sr.cor})"></i>${esc(sr.nome)}</span><span class="mono">${esc(fmtTip(sr.v[i], i))}</span></div>`).join('') + (extra ? `<div class="l"><span>${esc(extra.rot)}</span><span class="mono">${esc(extra.f(i))}</span></div>` : '');
         tip.hidden = false;
         const escala = el.clientWidth / W; let left = X(i) * escala + 12;
-        if (left + 200 > el.clientWidth) left = X(i) * escala - 200;
+        if (left + 210 > el.clientWidth) left = X(i) * escala - 210;
         tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '8px';
       });
       r.addEventListener('mouseleave', () => { tip.hidden = true; cruz.setAttribute('visibility', 'hidden'); });
@@ -775,89 +842,143 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
   }
   const eixoBRL = v => 'R$ ' + (v / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil';
   const eixoPct = v => (v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
-  const legenda = itens => itens.map(([cls, txt]) => `<span><i class="dot ${cls}"></i>${esc(txt)}</span>`).join('');
+  const amostra = (cor, tracejado) => `<svg width="22" height="10" aria-hidden="true"><line x1="1" y1="5" x2="21" y2="5" stroke="var(${cor})" stroke-width="2"${tracejado ? ' stroke-dasharray="5 3"' : ''}></line></svg>`;
+  const legenda = itens => itens.map(([cor, txt, tr]) => `<span>${amostra(cor, tr)}${esc(txt)}</span>`).join('');
   const textoVirada = v => !v ? '—' : v.tipo === 'sempre' ? 'compensa com qualquer mix' : v.tipo === 'nunca' ? 'não compensa' : `${v.tipo === 'acima' ? 'acima de' : 'abaixo de'} ${pct(v.w, 0)} PJ`;
-  function etiquetaMargem(mg) {
-    const alvo = est.m / 100;
-    if (mg <= 0) return '<span class="etiqueta perigo">prejuízo</span>';
-    if (mg + 0.0005 < alvo) return '<span class="etiqueta alerta">abaixo de 2026</span>';
-    if (mg > alvo + 0.0005) return '<span class="etiqueta ok">acima de 2026</span>';
-    return '<span class="etiqueta ok">igual a 2026</span>';
-  }
   const linha = (rot, val, forte) => `<div${forte ? ' class="forte"' : ''}><dt>${rot}</dt><dd>${val}</dd></div>`;
   const ligarTabela = () => $('tab-anos').querySelectorAll('tr[data-ano]').forEach(tr => {
     tr.addEventListener('click', () => setAno(Number(tr.dataset.ano)));
     tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAno(Number(tr.dataset.ano)); } });
   });
+  const etiquetaMargem = mg => { const meta = est.m / 100, t = numFmt(est.m, 'pct') + '%';
+    return mg <= 0 ? '<span class="etiqueta perigo">prejuízo</span>'
+      : mg + 0.0005 < meta ? `<span class="etiqueta alerta">abaixo de ${t}</span>`
+      : mg > meta + 0.0005 ? `<span class="etiqueta ok">acima de ${t}</span>` : `<span class="etiqueta ok">na meta de ${t}</span>`; };
 
   let ultimo = null;
   function atualizar() {
     salvar();
-    const sn = est.regime === 'simples';
-    marcar('regime', est.regime); marcar('anexo', est.anexo); marcar('lente', est.lente); marcar('ano', est.ano);
-    document.querySelectorAll('[data-modo]').forEach(e => { e.hidden = e.dataset.modo !== (sn ? 'sn' : 'rr'); });
+    const merc = est.lente === 'mercado';
+    document.querySelectorAll('#abas a').forEach(a => { const on = a.dataset.aba === aba; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    marcar('atual', est.atual); marcar('anexo', est.anexo); marcar('lente', est.lente); marcar('ano', est.ano);
+    document.querySelectorAll('[data-abas]').forEach(e => { e.hidden = !e.dataset.abas.split(' ').includes(aba); });
     $('mix-out').textContent = est.mix + '%';
-    $('captura-out').textContent = est.captura + '%';
     $('pleno').value = numFmt(rhe(est.cbs + est.ibsUf + est.ibsMun, 4), 'pct');
     $('tipo-info').textContent = TIPOS[est.tipo].info;
-    $('regime-info').textContent = { presumido: 'PIS/Cofins cumulativo de 3,65% em 2026; credita ICMS nas compras.', real: 'PIS/Cofins não cumulativo de 9,25% em 2026; credita ICMS e PIS/Cofins nas compras.', simples: 'Compara IBS/CBS dentro do DAS (Simples puro) com o recolhimento por fora (híbrido).' }[est.regime];
-    $('m-info').textContent = sn ? 'Lucro líquido: o DAS já inclui IRPJ e CSLL. Forma o preço de 2026.' : 'Lucro antes de IRPJ/CSLL. Forma o preço de 2026.';
-    $('lente-info').textContent = est.lente === 'mercado'
-      ? (sn ? 'O cliente paga o mesmo que em 2026 (o PJ, o mesmo custo efetivo). Compara quanto sobra de margem.' : 'O PF paga o mesmo contrato de 2026; a marcenaria absorve a diferença.')
-      : (sn ? 'O preço se ajusta para manter a margem de 2026. Compara quanto o cliente paga.' : 'Preço recalculado a cada ano para manter a margem de 2026.');
-    if (sn) {
-      const d = das(est.anexo, est.rbt);
-      $('das-info').innerHTML = d && est.rbt > 0
-        ? `<span><b>${d.A.nome} · faixa ${d.faixa}</b> · nominal ${pp(d.nominal, 2)}, deduz ${brl0(d.deduzir)}</span><span>Alíquota efetiva do DAS: <b>${pp(rhe(d.efetiva, 4), 2)}</b> · IBS/CBS no DAS em 2027: <b>${pp(rhe(d.efetiva * (d.A.cbs2027 + d.A.ibs2027) / 100, 4), 2)}</b></span>`
-        : '<span>Faturamento acima de R$ 3,6 milhões: fora do Simples coberto aqui (sublimite).</span>';
-    }
+    $('lente-info').textContent = merc
+      ? 'O cliente PF paga o mesmo contrato de 2026 e o PJ, o mesmo custo efetivo. Compara quanto sobra de lucro.'
+      : 'Cada regime ajusta o preço para manter a margem líquida de 2026. Compara quanto o cliente paga.';
+    const d = das(est.anexo, est.rbt);
+    $('das-info').innerHTML = d
+      ? `<span><b>${d.A.nome} · faixa ${d.faixa}</b> · alíquota efetiva do DAS <b>${pp(rhe(d.efetiva, 4), 2)}</b></span><span>IBS/CBS no DAS em 2027: <b>${pp(rhe(d.efetiva * (d.A.cbs2027 + d.A.ibs2027) / 100, 4), 2)}</b> do preço</span>`
+      : '<span>Faturamento acima de R$ 3,6 milhões: o Simples fica fora da comparação (sublimite).</span>';
 
     const sim = simular(est);
     if (sim.erro) {
-      $('erro').textContent = sim.erro; $('erro').hidden = false;
+      $('erro').textContent = sim.erro; $('erro').hidden = false; $('preco-info').innerHTML = '';
       document.querySelectorAll('.resultado > :not(#erro):not(.anos)').forEach(e => e.style.opacity = .35);
       return;
     }
     $('erro').hidden = true;
     document.querySelectorAll('.resultado > *').forEach(e => e.style.opacity = '');
     ultimo = sim;
-    if (sim.modo === 'sn') renderSN(sim); else renderRR(sim);
+    $('preco-info').innerHTML = `<span>Preço de mercado em 2026: <b>${brl(sim.V)}</b></span><span>Formado no ${esc(NOME[est.atual])} com margem líquida de ${numFmt(est.m, 'pct')}%.</span>`;
+    if (aba === 'comparar') renderComparar(sim);
+    else if (aba === 'simples') {
+      if (sim.sn.fora) renderSemSimples(); else renderSN(sim.sn);
+    } else renderRR(aba === 'real' ? sim.real : sim.pres);
     desenhar();
   }
 
-  // ───────── Regime regular ─────────
-  function renderRR(sim) {
-    const a = sim.anos.find(x => x.t === est.ano), base = sim.anos[0], { pf, pj } = a;
-    const regimeNome = est.regime === 'real' ? 'Lucro Real' : 'Lucro Presumido';
-    const vant = rhe(pf.custo - pj.custo, 2);
-    $('big-rot').textContent = `Vantagem de custo do cliente PJ em ${a.t}`;
-    $('big').textContent = brl0(vant); $('big').style.color = '';
-    $('big-sub').textContent = `${pf.custo > 0 ? pct(vant / pf.custo) + ' a menos que o PF · ' : ''}margem pelo mix (${est.mix}% PJ): ${pct(a.blend)}`;
+  // ───────── Comparar regimes ─────────
+  function renderComparar(sim) {
+    const merc = est.lente === 'mercado', i = ANOS.indexOf(est.ano), c = sim.comp[i];
+    const atualId = est.atual === 'simples' ? 'sn' : est.atual;
+    const oAtual = c.op.find(o => o.id === atualId) || c.op[0];
+    const ord = [...c.op].sort((a, b) => b.valor - a.valor);
+    const m = c.melhor;
+    $('big-rot').textContent = `Melhor regime em ${c.t} com ${est.mix}% de vendas PJ`;
+    $('big').textContent = NOME[m.id]; $('big').style.color = `var(${COR[m.id]})`;
+    $('big-sub').textContent = merc
+      ? `Lucro líquido pelo mix: ${brl0(m.lucro)} por projeto${m.id === oAtual.id ? ' · é o seu regime atual' : ` · ${difBRL(m.lucro - oAtual.lucro)} contra o ${NOME[oAtual.id]}`}`
+      : `Custo médio do cliente: ${brl0(m.custo)}${m.id === oAtual.id ? ' · é o seu regime atual' : ` · ${difBRL(m.custo - oAtual.custo)} contra o ${NOME[oAtual.id]}`}`;
     const frases = [];
-    if (a.t === 2026) frases.push(`Em 2026, ano de teste, a CBS de 0,9% e o IBS de 0,1% saem destacados na nota (${brl(pf.trib.total)} neste projeto), mas são compensáveis com PIS/Cofins. PF e PJ pagam o mesmo: <b>${brl(pf.contrato)}</b>.`);
-    else if (pf.trib.total === 0) frases.push(`Com redução de 100%, não há IBS/CBS a cobrar em ${a.t}. PF e PJ pagam o mesmo contrato de <b>${brl(pf.contrato)}</b>.`);
-    else frases.push(`Em ${a.t}, no ${regimeNome}, o projeto sai por <b>${brl(pf.contrato)}</b> para o cliente PF. O cliente PJ paga <b>${brl(pj.contrato)}</b>, recupera ${brl(pj.credito)} de IBS/CBS e fica com custo efetivo de <b>${brl(pj.custo)}</b>.`);
-    if (a.t !== 2026) {
-      const varPF = pf.contrato / base.pf.contrato - 1;
-      if (est.lente === 'mercado') frases.push(`Mantendo o contrato de 2026 para o PF, sua margem nesse canal vai de ${pct(base.pf.margem)} para <b>${pct(pf.margem)}</b>.`);
-      else frases.push(Math.abs(varPF) < 0.0005 ? `Mantendo a margem, o contrato do PF fica igual ao de 2026.` : `Mantendo a margem, o contrato do PF ${varPF > 0 ? 'sobe' : 'cai'} ${pct(Math.abs(varPF))} em relação a 2026.`);
-      if (est.captura > 0 && pj.credito > 0) frases.push(`Cobrando do PJ ${est.captura}% da vantagem de crédito, a margem na venda PJ chega a <b>${pct(pj.margem)}</b> e o cliente ainda paga ${brl0(vant)} a menos que o PF.`);
-      else if (pj.credito > 0) frases.push('Com o mesmo preço nos dois canais, toda a vantagem do crédito fica com o cliente PJ: argumento de venda para lojas, construtoras e escritórios.');
-      const pior = sim.anos.slice(1).reduce((x, y) => y.pf.margem < x.pf.margem ? y : x);
-      if (est.lente === 'mercado' && pior.pf.margem < base.pf.margem - 0.0005) frases.push(`O aperto maior na venda PF é em ${pior.t}: margem de ${pct(pior.pf.margem)}.`);
+    frases.push(`Ordem em ${c.t}: ${ord.map(o => `<b>${esc(NOME[o.id])}</b> (${merc ? brl0(o.lucro) : brl0(o.custo)})`).join(', ')}.`);
+    const bestPF = c.op.reduce((a, b) => (merc ? b.pf.lucro > a.pf.lucro : b.pf.custo < a.pf.custo) ? b : a);
+    const bestPJ = c.op.reduce((a, b) => (merc ? b.pj.lucro > a.pj.lucro : b.pj.custo < a.pj.custo) ? b : a);
+    frases.push(bestPF.id === bestPJ.id
+      ? `${esc(NOME[bestPF.id])} lidera nos dois canais, venda PF e venda PJ.`
+      : `Na venda PF, o melhor é o <b>${esc(NOME[bestPF.id])}</b>; na venda PJ, o <b>${esc(NOME[bestPJ.id])}</b>. O mix de vendas decide.`);
+    if (sim.sn.fora) frases.push('Com faturamento acima de R$ 3,6 milhões, o Simples fica fora da comparação.');
+    else if (c.t === 2026) frases.push('O híbrido entra na comparação a partir de 2027.');
+    if (merc) frases.push(`Todos os regimes partem do mesmo contrato de ${brl(sim.V)}, preço que você pratica hoje no ${esc(NOME[est.atual])}.`);
+    $('resumo').innerHTML = frases.map(f => `<p>${f}</p>`).join('');
+
+    const val = (o, k) => merc ? `${brl0(o[k].lucro)}<span class="sub">${pct(o[k].lucro / o[k].contrato)} do contrato</span>` : `${brl0(o[k].custo)}<span class="sub">contrato ${brl0(o[k].contrato)}</span>`;
+    const mixV = o => merc ? brl0(o.lucro) : brl0(o.custo);
+    const vsAtual = o => o.id === oAtual.id ? '<span class="etiqueta neutra">regime atual</span>' : (merc ? difBRL(o.lucro - oAtual.lucro) : difBRL(o.custo - oAtual.custo));
+    const linhas = ord.map(o => `<tr class="${o.id === m.id ? 'melhor' : ''}"><td><span class="nome"><i class="dot" style="background:var(${COR[o.id]})"></i>${esc(NOME[o.id])}</span>${o.id === m.id ? ' <span class="etiqueta ok">melhor</span>' : ''}</td><td>${val(o, 'pf')}</td><td>${val(o, 'pj')}</td><td><b>${mixV(o)}</b></td><td>${vsAtual(o)}</td></tr>`).join('')
+      + (sim.sn.fora ? '<tr class="fora"><td>Simples puro e híbrido</td><td colspan="4" class="txt">fora: faturamento acima de R$ 3,6 milhões</td></tr>' : (c.t === 2026 ? '<tr class="fora"><td>Simples híbrido</td><td colspan="4" class="txt">a opção começa em 2027</td></tr>' : ''));
+    const linhaTempo = sim.comp.map(x => `<button type="button" data-ano="${x.t}" class="${x.t === est.ano ? 'on' : ''}"><span class="ano">${x.t}</span><span class="quem"><i class="dot" style="background:var(${COR[x.melhor.id]})"></i>${esc(NOME[x.melhor.id])}</span></button>`).join('');
+    $('cards').innerHTML = `<section class="card span2"><header><h2>${merc ? 'Lucro líquido por projeto' : 'Custo para o cliente'} em ${c.t}</h2><span class="small muted">${merc ? 'Depois de todos os tributos, IRPJ e CSLL inclusive' : 'PJ: custo efetivo, depois do crédito'}</span></header>
+      <div class="tabela"><table class="ranking"><thead><tr><th>Regime</th><th>Venda PF</th><th>Venda PJ</th><th>Pelo mix (${est.mix}% PJ)</th><th>Contra o regime atual</th></tr></thead><tbody>${linhas}</tbody></table></div>
+      <h2>Melhor regime a cada ano</h2><div class="linha-tempo" id="linha-tempo">${linhaTempo}</div></section>`;
+    $('linha-tempo').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setAno(Number(b.dataset.ano))));
+
+    $('dre-tit').textContent = `Detalhe por regime em ${c.t}`;
+    const ids = c.op.map(o => o.id);
+    const L = (rot, f, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${rot}</td>${c.op.map(o => `<td>${f(o)}</td>`).join('')}</tr>`;
+    const ircsPF = o => (o.id === 'presumido' || o.id === 'real') ? brl(o.pf.ircs) : 'no DAS';
+    const tribVenda = o => (o.id === 'presumido' || o.id === 'real') ? brl(o.pf.icms + o.pf.pc) : brl(o.pf.das);
+    $('dre').innerHTML = `<thead><tr><th>${c.t}</th>${ids.map(id => `<th><span class="nome"><i class="dot" style="background:var(${COR[id]})"></i>${esc(NOME[id])}</span></th>`).join('')}</tr></thead><tbody>` +
+      L('Venda PF · valor do contrato', o => brl(o.pf.contrato), 'total') +
+      L('Receita (sem IBS/CBS por fora)', o => brl(o.pf.P)) +
+      L('ICMS + PIS/Cofins, ou DAS', tribVenda) +
+      L('IRPJ e CSLL fora do DAS', ircsPF) +
+      L('Lucro líquido na venda PF', o => brl(o.pf.lucro), 'total') +
+      L('Margem líquida PF (sobre a receita)', o => pct(o.pf.margem)) +
+      L('Venda PJ · valor do contrato', o => brl(o.pj.contrato), 'total') +
+      L('Crédito do cliente PJ', o => brl(o.pj.credito)) +
+      L('Custo efetivo do cliente PJ', o => brl(o.pj.custo)) +
+      L('Lucro líquido na venda PJ', o => brl(o.pj.lucro), 'total') +
+      L('Margem líquida PJ (sobre a receita)', o => pct(o.pj.margem)) + '</tbody>';
+
+    $('tab-tit').textContent = merc ? 'Lucro líquido pelo mix, ano a ano' : 'Custo médio do cliente pelo mix, ano a ano';
+    const todos = ['presumido', 'real'].concat(sim.sn.fora ? [] : ['sn', 'hb']);
+    $('tab-anos').innerHTML = `<thead><tr><th>Ano</th>${todos.map(id => `<th>${esc(NOME[id])}</th>`).join('')}<th>Melhor</th></tr></thead><tbody>` +
+      sim.comp.map(x => `<tr class="clicavel${x.t === est.ano ? ' sel' : ''}" data-ano="${x.t}" tabindex="0"><td>${x.t}</td>${todos.map(id => { const o = x.op.find(z => z.id === id); return `<td>${o ? (merc ? brl0(o.lucro) : brl0(o.custo)) : '—'}</td>`; }).join('')}<td class="txt"><span class="nome"><i class="dot" style="background:var(${COR[x.melhor.id]})"></i>${esc(NOME[x.melhor.id])}</span></td></tr>`).join('') + '</tbody>';
+    ligarTabela();
+  }
+
+  // ───────── Presumido ou Real ─────────
+  function renderRR(sim) {
+    const a = sim.anos.find(x => x.t === est.ano), base = sim.anos[0], { pf, pj } = a, rg = sim.rg, nome = NOME[rg];
+    const vant = rhe(pf.custo - pj.custo, 2);
+    if (est.lente === 'mercado') {
+      $('big-rot').textContent = `${nome} · lucro líquido por projeto em ${a.t} (${est.mix}% PJ)`;
+      $('big').textContent = brl0(a.blendLucro); $('big').style.color = a.blendLucro < 0 ? 'var(--red)' : '';
+      $('big-sub').textContent = `Venda PF ${brl0(pf.lucro)} · venda PJ ${brl0(pj.lucro)} · margem pelo mix ${pct(a.blendMargem)}`;
+    } else {
+      $('big-rot').textContent = `${nome} · vantagem de custo do cliente PJ em ${a.t}`;
+      $('big').textContent = brl0(vant); $('big').style.color = '';
+      $('big-sub').textContent = `${pf.custo > 0 ? pct(vant / pf.custo) + ' a menos que o PF · ' : ''}lucro pelo mix ${brl0(a.blendLucro)} por projeto`;
     }
+    const frases = [];
+    if (a.t === 2026) frases.push(`Em 2026, ano de teste, a CBS de 0,9% e o IBS de 0,1% saem destacados na nota (${brl(pf.trib.total)}), mas são compensáveis com PIS/Cofins. PF e PJ pagam o mesmo: <b>${brl(pf.contrato)}</b>.`);
+    else if (pf.trib.total === 0) frases.push(`Com redução de 100%, não há IBS/CBS a cobrar em ${a.t}. PF e PJ pagam o mesmo contrato de <b>${brl(pf.contrato)}</b>.`);
+    else frases.push(`Em ${a.t}, o cliente PF paga <b>${brl(pf.contrato)}</b>. O cliente PJ paga <b>${brl(pj.contrato)}</b>, recupera ${brl(pj.credito)} de IBS/CBS e fica com custo efetivo de <b>${brl(pj.custo)}</b>.`);
+    frases.push(`No ${nome}, o IRPJ e a CSLL levam ${brl(pf.ircs)} na venda PF${rg === 'presumido' ? ` (${pp(rhe(sim.tp * 100, 4))} da receita, pela presunção)` : ' (sobre o lucro do projeto)'}. Lucro líquido: <b>${brl(pf.lucro)}</b> na venda PF e <b>${brl(pj.lucro)}</b> na venda PJ.`);
+    if (est.lente === 'mercado' && a.t !== 2026) frases.push(`Ao preço de mercado, a margem líquida na venda PF vai de ${pct(base.pf.margem)} em 2026 para <b>${pct(pf.margem)}</b> em ${a.t}.`);
     $('resumo').innerHTML = frases.map(f => `<p>${f}</p>`).join('');
 
     const ibsTxt = a.t === 2026 ? 'IBS/CBS destacado (compensável)' : 'IBS/CBS na nota';
-    const cartao = (cls, titulo, desc, x, rotVar, varV) => `<section class="card"><header><span class="dot ${cls}"></span><h3>${titulo}</h3><p>${desc}</p></header><dl class="linhas">${
-      linha('Preço do produto', brl(x.P)) + linha(ibsTxt, brl(x.trib.total)) + linha('Valor do contrato', brl(x.contrato)) +
-      linha('Crédito recuperado', brl(x.credito)) + linha('Custo efetivo', brl(x.custo), true) +
-      linha(rotVar, sinal(varV) + pct(Math.abs(varV))) + linha('Margem da marcenaria', `${etiquetaMargem(x.margem)}${pct(x.margem)}`)}</dl></section>`;
-    $('cards').innerHTML =
-      cartao('pf', 'Cliente pessoa física', 'Consumidor final: não recupera IBS/CBS.', pf, 'Contrato vs 2026', pf.contrato / base.pf.contrato - 1) +
-      cartao('pj', 'Cliente empresa', 'Regime regular, uso próprio: recupera o IBS/CBS destacado.', pj, 'Custo efetivo vs 2026', pj.custo / base.pj.custo - 1);
+    const cartao = (titulo, desc, tr, x, b) => `<section class="card"><header>${amostra(COR[rg], tr)}<h3>${titulo}</h3><p>${desc}</p></header><dl class="linhas">${
+      linha('Valor do contrato', brl(x.contrato)) + linha(ibsTxt, brl(x.trib.total)) + linha('Crédito do cliente', brl(x.credito)) +
+      linha('Custo efetivo do cliente', brl(x.custo), true) + linha('IRPJ e CSLL', brl(x.ircs)) + linha('Lucro líquido', brl(x.lucro), true) +
+      linha('Margem líquida', `${etiquetaMargem(x.margem)}${pct(x.margem)}`)}</dl></section>`;
+    $('cards').innerHTML = cartao('Venda para pessoa física', 'Consumidor final: não recupera IBS/CBS.', false, pf, base.pf) + cartao('Venda para empresa', 'Regime regular, uso próprio: recupera o IBS/CBS destacado.', true, pj, base.pj);
 
-    $('dre-tit').textContent = `Resultado do projeto em ${a.t} · ${regimeNome}`;
+    $('dre-tit').textContent = `Resultado do projeto em ${a.t} · ${nome}`;
     const L = (rot, f, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${rot}</td><td>${f(pf)}</td><td>${f(pj)}</td></tr>`;
     const neg = v => v ? '−' + brl(v) : brl(0);
     $('dre').innerHTML = `<thead><tr><th>${a.t} · ${esc(a.fase)}</th><th>Venda PF</th><th>Venda PJ</th></tr></thead><tbody>` +
@@ -867,59 +988,67 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
       L('(−) ICMS', x => neg(x.icms)) + L('(−) PIS/Cofins', x => neg(x.pc)) +
       L(`(−) RT / comissão (${numFmt(est.rt, 'pct')}% do contrato)`, x => neg(x.comissao)) +
       L(`(−) Insumos, líquidos dos créditos (pago: ${brl(a.pago)})`, () => neg(a.insLiq)) +
-      L('(−) Mão de obra própria', () => neg(est.mo)) + L('(−) Outros custos', () => neg(est.outros)) +
-      L('(−) Despesas fixas', () => neg(a.F)) +
-      L('= Lucro antes de IRPJ/CSLL', x => brl(x.lucro), 'total') + L('Margem', x => pct(x.margem), 'total') +
+      L(`(−) Mão de obra com INSS patronal (${numFmt(est.enc, 'pct')}%)`, () => neg(a.MO)) +
+      L('(−) Outros custos', () => neg(est.outros)) + L('(−) Despesas fixas', () => neg(a.F)) +
+      L('= Lucro antes de IRPJ/CSLL', x => brl(x.antes), 'total') +
+      L(rg === 'presumido' ? `(−) IRPJ e CSLL (${pp(rhe(sim.tp * 100, 4))} da receita)` : '(−) IRPJ e CSLL (sobre o lucro)', x => neg(x.ircs)) +
+      L('= Lucro líquido', x => brl(x.lucro), 'total') + L('Margem líquida', x => pct(x.margem), 'total') +
       L('Crédito de IBS/CBS do cliente', x => brl(x.credito), 'sub') + L('Custo efetivo para o cliente', x => brl(x.custo), 'sub') + '</tbody>';
 
-    $('tab-anos').innerHTML = `<thead><tr><th>Ano</th><th>Fase</th><th>CBS</th><th>IBS</th><th>ICMS</th><th>Base IBS/CBS<br>(PF)</th><th>IBS/CBS<br>(PF)</th><th>Insumos<br>líquidos</th><th>Contrato<br>PF</th><th>Margem<br>PF</th><th>Contrato<br>PJ</th><th>Custo efetivo<br>PJ</th><th>Margem<br>PJ</th><th>IBS/CBS a recolher<br>(PF, estim.)</th></tr></thead><tbody>` +
+    $('tab-tit').textContent = `Ano a ano · ${nome}`;
+    $('tab-anos').innerHTML = `<thead><tr><th>Ano</th><th>Fase</th><th>CBS</th><th>IBS</th><th>ICMS</th><th>IBS/CBS<br>(PF)</th><th>Insumos<br>líquidos</th><th>Contrato<br>PF</th><th>Lucro<br>PF</th><th>Margem<br>PF</th><th>Custo efetivo<br>PJ</th><th>Lucro<br>PJ</th><th>Margem<br>PJ</th><th>IBS/CBS a recolher<br>(PF, estim.)</th></tr></thead><tbody>` +
       sim.anos.map(x => `<tr class="clicavel${x.t === est.ano ? ' sel' : ''}" data-ano="${x.t}" tabindex="0"><td>${x.t}</td><td class="txt">${esc(x.fase)}</td>
         <td>${pp(x.pf.trib.cbs.pEf)}</td><td>${pp(rhe(x.pf.trib.uf.pEf + x.pf.trib.mun.pEf, 4))}</td><td>${pp(x.r.icms)}</td>
-        <td>${brl(x.pf.trib.vBC)}</td><td>${brl(x.pf.trib.total)}</td><td>${brl0(x.insLiq)}</td><td>${brl(x.pf.contrato)}</td><td>${pct(x.pf.margem)}</td>
-        <td>${brl(x.pj.contrato)}</td><td>${brl(x.pj.custo)}</td><td>${pct(x.pj.margem)}</td><td>${x.t === 2026 ? '—' : brl(x.recolher)}</td></tr>`).join('') + '</tbody>';
+        <td>${brl(x.pf.trib.total)}</td><td>${brl0(x.insLiq)}</td><td>${brl(x.pf.contrato)}</td><td>${brl0(x.pf.lucro)}</td><td>${pct(x.pf.margem)}</td>
+        <td>${brl(x.pj.custo)}</td><td>${brl0(x.pj.lucro)}</td><td>${pct(x.pj.margem)}</td><td>${x.recolher == null ? '—' : brl(x.recolher)}</td></tr>`).join('') + '</tbody>';
     ligarTabela();
   }
 
-  // ───────── Simples Nacional ─────────
+  // ───────── Simples ─────────
+  function renderSemSimples() {
+    $('big-rot').textContent = 'Simples Nacional'; $('big').textContent = 'Fora do limite'; $('big').style.color = '';
+    $('big-sub').textContent = 'Faturamento acima de R$ 3,6 milhões (sublimite)';
+    $('resumo').innerHTML = '<p>Acima de R$ 3,6 milhões em 12 meses, o ICMS e o IBS saem do DAS. Esta versão cobre o Simples até esse limite. Use as abas do Lucro Presumido e do Lucro Real.</p>';
+    ['cards', 'dre', 'tab-anos'].forEach(id => $(id).innerHTML = '');
+  }
   function renderSN(sim) {
     const a = sim.anos.find(x => x.t === est.ano), base = sim.anos[0], merc = est.lente === 'mercado';
     const frases = [];
     if (!a.hb) {
-      $('big-rot').textContent = 'Em 2026';
+      $('big-rot').textContent = 'Simples Nacional em 2026';
       $('big').textContent = 'Simples puro'; $('big').style.color = 'var(--sn)';
       $('big-sub').textContent = 'A opção pelo híbrido começa em 2027';
-      frases.push(`Em 2026 a CBS e o IBS de teste não se aplicam ao Simples. Este projeto sai por <b>${brl(base.sn.pf.contrato)}</b>, com DAS de ${brl(base.sn.pf.das)} e margem de ${pct(base.sn.pf.margem)}: é a base da comparação.`);
+      frases.push(`Em 2026 a CBS e o IBS de teste não se aplicam ao Simples. O projeto sai por <b>${brl(base.sn.pf.contrato)}</b>, com DAS de ${brl(base.sn.pf.das)} e lucro líquido de ${brl(base.sn.pf.lucro)} (${pct(base.sn.pf.margem)}).`);
       frases.push('Escolha 2027 ou um ano posterior para comparar com o híbrido.');
     } else {
-      const hbMelhor = merc ? a.blendHB > a.blendSN + 1e-9 : a.blendHB < a.blendSN - 1e-9;
-      $('big-rot').textContent = `Melhor regime em ${a.t} com ${est.mix}% de vendas PJ`;
+      const hbMelhor = merc ? a.bHB.lucro > a.bSN.lucro + 1e-6 : a.bHB.custo < a.bSN.custo - 1e-6;
+      $('big-rot').textContent = `Simples Nacional · melhor caminho em ${a.t} com ${est.mix}% de vendas PJ`;
       $('big').textContent = hbMelhor ? 'Híbrido' : 'Simples puro';
       $('big').style.color = hbMelhor ? 'var(--hb)' : 'var(--sn)';
-      $('big-sub').textContent = merc ? `Margem pelo mix: ${pct(a.blendSN)} no Simples puro e ${pct(a.blendHB)} no híbrido` : `Custo médio do cliente: ${brl0(a.blendSN)} no Simples puro e ${brl0(a.blendHB)} no híbrido`;
+      $('big-sub').textContent = merc ? `Lucro líquido pelo mix: ${brl0(a.bSN.lucro)} no Simples puro e ${brl0(a.bHB.lucro)} no híbrido` : `Custo médio do cliente: ${brl0(a.bSN.custo)} no Simples puro e ${brl0(a.bHB.custo)} no híbrido`;
       const v = a.vir;
       if (v.tipo === 'acima') frases.push(`<b>Ponto de virada em ${a.t}: o híbrido compensa quando mais de ${pct(v.w, 0)} do faturamento vem de clientes PJ.</b>`);
       else if (v.tipo === 'abaixo') frases.push(`<b>Ponto de virada em ${a.t}: o híbrido compensa quando menos de ${pct(v.w, 0)} do faturamento vem de clientes PJ.</b>`);
       else if (v.tipo === 'sempre') frases.push(`<b>Em ${a.t}, o híbrido é melhor nos dois canais, qualquer que seja o mix.</b>`);
       else frases.push(`<b>Em ${a.t}, o Simples puro é melhor nos dois canais, qualquer que seja o mix.</b>`);
       if (merc) {
-        frases.push(`Na venda PF, o híbrido põe IBS/CBS por fora e, para manter o preço do cliente, sua receita cai: margem de <b>${pct(a.hb.pf.margem)}</b> contra ${pct(a.sn.pf.margem)} no Simples puro.`);
-        frases.push(`Na venda PJ, o cliente recupera ${brl(a.hb.pj.credito)} no híbrido contra ${brl(a.sn.pj.credito)} no Simples puro. Com o mesmo custo efetivo para ele, sua margem vai a <b>${pct(a.hb.pj.margem)}</b>, contra ${pct(a.sn.pj.margem)}.`);
+        frases.push(`Na venda PF, o híbrido põe IBS/CBS por fora e, para manter o preço do cliente, sua receita cai: lucro de <b>${brl(a.hb.pf.lucro)}</b> contra ${brl(a.sn.pf.lucro)} no Simples puro.`);
+        frases.push(`Na venda PJ, o cliente recupera ${brl(a.hb.pj.credito)} no híbrido contra ${brl(a.sn.pj.credito)} no Simples puro. Com o mesmo custo efetivo para ele, seu lucro vai a <b>${brl(a.hb.pj.lucro)}</b>, contra ${brl(a.sn.pj.lucro)}.`);
       } else {
         frases.push(`Para manter a margem, o cliente PF paga <b>${brl(a.hb.pf.custo)}</b> no híbrido contra ${brl(a.sn.pf.custo)} no Simples puro (${sinal(a.hb.pf.custo / a.sn.pf.custo - 1)}${pct(Math.abs(a.hb.pf.custo / a.sn.pf.custo - 1))}).`);
-        frases.push(`O cliente PJ fica com custo efetivo de <b>${brl(a.hb.pj.custo)}</b> no híbrido contra ${brl(a.sn.pj.custo)} no Simples puro (${sinal(a.hb.pj.custo / a.sn.pj.custo - 1)}${pct(Math.abs(a.hb.pj.custo / a.sn.pj.custo - 1))}): é o argumento para disputar contrato com quem está no regime regular.`);
+        frases.push(`O cliente PJ fica com custo efetivo de <b>${brl(a.hb.pj.custo)}</b> no híbrido contra ${brl(a.sn.pj.custo)} no Simples puro (${sinal(a.hb.pj.custo / a.sn.pj.custo - 1)}${pct(Math.abs(a.hb.pj.custo / a.sn.pj.custo - 1))}).`);
       }
     }
     $('resumo').innerHTML = frases.map(f => `<p>${f}</p>`).join('');
-
     const mini = r => `<div class="tabela"><table class="mini"><thead><tr><th></th><th>Venda PF</th><th>Venda PJ</th></tr></thead><tbody>
       <tr><td>Valor do contrato</td><td>${brl(r.pf.contrato)}</td><td>${brl(r.pj.contrato)}</td></tr>
       <tr><td>Crédito do cliente</td><td>${brl(r.pf.credito)}</td><td>${brl(r.pj.credito)}</td></tr>
       <tr class="forte"><td>Custo do cliente</td><td>${brl(r.pf.custo)}</td><td>${brl(r.pj.custo)}</td></tr>
-      <tr class="forte"><td>Margem</td><td>${pct(r.pf.margem)}</td><td>${pct(r.pj.margem)}</td></tr></tbody></table></div>`;
+      <tr class="forte"><td>Lucro líquido</td><td>${brl(r.pf.lucro)}</td><td>${brl(r.pj.lucro)}</td></tr>
+      <tr><td>Margem líquida</td><td>${pct(r.pf.margem)}</td><td>${pct(r.pj.margem)}</td></tr></tbody></table></div>`;
     $('cards').innerHTML =
       `<section class="card"><header><span class="dot sn"></span><h3>Simples puro</h3><p>IBS e CBS dentro do DAS. O cliente PJ só credita o que está no DAS.</p></header>${mini(a.sn)}</section>` +
-      `<section class="card"><header><span class="dot hb"></span><h3>Híbrido</h3><p>DAS sem IBS/CBS; os dois por fora, com crédito nas compras e crédito integral para o cliente PJ.</p></header>${a.hb ? mini(a.hb) : '<p class="vazio">A opção pelo regime regular do IBS/CBS começa em 2027.</p>'}</section>`;
-
+      `<section class="card"><header><span class="dot hb"></span><h3>Simples híbrido</h3><p>DAS sem IBS/CBS; os dois por fora, com crédito nas compras e crédito integral para o cliente PJ.</p></header>${a.hb ? mini(a.hb) : '<p class="vazio">A opção pelo regime regular do IBS/CBS começa em 2027.</p>'}</section>`;
     $('dre-tit').textContent = `Resultado do projeto em ${a.t} · Simples Nacional`;
     const cols = [a.sn.pf, a.sn.pj].concat(a.hb ? [a.hb.pf, a.hb.pj] : []);
     const L = (rot, f, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${rot}</td>${cols.map(x => `<td>${f(x)}</td>`).join('')}</tr>`;
@@ -928,19 +1057,18 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
       L('Valor do contrato (o que o cliente paga)', x => brl(x.contrato), 'total') +
       L('(−) IBS/CBS por fora, repassado ao fisco', x => neg(x.fora)) +
       L('= Receita da marcenaria', x => brl(x.P), 'total') +
-      L('(−) DAS', x => neg(x.das)) + L('dos quais IBS/CBS dentro do DAS', x => brl(x.noDas), 'sub') +
+      L('(−) DAS (inclui IRPJ, CSLL e INSS patronal)', x => neg(x.das)) + L('dos quais IBS/CBS dentro do DAS', x => brl(x.noDas), 'sub') +
       L(`(−) RT / comissão (${numFmt(est.rt, 'pct')}% do contrato)`, x => neg(x.comissao)) +
       L('(−) Insumos, preço pago ao fornecedor', x => neg(x.insumos)) + L('(+) Crédito de IBS/CBS nas compras', x => brl(x.credCompras)) +
       L('(−) Mão de obra própria', () => neg(est.mo)) + L('(−) Outros custos', () => neg(est.outros)) + L('(−) Despesas fixas', () => neg(a.F)) +
       L('= Lucro líquido', x => brl(x.lucro), 'total') + L('Margem líquida', x => pct(x.margem), 'total') +
       L('Crédito de IBS/CBS do cliente', x => brl(x.credito), 'sub') + L('Custo efetivo para o cliente', x => brl(x.custo), 'sub') + '</tbody>';
-
-    const f2 = (x, k) => merc ? pct(x[k].margem) : brl0(x[k].custo);
-    $('tab-anos').innerHTML = `<thead><tr class="grupo"><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th colspan="2">${merc ? 'Margem PF' : 'Custo PF'}</th><th colspan="2">${merc ? 'Margem PJ' : 'Custo PJ'}</th><th></th></tr>
-      <tr><th>Ano</th><th>Fase</th><th>DAS<br>efetivo</th><th>IBS/CBS<br>no DAS</th><th>IBS/CBS<br>híbrido</th><th>Insumos<br>pagos</th><th>Crédito<br>compras</th><th>Simples</th><th>Híbrido</th><th>Simples</th><th>Híbrido</th><th>Ponto de virada</th></tr></thead><tbody>` +
+    $('tab-tit').textContent = 'Ano a ano · Simples Nacional';
+    const f2 = (x, k) => merc ? brl0(x[k].lucro) : brl0(x[k].custo);
+    $('tab-anos').innerHTML = `<thead><tr class="grupo"><th></th><th></th><th></th><th></th><th></th><th></th><th colspan="2">${merc ? 'Lucro PF' : 'Custo PF'}</th><th colspan="2">${merc ? 'Lucro PJ' : 'Custo PJ'}</th><th></th></tr>
+      <tr><th>Ano</th><th>Fase</th><th>DAS<br>efetivo</th><th>IBS/CBS<br>no DAS</th><th>IBS/CBS<br>híbrido</th><th>Insumos<br>pagos</th><th>Simples</th><th>Híbrido</th><th>Simples</th><th>Híbrido</th><th>Ponto de virada</th></tr></thead><tbody>` +
       sim.anos.map(x => `<tr class="clicavel${x.t === est.ano ? ' sel' : ''}" data-ano="${x.t}" tabindex="0"><td>${x.t}</td><td class="txt">${esc(x.fase)}</td>
-        <td>${pp(rhe(sim.d.efetiva, 4))}</td><td>${x.t <= 2026 ? '—' : pp(rhe(x.pC + x.pI, 4))}</td><td>${x.t <= 2026 ? '—' : pp(rhe(x.k * 100, 4))}</td>
-        <td>${brl0(x.G)}</td><td>${x.hb ? brl0(x.cred) : '—'}</td>
+        <td>${pp(rhe(sim.d.efetiva, 4))}</td><td>${x.t <= 2026 ? '—' : pp(rhe(x.pC + x.pI, 4))}</td><td>${x.t <= 2026 ? '—' : pp(rhe(x.k * 100, 4))}</td><td>${brl0(x.G)}</td>
         <td>${f2(x.sn, 'pf')}</td><td>${x.hb ? f2(x.hb, 'pf') : '—'}</td><td>${f2(x.sn, 'pj')}</td><td>${x.hb ? f2(x.hb, 'pj') : '—'}</td>
         <td class="txt">${esc(textoVirada(x.vir))}</td></tr>`).join('') + '</tbody>';
     ligarTabela();
@@ -948,30 +1076,45 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
 
   function desenhar() {
     if (!ultimo) return;
-    const anos = ultimo.anos;
-    if (ultimo.modo === 'rr') {
-      $('g1-tit').textContent = 'Custo efetivo para o cliente';
-      $('g1-leg').innerHTML = legenda([['pf', 'Cliente PF'], ['pj', 'Cliente PJ']]);
-      grafico($('g1'), { rotulo: 'Custo efetivo para o cliente por ano', fase: FASE_RR,
-        series: [{ nome: 'Cliente PF', curto: 'PF', cor: '--sn', v: anos.map(x => x.pf.custo) }, { nome: 'Cliente PJ', curto: 'PJ', cor: '--hb', v: anos.map(x => x.pj.custo) }],
-        fmtEixo: eixoBRL, fmtTip: v => brl0(v), extra: { rot: 'Diferença', f: i => brl0(anos[i].pf.custo - anos[i].pj.custo) } });
-      $('g2-tit').textContent = 'Margem da marcenaria';
-      $('g2-leg').innerHTML = legenda([['pf', 'Venda PF'], ['pj', 'Venda PJ']]);
-      grafico($('g2'), { rotulo: 'Margem da marcenaria por ano', fase: FASE_RR,
-        series: [{ nome: 'Venda PF', curto: 'PF', cor: '--sn', v: anos.map(x => x.pf.margem) }, { nome: 'Venda PJ', curto: 'PJ', cor: '--hb', v: anos.map(x => x.pj.margem) }],
-        fmtEixo: eixoPct, fmtTip: v => pct(v), extra: { rot: 'Margem pelo mix', f: i => pct(anos[i].blend) } });
-    } else {
-      const merc = est.lente === 'mercado';
-      $('g1-tit').textContent = merc ? 'Margem pelo seu mix de vendas' : 'Custo médio do cliente pelo seu mix';
-      $('g1-leg').innerHTML = legenda([['sn', 'Simples puro'], ['hb', 'Híbrido']]);
+    const merc = est.lente === 'mercado';
+    const graficosVisiveis = !(aba === 'simples' && ultimo.sn.fora);
+    document.querySelector('.graficos').hidden = !graficosVisiveis;
+    if (!graficosVisiveis) return;
+    if (aba === 'comparar') {
+      const ids = ['presumido', 'real'].concat(ultimo.sn.fora ? [] : ['sn', 'hb']);
+      const curto = { presumido: 'LP', real: 'LR', sn: 'SN', hb: 'HB' };
+      const serie = (id, k) => ({ nome: NOME[id], curto: curto[id], cor: COR[id], v: ultimo.comp.map(x => { const o = x.op.find(z => z.id === id); return o ? (merc ? o[k].lucro : o[k].custo) : null; }) });
+      const leg = legenda(ids.map(id => [COR[id], NOME[id]]));
+      $('g1-tit').textContent = merc ? 'Lucro líquido na venda PF' : 'Custo do cliente PF';
+      $('g1-leg').innerHTML = leg;
+      grafico($('g1'), { rotulo: $('g1-tit').textContent, fase: FASE_RR, series: ids.map(id => serie(id, 'pf')), fmtEixo: eixoBRL, fmtTip: v => v == null ? 'a partir de 2027' : brl0(v) });
+      $('g2-tit').textContent = merc ? 'Lucro líquido na venda PJ' : 'Custo efetivo do cliente PJ';
+      $('g2-leg').innerHTML = leg;
+      grafico($('g2'), { rotulo: $('g2-tit').textContent, fase: FASE_RR, series: ids.map(id => serie(id, 'pj')), fmtEixo: eixoBRL, fmtTip: v => v == null ? 'a partir de 2027' : brl0(v) });
+    } else if (aba === 'simples') {
+      const anos = ultimo.sn.anos;
+      $('g1-tit').textContent = merc ? 'Lucro líquido pelo seu mix' : 'Custo médio do cliente pelo seu mix';
+      $('g1-leg').innerHTML = legenda([['--sn', 'Simples puro'], ['--hb', 'Híbrido']]);
       grafico($('g1'), { rotulo: $('g1-tit').textContent, fase: FASE_SN,
-        series: [{ nome: 'Simples puro', curto: 'SN', cor: '--sn', v: anos.map(x => x.blendSN) }, { nome: 'Híbrido', curto: 'HB', cor: '--hb', v: anos.map(x => x.blendHB) }],
-        fmtEixo: merc ? eixoPct : eixoBRL, fmtTip: v => v == null ? 'a partir de 2027' : (merc ? pct(v) : brl0(v)), extra: { rot: 'Vendas PJ', f: () => est.mix + '%' } });
-      $('g2-tit').textContent = 'Ponto de virada';
-      $('g2-leg').innerHTML = legenda([['hb', 'Vendas PJ a partir das quais o híbrido compensa']]);
+        series: [{ nome: 'Simples puro', curto: 'SN', cor: '--sn', v: anos.map(x => merc ? x.bSN.lucro : x.bSN.custo) }, { nome: 'Híbrido', curto: 'HB', cor: '--hb', v: anos.map(x => x.bHB ? (merc ? x.bHB.lucro : x.bHB.custo) : null) }],
+        fmtEixo: eixoBRL, fmtTip: v => v == null ? 'a partir de 2027' : brl0(v), extra: { rot: 'Vendas PJ', f: () => est.mix + '%' } });
+      $('g2-tit').textContent = 'Ponto de virada do híbrido';
+      $('g2-leg').innerHTML = legenda([['--hb', 'Vendas PJ a partir das quais o híbrido compensa']]);
       grafico($('g2'), { rotulo: 'Ponto de virada por ano', fase: FASE_SN,
         series: [{ nome: 'Ponto de virada', curto: '', cor: '--hb', v: anos.map(x => !x.vir ? null : x.vir.tipo === 'nunca' ? 1 : Math.min(1, Math.max(0, x.vir.w))) }],
         fmtEixo: v => pct(v, 0), dominio: [0, 1], fmtTip: (v, i) => textoVirada(anos[i].vir), ref: { v: est.mix / 100, rot: `seu mix: ${est.mix}%` } });
+    } else {
+      const sim = aba === 'real' ? ultimo.real : ultimo.pres, anos = sim.anos, cor = COR[sim.rg];
+      $('g1-tit').textContent = 'Custo efetivo para o cliente';
+      $('g1-leg').innerHTML = legenda([[cor, 'Cliente PF'], [cor, 'Cliente PJ', true]]);
+      grafico($('g1'), { rotulo: 'Custo efetivo para o cliente por ano', fase: FASE_RR,
+        series: [{ nome: 'Cliente PF', curto: 'PF', cor, v: anos.map(x => x.pf.custo) }, { nome: 'Cliente PJ', curto: 'PJ', cor, tracejado: true, v: anos.map(x => x.pj.custo) }],
+        fmtEixo: eixoBRL, fmtTip: v => brl0(v), extra: { rot: 'Diferença', f: i => brl0(anos[i].pf.custo - anos[i].pj.custo) } });
+      $('g2-tit').textContent = 'Lucro líquido por projeto';
+      $('g2-leg').innerHTML = legenda([[cor, 'Venda PF'], [cor, 'Venda PJ', true]]);
+      grafico($('g2'), { rotulo: 'Lucro líquido por ano', fase: FASE_RR,
+        series: [{ nome: 'Venda PF', curto: 'PF', cor, v: anos.map(x => x.pf.lucro) }, { nome: 'Venda PJ', curto: 'PJ', cor, tracejado: true, v: anos.map(x => x.pj.lucro) }],
+        fmtEixo: eixoBRL, fmtTip: v => brl0(v), extra: { rot: 'Pelo mix', f: i => brl0(anos[i].blendLucro) } });
     }
   }
   if ('ResizeObserver' in window) {
@@ -979,13 +1122,13 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     ro.observe($('g1')); ro.observe($('g2'));
   } else window.addEventListener('resize', desenhar);
 
-  // Conferência do motor com as Calculadoras da Receita
+  // Conferência
   const CASOS = [
-    { desc: 'Regime regular · cozinha 2026 · base 38.000,00 · CBS 0,9% · IBS 0,1%', api: { CBS: 342.00, IBS: 38.00 }, calc: () => { const t = ibscbs(38000, { cbs: 0.9, ibsUf: 0.1, ibsMun: 0 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
-    { desc: 'Regime regular · projeto 2027 · base 77.044,00 sem ICMS · CBS 8,8% · IBS 0,05% + 0,05%', api: { CBS: 6779.87, IBS: 77.04 }, calc: () => { const t = ibscbs(77044, { cbs: 8.8, ibsUf: 0.05, ibsMun: 0.05 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
-    { desc: 'Regime regular · projeto 2033 · base 94.000,00 · CBS 8,8% · IBS 8,85% + 8,85%', api: { CBS: 8272.00, IBS: 16638.00 }, calc: () => { const t = ibscbs(94000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
-    { desc: 'Regime regular · maca clínica 2033 · cClassTrib 200030 · redução de 60% · base 18.000,00', api: { CBS: 633.60, IBS: 1274.40 }, calc: () => { const t = ibscbs(18000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }, 60); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
-    { desc: 'Regime regular · empate para o par · base 25,00 · CBS 0,9%', api: { CBS: 0.22 }, calc: () => ({ CBS: ibscbs(25, { cbs: 0.9, ibsUf: 0, ibsMun: 0 }).cbs.v }) },
+    { desc: 'IBS/CBS · cozinha 2026 · base 38.000,00 · CBS 0,9% · IBS 0,1%', api: { CBS: 342.00, IBS: 38.00 }, calc: () => { const t = ibscbs(38000, { cbs: 0.9, ibsUf: 0.1, ibsMun: 0 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'IBS/CBS · projeto 2027 · base 77.044,00 sem ICMS · CBS 8,8% · IBS 0,05% + 0,05%', api: { CBS: 6779.87, IBS: 77.04 }, calc: () => { const t = ibscbs(77044, { cbs: 8.8, ibsUf: 0.05, ibsMun: 0.05 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'IBS/CBS · projeto 2033 · base 94.000,00 · CBS 8,8% · IBS 8,85% + 8,85%', api: { CBS: 8272.00, IBS: 16638.00 }, calc: () => { const t = ibscbs(94000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'IBS/CBS · maca clínica 2033 · cClassTrib 200030 · redução de 60% · base 18.000,00', api: { CBS: 633.60, IBS: 1274.40 }, calc: () => { const t = ibscbs(18000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }, 60); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'IBS/CBS · empate para o par · base 25,00 · CBS 0,9%', api: { CBS: 0.22 }, calc: () => ({ CBS: ibscbs(25, { cbs: 0.9, ibsUf: 0, ibsMun: 0 }).cbs.v }) },
     { desc: 'Simples · Anexo II · faturamento R$ 720.000 (faixa 3) · PGDAS março/2027', api: { pCBSSN: 1.1184, pIBSSN: 0.0121 }, pp: true, calc: () => { const d = das('II', 720000), t = partilha(d, 2027); return { pCBSSN: rhe(d.efetiva * t.cbs / 100, 4), pIBSSN: rhe(d.efetiva * t.ibs / 100, 4) }; } },
     { desc: 'Simples · Anexo I · faturamento R$ 720.000 (faixa 3) · PGDAS março/2027', api: { pCBSSN: 1.1612, pIBSSN: 0.0129 }, pp: true, calc: () => { const d = das('I', 720000), t = partilha(d, 2027); return { pCBSSN: rhe(d.efetiva * t.cbs / 100, 4), pIBSSN: rhe(d.efetiva * t.ibs / 100, 4) }; } },
   ];
