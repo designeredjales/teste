@@ -1,0 +1,1917 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador Tributário Moveleiro · Diâmetro</title>
+<meta name="description" content="Simulador tributário para marcenarias e consultorias: Check-up Reforma 2027 com alavancas de elisão fiscal, assistente de teses, consulta oficial de NCM e NBS e comparação de Lucro Presumido, Lucro Real, Simples puro e híbrido.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: painel de gestão Diâmetro. Premissas à esquerda, decisão à direita; um número de destaque por tela. */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --panel-2: #f0f2f5; --line: #e3e6eb;
+  --text: #16191f; --muted: #5d6573; --faint: #98a0ad;
+  --accent: #2f6fed; --accent-ink: #ffffff; --on-color: #ffffff;
+  --green: #0f9d76; --red: #d93b3b; --amber: #c77d10;
+  --sn: #8b5cf6; --hb: #0e9f9f;
+  --logo-ink: #000200; --logo-lime: #aabe09;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
+  --shadow-md: 0 10px 30px rgba(10, 14, 20, .18);
+  --sp-2: 4px; --sp-3: 6px; --sp-4: 8px; --sp-5: 12px; --sp-6: 16px; --sp-7: 24px;
+  --r-sm: 4px; --r-md: 8px; --radius: 10px; --r-pill: 999px;
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk", Inter, system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --panel: #171b21; --panel-2: #1f242c; --line: #2a3039;
+    --text: #e7eaee; --muted: #a3abb8; --faint: #6b7482;
+    --accent: #5b8cff; --accent-ink: #ffffff; --on-color: #0f1216;
+    --green: #2fbf94; --red: #f06363; --amber: #e3a23a;
+    --sn: #9d80f7; --hb: #27b0b0;
+    --logo-ink: #e7eaee; --logo-lime: #aabe09;
+    --shadow: none; --shadow-md: 0 10px 30px rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --panel: #171b21; --panel-2: #1f242c; --line: #2a3039;
+  --text: #e7eaee; --muted: #a3abb8; --faint: #6b7482;
+  --accent: #5b8cff; --accent-ink: #ffffff; --on-color: #0f1216;
+  --green: #2fbf94; --red: #f06363; --amber: #e3a23a;
+  --sn: #9d80f7; --hb: #27b0b0;
+  --logo-ink: #e7eaee; --logo-lime: #aabe09;
+  --shadow: none; --shadow-md: 0 10px 30px rgba(0, 0, 0, .45);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font-sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { margin: 0; line-height: 1.25; text-wrap: balance; }
+h1 { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+h3 { font-size: 16px; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+button, input, select { font: inherit; color: inherit; }
+button { background: var(--accent); color: var(--accent-ink); border: 1px solid transparent; border-radius: var(--r-md); padding: 7px 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+button:hover { filter: brightness(1.07); }
+button.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+button.ghost:hover { background: var(--panel-2); filter: none; }
+button:focus-visible, input[type="range"]:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+
+.wrap {
+  max-width: 1320px; margin: 0 auto; padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: var(--sp-7);
+}
+.topo { display: flex; align-items: center; gap: var(--sp-6); flex-wrap: wrap; }
+.topo .mark { width: 62px; height: auto; flex: none; }
+.topo .tit { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; flex: 1 1 320px; }
+.topo .tit p { color: var(--muted); max-width: 72ch; }
+.topo .chips { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.layout { display: grid; grid-template-columns: 344px minmax(0, 1fr); gap: var(--sp-7); align-items: start; }
+@media (max-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr); } .resultado { order: -1; } }
+.lateral { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+@media (min-width: 1001px) { .lateral { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow-y: auto; padding-right: 4px; } }
+.resultado { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); min-width: 0; display: flex; flex-direction: column; gap: var(--sp-6); }
+.card > header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-5); flex-wrap: wrap; }
+
+.campos { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
+.campos .full { grid-column: 1 / -1; }
+.field { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.field > label, .field > .rot { font-size: 13px; font-weight: 600; color: var(--muted); }
+.field small { color: var(--muted); font-size: 12px; }
+.inp { display: flex; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); min-width: 0; }
+.inp:focus-within { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+.inp .un { padding-left: 10px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.inp .un.dir { padding: 0 10px 0 0; }
+.inp input { border: 0; background: transparent; outline: none; padding: 7px 10px; flex: 1; min-width: 0; width: 100%; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.field.erro .inp { border-color: var(--red); }
+.field .msg { color: var(--red); font-size: 12px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.faixa { display: flex; align-items: center; gap: var(--sp-5); }
+.faixa output { min-width: 44px; text-align: right; font-weight: 600; }
+.info { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 10px; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+.info b { color: var(--text); font-weight: 600; }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; background: var(--panel); max-width: 100%; }
+.seg button { background: transparent; color: var(--muted); border: 0; border-radius: 0; padding: 6px 12px; flex: 1 1 auto; white-space: normal; line-height: 1.3; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-weight: 600; }
+.seg.cheio { display: flex; width: 100%; }
+.seg.cheio button { padding: 6px 8px; }
+.rolagem { overflow-x: auto; max-width: 100%; }
+.anos .seg button { min-width: 58px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.etiqueta { --c: var(--muted); display: inline-flex; align-items: center; gap: var(--sp-2); white-space: nowrap; font-family: var(--font-sans); font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 var(--sp-3); border: 1px solid transparent; border-radius: var(--r-pill); color: color-mix(in srgb, var(--c) 66%, var(--text)); background: color-mix(in srgb, var(--c) 14%, transparent); }
+.etiqueta.md { font-size: 12px; line-height: 20px; padding: 0 var(--sp-4); }
+.etiqueta.neutra { background: var(--panel-2); border-color: var(--line); font-weight: 500; }
+.etiqueta.ok { --c: var(--green); } .etiqueta.alerta { --c: var(--amber); } .etiqueta.perigo { --c: var(--red); } .etiqueta.acao { --c: var(--accent); }
+.etiqueta.sn { --c: var(--sn); } .etiqueta.hb { --c: var(--hb); }
+
+.destaque { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: var(--sp-7); align-items: center; }
+@media (max-width: 720px) { .destaque { grid-template-columns: minmax(0, 1fr); } }
+.destaque .big { font-family: var(--font-display); font-size: 40px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+.destaque .rotulo { font-size: 13px; color: var(--muted); font-weight: 600; }
+.destaque .resumo { display: flex; flex-direction: column; gap: var(--sp-4); max-width: 70ch; }
+.destaque .resumo p { line-height: 1.55; }
+
+.regimes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+@media (max-width: 720px) { .regimes { grid-template-columns: minmax(0, 1fr); } }
+.regime header { align-items: center; justify-content: flex-start; }
+.regime header p { flex-basis: 100%; color: var(--muted); font-size: 13px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.sn { background: var(--sn); } .dot.hb { background: var(--hb); }
+.mini { width: 100%; font-size: 13px; }
+.mini th, .mini td { padding: 6px 0 6px 10px; }
+.mini th:first-child, .mini td:first-child { padding-left: 0; }
+.mini td:first-child { font-family: var(--font-sans); color: var(--muted); white-space: normal; }
+.mini tr.forte td { font-weight: 700; color: var(--text); }
+.mini tr:last-child td { border-bottom: 0; }
+.linhas { display: flex; flex-direction: column; margin: 0; }
+.linhas > div { display: flex; justify-content: space-between; gap: var(--sp-4); padding: 6px 0; border-top: 1px solid var(--line); align-items: baseline; flex-wrap: wrap; }
+.linhas > div:first-child { border-top: 0; padding-top: 0; }
+.linhas dt { color: var(--muted); font-size: 13px; min-width: 0; }
+.linhas dd { margin: 0; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
+.linhas .forte dt { color: var(--text); font-weight: 600; }
+.linhas .forte dd { font-weight: 700; font-size: 15px; }
+.vazio { color: var(--muted); font-size: 13px; padding: 12px 0; }
+
+.graficos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+@media (max-width: 1180px) { .graficos { grid-template-columns: minmax(0, 1fr); } }
+.legenda { display: flex; gap: var(--sp-6); flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legenda span { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.grafico { position: relative; min-width: 0; }
+.grafico svg { display: block; width: 100%; overflow: visible; }
+.grafico svg text { font-family: var(--font-mono); font-size: 11px; }
+.tooltip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-md); padding: 8px 10px; font-size: 12px; display: flex; flex-direction: column; gap: 3px; min-width: 180px; z-index: 5; }
+.tooltip .l { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.tooltip .l span:first-child { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+
+.tabela { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; vertical-align: bottom; }
+td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td.txt { font-family: var(--font-sans); }
+tbody tr.sel td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+tbody tr.clicavel { cursor: pointer; }
+tbody tr.clicavel:hover td { background: var(--panel-2); }
+tr.total td { font-weight: 700; }
+tr.sub td { color: var(--muted); }
+.dre td:first-child { font-family: var(--font-sans); white-space: normal; min-width: 210px; }
+.dre th:not(:first-child) { min-width: 118px; }
+thead tr.grupo th { text-align: center; border-bottom: 0; padding-bottom: 0; }
+
+.conf { display: flex; flex-direction: column; }
+.conf > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-5); padding: 9px 0; border-top: 1px solid var(--line); align-items: center; }
+.conf > div:first-child { border-top: 0; }
+.conf .vals { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); }
+.premissas { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: var(--sp-3); max-width: 92ch; }
+.premissas li { line-height: 1.5; }
+.aviso { border: 1px solid color-mix(in srgb, var(--red) 45%, var(--line)); background: color-mix(in srgb, var(--red) 8%, var(--panel)); border-radius: var(--radius); padding: 14px 16px; }
+.rodape { color: var(--muted); font-size: 12px; max-width: 100ch; }
+@media (prefers-reduced-motion: no-preference) { .seg button, button.ghost, tbody tr td { transition: background-color .15s; } }
+</style>
+<style>
+:root { --pres: #e8590c; --real: #a61e4d; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pres: #f76707; --real: #c2255c; } }
+:root[data-theme="dark"] { --pres: #f76707; --real: #c2255c; }
+select { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 7px 10px; width: 100%; min-width: 0; }
+select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+.dot.pres { background: var(--pres); } .dot.real { background: var(--real); }
+.abas { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; max-width: 100%; }
+.abas a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; color: var(--muted); text-decoration: none; font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.abas a:hover { color: var(--text); }
+.abas a.on { color: var(--accent); border-bottom-color: var(--accent); }
+.abas a:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: -2px; border-radius: 6px; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+@media (max-width: 720px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.cards > .span2 { grid-column: 1 / -1; }
+.cards .card header { align-items: center; justify-content: flex-start; }
+.cards .card header p { flex-basis: 100%; color: var(--muted); font-size: 13px; }
+.linhas .etiqueta { margin-right: 6px; }
+.anexos { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+.ranking td:first-child { font-family: var(--font-sans); }
+.ranking td .sub { display: block; font-size: 11px; color: var(--muted); }
+.ranking tr.melhor td { background: color-mix(in srgb, var(--green) 9%, transparent); }
+.ranking tr.fora td { color: var(--muted); }
+.nome { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.linha-tempo { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 720px) { .linha-tempo { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.linha-tempo button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 6px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-weight: 400; white-space: normal; text-align: left; }
+.linha-tempo button:hover { background: var(--panel-2); filter: none; }
+.linha-tempo button.on { border-color: var(--accent); }
+.linha-tempo .ano { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.linha-tempo .quem { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 600; }
+.legenda svg { flex: none; }
+.info.destaque-preco b { font-size: 14px; }
+.campos.q3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .campos.q3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .campos.q3 { grid-template-columns: minmax(0, 1fr); } }
+.field input.txt { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 7px 10px; width: 100%; min-width: 0; }
+.field input.txt:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+.vista { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+.alavancas { display: flex; flex-direction: column; }
+.alav { padding: 14px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.alav:first-child { border-top: 0; padding-top: 0; }
+.alav-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.alav-top h3 { font-size: 15px; flex: 1 1 220px; min-width: 0; }
+.alav .num { font-family: var(--font-mono); color: var(--muted); font-size: 12px; min-width: 18px; }
+.alav .valor { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.alav p { max-width: 86ch; line-height: 1.5; }
+.alav ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.alav .quem { font-size: 12px; color: var(--muted); }
+details.na { padding-top: 12px; border-top: 1px solid var(--line); }
+details.na summary { cursor: pointer; color: var(--muted); font-weight: 600; }
+details.na ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+textarea { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 10px; width: 100%; min-width: 0; resize: vertical; font: inherit; color: inherit; }
+textarea:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+button.sm { padding: 4px 10px; font-size: 13px; }
+.atalhos { display: flex; flex-wrap: wrap; gap: 8px; }
+.atalhos button { background: var(--panel); color: var(--text); border: 1px solid var(--line); font-size: 13px; padding: 6px 12px; white-space: normal; text-align: left; }
+.atalhos button:hover { border-color: var(--accent); filter: none; }
+.conversa { display: flex; flex-direction: column; gap: 12px; max-height: 62vh; overflow-y: auto; min-width: 0; }
+.conversa .vazio { color: var(--muted); }
+.msg { border-radius: var(--radius); padding: 10px 14px; max-width: 94%; line-height: 1.55; min-width: 0; overflow-wrap: anywhere; }
+.msg.eu { align-self: flex-end; background: color-mix(in srgb, var(--accent) 10%, var(--panel)); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); white-space: pre-wrap; }
+.msg.ia { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--line); }
+.msg.ia h4 { margin: 12px 0 4px; font-size: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.msg.ia h4:first-child { margin-top: 0; }
+.msg.ia p { margin: 4px 0; }
+.msg.ia ul, .msg.ia ol { margin: 4px 0; padding-left: 20px; }
+.msg.ia code { font-family: var(--font-mono); font-size: 12.5px; }
+.caixa { display: flex; gap: 8px; align-items: flex-end; }
+.caixa textarea { flex: 1; }
+.acoes { display: flex; flex-direction: column; gap: 6px; }
+.rodape-chat { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.spacer { flex: 1; }
+.busca { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.busca input.txt { flex: 1 1 260px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 7px 10px; min-width: 0; }
+.busca select { width: auto; }
+.cs-res { display: flex; flex-direction: column; }
+.cs-item { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; padding: 8px 6px; border-top: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 0; text-align: left; font-weight: 400; white-space: normal; }
+.cs-item:first-child { border-top: 0; }
+.cs-item:hover { background: var(--panel-2); filter: none; }
+.cs-item .cod { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--accent); }
+.cs-item .pai { display: block; font-size: 12px; color: var(--muted); }
+.trilha { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted); }
+.trilha b { color: var(--text); font-family: var(--font-mono); font-weight: 600; margin-right: 6px; }
+.cls { padding: 12px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.cls:first-of-type { border-top: 0; }
+.cls-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cls-top .cod { font-family: var(--font-mono); font-weight: 700; }
+.cls .nums { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.cls .nums b { color: var(--text); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.cls details summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+.cls details p { font-size: 12.5px; white-space: pre-wrap; margin-top: 6px; color: var(--muted); }
+.valor-sim { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.valor-sim .inp { width: 200px; }
+.relatorio { margin: 0; white-space: pre-wrap; font: 12.5px/1.55 var(--font-mono); background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px; overflow-x: auto; max-width: 100%; }
+</style>
+<style>html, body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topo">
+    <svg class="mark" viewBox="146 56 566 458" role="img" aria-label="Diâmetro">
+      <defs>
+        <marker style="overflow:visible" id="dmSeta" refX="0" refY="0" orient="auto-start-reverse" markerWidth="4.2071066" markerHeight="7" viewBox="0 0 4.2071068 7" preserveAspectRatio="xMidYMid">
+          <path style="fill:none;stroke:var(--logo-ink);stroke-width:1;stroke-linecap:round" d="M 3,-3 0,0 3,3" transform="rotate(180,0.125,0)"></path>
+        </marker>
+      </defs>
+      <g transform="translate(41.827397,6.6077261)">
+        <g style="fill:none" transform="matrix(2.0575241,0,0,2.0575241,-16.469864,-352.60605)">
+          <path d="m 244.6596,381.7838 c -19.2171,19.4137 -45.8822,31.4418 -75.3502,31.4418 -58.5465,0 -106.026,-47.4795 -106.026,-106.0262 0,-58.5467 47.4795,-106.0262 106.026,-106.0262 26.8075,0 51.2948,9.9546 69.966,26.3673" style="fill:none;fill-rule:evenodd;stroke:var(--logo-ink);stroke-width:8.5039;stroke-linecap:round;stroke-linejoin:miter"></path>
+          <path d="m 245.2039,233.1689 c 18.6431,19.1092 30.1319,45.231 30.1319,74.0305 0,26.2977 -9.5797,50.363 -25.4384,68.8948" style="fill:none;fill-rule:evenodd;stroke:var(--logo-lime);stroke-width:8.5039;stroke-linecap:round;stroke-linejoin:miter"></path>
+          <path d="m 251.2774,221.3083 18.7661,-21.137 h 58.2054" style="fill:none;fill-rule:evenodd;stroke:var(--logo-ink);stroke-width:3.75;stroke-linecap:round;stroke-linejoin:miter;marker-start:url(#dmSeta)"></path>
+          <path style="fill:var(--logo-lime);stroke-linecap:round;stroke-linejoin:round" d="m 169.93359,288.3125 a 1.875,1.875 0 0 0 -1.875,1.875 v 31.70117 a 1.875,1.875 0 0 0 1.875,1.875 1.875,1.875 0 0 0 1.875,-1.875 V 290.1875 a 1.875,1.875 0 0 0 -1.875,-1.875 z"></path>
+          <path style="fill:var(--logo-lime);stroke-linecap:round;stroke-linejoin:round" d="m 154.08203,304.16406 a 1.875,1.875 0 0 0 -1.875,1.875 1.875,1.875 0 0 0 1.875,1.875 h 31.70313 a 1.875,1.875 0 0 0 1.875,-1.875 1.875,1.875 0 0 0 -1.875,-1.875 z"></path>
+        </g>
+      </g>
+    </svg>
+    <div class="tit">
+      <h2>Diâmetro · Reforma Tributária do Consumo</h2>
+      <h1>Simulador Tributário Moveleiro</h1>
+      <p>Para marcenarias e fábricas de móveis: em qual regime o mesmo projeto deixa mais lucro de 2026 a 2033, quanto ele custa para o cliente PF e para o cliente empresa e, no Simples, se vale recolher IBS e CBS por fora.</p>
+    </div>
+    <div class="chips">
+      <span class="etiqueta neutra md">LC 123 · LC 214 · LC 224</span>
+      <span class="etiqueta acao md">Motor conferido com as Calculadoras da Receita</span>
+    </div>
+  </header>
+
+  <nav class="abas" id="abas" aria-label="Simuladores">
+    <a href="#checkup" data-aba="checkup">Check-up 2027</a>
+    <a href="#assistente" data-aba="assistente">Assistente de teses</a>
+    <a href="#consulta" data-aba="consulta">Consulta NCM/NBS</a>
+    <a href="#comparar" data-aba="comparar">Comparar regimes</a>
+    <a href="#presumido" data-aba="presumido"><i class="dot pres"></i>Lucro Presumido</a>
+    <a href="#real" data-aba="real"><i class="dot real"></i>Lucro Real</a>
+    <a href="#simples" data-aba="simples"><i class="dot sn"></i>Simples Nacional</a>
+  </nav>
+
+  <div class="layout">
+    <aside class="lateral" aria-label="Premissas">
+      <section class="card">
+        <header><h2>Empresa</h2><span class="etiqueta alerta">Exemplo</span></header>
+        <div class="campos">
+          <div class="field full">
+            <span class="rot" id="atual-rot">Regime atual</span>
+            <div class="seg cheio" id="atual" role="group" aria-labelledby="atual-rot">
+              <button type="button" data-v="presumido">Presumido</button>
+              <button type="button" data-v="real">Real</button>
+              <button type="button" data-v="simples">Simples</button>
+            </div>
+            <div class="info destaque-preco" id="preco-info"></div>
+          </div>
+          <div class="field full" data-campo="rbt">
+            <label for="rbt">Faturamento anual da empresa</label>
+            <div class="inp"><span class="un">R$</span><input id="rbt" inputmode="decimal" autocomplete="off"></div>
+            <small>Define a faixa do Simples, o adicional do IRPJ e o acréscimo da LC 224 no Presumido.</small>
+          </div>
+          <div class="field full" data-abas="checkup assistente comparar simples">
+            <span class="rot" id="anexo-rot">Atividade no Simples</span>
+            <div class="seg cheio" id="anexo" role="group" aria-labelledby="anexo-rot">
+              <button type="button" data-v="II">Fabricação · Anexo II</button>
+              <button type="button" data-v="I">Revenda · Anexo I</button>
+            </div>
+            <div class="info" id="das-info"></div>
+          </div>
+          <div class="field full" data-abas="checkup assistente comparar presumido real">
+            <label for="tipo">Tipo de produto (regime regular)</label>
+            <select id="tipo">
+              <option value="movel">Móveis planejados e estofados</option>
+              <option value="clinico">Mobiliário clínico (redução de 60%)</option>
+              <option value="acess">Acessibilidade PcD (redução de 100%)</option>
+            </select>
+            <small id="tipo-info"></small>
+          </div>
+          <div class="field" data-campo="icms" data-abas="checkup assistente comparar presumido real">
+            <label for="icms">ICMS na venda</label>
+            <div class="inp"><input id="icms" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="enc" data-abas="checkup assistente comparar presumido real">
+            <label for="enc">INSS patronal</label>
+            <div class="inp"><input id="enc" inputmode="decimal" autocomplete="off"><span class="un dir">% MO</span></div>
+          </div>
+          <div class="field full" data-abas="checkup assistente comparar presumido real"><small>INSS patronal, RAT e terceiros fora do Simples, em % do custo da mão de obra (no Simples, Anexos I e II, está no DAS).</small></div>
+          <div class="field full">
+            <label for="mix">Vendas para empresas (PJ)</label>
+            <div class="faixa"><input type="range" id="mix" min="0" max="100" step="5"><output id="mix-out" for="mix" class="mono">0%</output></div>
+            <small>Parte do faturamento com lojas, construtoras, escritórios, hotéis e clínicas do regime regular.</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header><h2>Projeto típico</h2></header>
+        <div class="campos">
+          <div class="field full" data-campo="ins">
+            <label for="ins">Insumos, pelo preço pago hoje</label>
+            <div class="inp"><span class="un">R$</span><input id="ins" inputmode="decimal" autocomplete="off"></div>
+            <small>MDF, ferragens, fitas, vidros, com os impostos da nota. O simulador desconta o que cada regime recupera.</small>
+          </div>
+          <div class="field full" data-campo="mo">
+            <label for="mo">Mão de obra própria</label>
+            <div class="inp"><span class="un">R$</span><input id="mo" inputmode="decimal" autocomplete="off"></div>
+            <small>Salários, FGTS, férias e 13º, sem o INSS patronal.</small>
+          </div>
+          <div class="field full" data-campo="outros">
+            <label for="outros">Outros custos sem crédito</label>
+            <div class="inp"><span class="un">R$</span><input id="outros" inputmode="decimal" autocomplete="off"></div>
+            <small>Montador MEI, frete de autônomo, deslocamento.</small>
+          </div>
+          <div class="field" data-campo="rt">
+            <label for="rt">RT / comissão</label>
+            <div class="inp"><input id="rt" inputmode="decimal" autocomplete="off"><span class="un dir">% contrato</span></div>
+          </div>
+          <div class="field" data-campo="fix">
+            <label for="fix">Despesas fixas</label>
+            <div class="inp"><input id="fix" inputmode="decimal" autocomplete="off"><span class="un dir">% fatur.</span></div>
+          </div>
+          <div class="field full" data-campo="m">
+            <label for="m">Margem líquida hoje, no regime atual</label>
+            <div class="inp"><input id="m" inputmode="decimal" autocomplete="off"><span class="un dir">% da receita</span></div>
+            <small>Depois de todos os tributos, IRPJ e CSLL inclusive. Forma o preço de mercado de 2026.</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header><h2>Compras e alíquotas</h2></header>
+        <div class="campos">
+          <div class="field" data-campo="icmsF">
+            <label for="icmsF">ICMS do fornecedor</label>
+            <div class="inp"><input id="icmsF" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="pcF">
+            <label for="pcF">PIS/Cofins do fornecedor</label>
+            <div class="inp"><input id="pcF" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="cbs">
+            <label for="cbs">CBS cheia</label>
+            <div class="inp"><input id="cbs" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="ibsUf">
+            <label for="ibsUf">IBS estadual</label>
+            <div class="inp"><input id="ibsUf" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="ibsMun">
+            <label for="ibsMun">IBS municipal</label>
+            <div class="inp"><input id="ibsMun" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field">
+            <span class="rot">Total pleno</span>
+            <div class="inp"><input id="pleno" readonly tabindex="-1" aria-label="Alíquota plena total"><span class="un dir">%</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" data-abas="comparar presumido real simples">
+        <header><h2>Como comparar</h2></header>
+        <div class="field">
+          <div class="seg cheio" id="lente" role="group" aria-label="Critério de comparação">
+            <button type="button" data-v="mercado">Preço de mercado</button>
+            <button type="button" data-v="margem">Margem constante</button>
+          </div>
+          <small id="lente-info"></small>
+        </div>
+      </section>
+
+      <button type="button" class="ghost" id="restaurar">Restaurar exemplo</button>
+    </aside>
+
+    <main class="resultado">
+      <div id="erro" class="aviso" hidden></div>
+      <div id="vista-checkup" class="vista">
+        <section class="card">
+          <header><h2>Check-up Reforma 2027</h2><span class="etiqueta alerta">Exemplo</span></header>
+          <p class="small muted">A empresa e o projeto típico vêm da coluna ao lado. Responda as perguntas abaixo: as alavancas e o relatório se montam sozinhos.</p>
+          <div class="campos q3">
+            <div class="field"><label for="qEmpresa">Empresa</label><input type="text" id="qEmpresa" class="txt" autocomplete="off"></div>
+            <div class="field"><label for="qUf">Estado da fábrica</label><select id="qUf"><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+            <div class="field"><label for="qResp">Responsável pelo diagnóstico</label><input type="text" id="qResp" class="txt" autocomplete="off"></div>
+            <div class="field" data-campo="qClin"><label for="qClin">Faturamento com mobiliário clínico</label><div class="inp"><input id="qClin" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div></div>
+            <div class="field" data-campo="qAcess"><label for="qAcess">Faturamento com acessibilidade PcD</label><div class="inp"><input id="qAcess" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div></div>
+            <div class="field" data-campo="qFornSN"><label for="qFornSN">Insumos comprados de fornecedor do Simples</label><div class="inp"><input id="qFornSN" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div></div>
+            <div class="field" data-campo="qCarteira"><label for="qCarteira">Contratos assinados com entrega em 2027</label><div class="inp"><span class="un">R$</span><input id="qCarteira" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field" data-campo="qMaq"><label for="qMaq">Máquinas a comprar nos próximos 24 meses</label><div class="inp"><span class="un">R$</span><input id="qMaq" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field" data-campo="qRetirada"><label for="qRetirada">Maior retirada mensal de um sócio</label><div class="inp"><span class="un">R$</span><input id="qRetirada" inputmode="decimal" autocomplete="off"></div><small>Pró-labore mais lucros.</small></div>
+            <div class="field"><span class="rot" id="qCprb-rot">Usa a desoneração da folha?</span><div class="seg cheio" id="qCprb" role="group" aria-labelledby="qCprb-rot"><button type="button" data-v="sim">Sim</button><button type="button" data-v="nao">Não</button><button type="button" data-v="naosei">Não sei</button></div></div>
+            <div class="field"><label for="qImovel">Imóvel da fábrica</label><select id="qImovel"><option value="empresa">Da empresa</option><option value="socio">No nome do sócio</option><option value="alugado">Alugado de terceiros</option></select></div>
+            <div class="field"><label for="qSeparar">Outra empresa para dividir o faturamento</label><select id="qSeparar"><option value="nao">Não pensamos nisso</option><option value="avaliando">Estamos avaliando</option><option value="grupo">O grupo já tem mais de uma</option></select></div>
+            <div class="full"><h2>Folha, montagem e despesas</h2></div>
+            <div class="field" data-campo="qFolha"><label for="qFolha">Folha mensal de salários</label><div class="inp"><span class="un">R$</span><input id="qFolha" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field"><label for="qRat">RAT da empresa</label><select id="qRat"><option value="1">1% · risco leve</option><option value="2">2% · risco médio</option><option value="3">3% · risco grave</option></select></div>
+            <div class="field" data-campo="qFap"><label for="qFap">FAP da empresa</label><div class="inp"><input id="qFap" inputmode="decimal" autocomplete="off"><span class="un dir">0,5 a 2</span></div></div>
+            <div class="field" data-campo="qDespPJ"><label for="qDespPJ">Despesas mensais com empresas do regime regular</label><div class="inp"><span class="un">R$</span><input id="qDespPJ" inputmode="decimal" autocomplete="off"></div><small>Energia, aluguel pago a empresa, software, contabilidade. Frota e frete têm campo próprio.</small></div>
+            <div class="field"><label for="qMontagem">Quem faz a montagem</label><select id="qMontagem"><option value="clt">Equipe própria registrada</option><option value="mei">Montadores MEI ou autônomos</option><option value="empresa">Empresa de montagem</option></select></div>
+            <div class="field"><label for="qMontAut">Montadores trabalham por empreitada, sem horário e sem exclusividade?</label><select id="qMontAut"><option value="sim">Sim</option><option value="parte">Em parte</option><option value="nao">Não: têm horário e exclusividade</option></select><small>Vale para montadores MEI ou autônomos.</small></div>
+            <div class="field"><label for="qPejot">Converter funcionários em PJ</label><select id="qPejot"><option value="nao">Não pensamos nisso</option><option value="avaliando">Estamos avaliando</option></select></div>
+            <div class="full"><h2>Frota, máquinas e logística</h2></div>
+            <div class="field" data-campo="qVeicOp"><label for="qVeicOp">Veículos usados na operação</label><div class="inp"><input id="qVeicOp" inputmode="decimal" autocomplete="off"><span class="un dir">veículos</span></div><small>Entrega, montagem e medição.</small></div>
+            <div class="field" data-campo="qGastoFrota"><label for="qGastoFrota">Gasto mensal da frota</label><div class="inp"><span class="un">R$</span><input id="qGastoFrota" inputmode="decimal" autocomplete="off"></div><small>Manutenção, peças, seguro e combustível.</small></div>
+            <div class="field" data-campo="qVeicSocio"><label for="qVeicSocio">Carros usados pelos sócios</label><div class="inp"><input id="qVeicSocio" inputmode="decimal" autocomplete="off"><span class="un dir">carros</span></div></div>
+            <div class="field"><label for="qTurnos">Turnos de operação das máquinas</label><select id="qTurnos"><option value="1">1 turno (8 h)</option><option value="2">2 turnos (16 h)</option><option value="3">3 turnos (24 h)</option></select></div>
+            <div class="field" data-campo="qBens"><label for="qBens">Valor da frota e das máquinas</label><div class="inp"><span class="un">R$</span><input id="qBens" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field"><label for="qEntrega">Como a entrega é feita</label><select id="qEntrega"><option value="propria">Frota própria</option><option value="transportadora">Transportadora contratada</option><option value="grupo">Transportadora do grupo</option><option value="autonomos">Transportador autônomo</option></select></div>
+            <div class="field" data-campo="qFrete"><label for="qFrete">Gasto mensal com frete de terceiros</label><div class="inp"><span class="un">R$</span><input id="qFrete" inputmode="decimal" autocomplete="off"></div></div>
+          </div>
+        </section>
+        <section class="card destaque">
+          <div>
+            <div class="rotulo">Economia potencial identificada</div>
+            <div class="big" id="ck-big">—</div>
+            <div class="small muted" id="ck-sub"></div>
+          </div>
+          <div class="resumo" id="ck-resumo"></div>
+        </section>
+        <section class="card">
+          <header><h2>Alavancas por prioridade</h2><span class="small muted">Verde: fazer · Amarelo: risco de interpretação, só com parecer e prova · Vermelho: não fazer</span></header>
+          <div class="alavancas" id="alavancas"></div>
+        </section>
+        <section class="card">
+          <header><h2>Relatório para o cliente</h2><button type="button" id="copiar">Copiar relatório</button></header>
+          <span class="small muted" id="copiado" aria-live="polite"></span>
+          <pre class="relatorio" id="relatorio"></pre>
+        </section>
+      </div>
+      <div id="vista-assist" class="vista" hidden>
+        <section class="card">
+          <header><h2>Assistente de teses</h2><span class="etiqueta acao">IA · usa o Claude de quem abre o app</span></header>
+          <p class="small muted">Converse sobre a empresa e monte teses de elisão fiscal. O assistente lê os dados da coluna ao lado, as respostas do Check-up, a comparação de regimes e o que você contar aqui. Toda tese sai com semáforo de risco, conta aberta e quem precisa validar.</p>
+          <div class="field"><label for="ctxExtra">O que o Check-up não captura</label><textarea id="ctxExtra" rows="4" placeholder="Ex.: galpão próprio no nome do sócio, duas CNCs e uma coladeira compradas em 2023, loja própria em outra cidade, filho entrando na sociedade, plano de abrir unidade no Nordeste."></textarea></div>
+          <div class="atalhos" id="atalhos"></div>
+        </section>
+        <div id="assist-off" class="aviso" hidden></div>
+        <section class="card" id="assist-chat">
+          <div class="conversa" id="conversa" aria-live="polite"></div>
+          <div class="caixa"><textarea id="pergunta" rows="2" placeholder="Pergunte sobre a empresa. Enter envia; Shift+Enter quebra a linha."></textarea>
+            <div class="acoes"><button type="button" id="enviar">Enviar</button><button type="button" class="ghost" id="parar" hidden>Parar</button></div></div>
+          <div class="rodape-chat"><span class="small muted" id="assist-status" aria-live="polite"></span><span class="spacer"></span><button type="button" class="ghost sm" id="copiar-chat">Copiar conversa</button><button type="button" class="ghost sm" id="limpar-chat">Limpar conversa</button></div>
+        </section>
+      </div>
+      <div id="vista-consulta" class="vista" hidden>
+        <section class="card">
+          <header><h2>Consulta de NCM e NBS</h2><span class="etiqueta neutra" id="cs-base">Base oficial da Receita</span></header>
+          <p class="small muted">Digite o código ou parte da descrição de um produto (NCM) ou de um serviço (NBS). A consulta mostra as classificações de IBS e CBS que valem para o código no ano escolhido, com redução, crédito do cliente e base legal. Os vínculos entre código e classificação foram conferidos com a Calculadora da Receita.</p>
+          <div class="busca">
+            <div class="seg" id="cs-tipo" role="group" aria-label="Tipo de código"><button type="button" data-v="ncm">Produto (NCM)</button><button type="button" data-v="nbs">Serviço (NBS)</button></div>
+            <input type="search" id="cs-q" class="txt" placeholder="Ex.: 9403.60.00, móveis de madeira, 1.1401.11.00, consultoria em gestão" aria-label="Código ou descrição">
+            <select id="cs-ano" aria-label="Ano"><option value="2026-06-01">2026</option><option value="2027-03-15">2027</option><option value="2033-03-15">2033</option></select>
+          </div>
+          <div class="atalhos" id="cs-atalhos"></div>
+          <div id="cs-res" class="cs-res"></div>
+        </section>
+        <section class="card" id="cs-det" hidden></section>
+      </div>
+      <div id="vista-sim" class="vista">
+      <section aria-label="Ano da simulação" class="anos">
+        <div class="rolagem"><div class="seg" id="ano" role="group" aria-label="Ano"></div></div>
+      </section>
+      <section class="card destaque">
+        <div>
+          <div class="rotulo" id="big-rot"></div>
+          <div class="big" id="big">—</div>
+          <div class="small muted" id="big-sub"></div>
+        </div>
+        <div class="resumo" id="resumo"></div>
+      </section>
+      <div class="cards" id="cards"></div>
+      <div class="graficos">
+        <section class="card">
+          <header><h2 id="g1-tit"></h2><div class="legenda" id="g1-leg"></div></header>
+          <div class="grafico" id="g1"></div>
+        </section>
+        <section class="card">
+          <header><h2 id="g2-tit"></h2><div class="legenda" id="g2-leg"></div></header>
+          <div class="grafico" id="g2"></div>
+        </section>
+      </div>
+      <section class="card">
+        <header><h2 id="dre-tit">Resultado do projeto</h2><span class="small muted">Clique num ano do gráfico ou da tabela para trocar</span></header>
+        <div class="tabela"><table class="dre" id="dre"></table></div>
+      </section>
+      <section class="card">
+        <header><h2 id="tab-tit">Ano a ano</h2><span class="small muted">Alíquotas de 2027 em diante e partilha do Simples de 2029 em diante são estimativas</span></header>
+        <div class="tabela"><table id="tab-anos"></table></div>
+      </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="anexos">
+    <section class="card">
+      <header><h2>Conferência do motor</h2><span id="conf-status"></span></header>
+      <p class="small muted">IBS/CBS no regime regular: casos rodados na Calculadora de Tributos da Receita Federal (calculadora-rtc-regime-regular 1.7.2), com o mesmo arredondamento (base com 2 casas, alíquota efetiva com 4, valor com 2, empate para o par). Simples: linha real da Tabela de Alíquotas Efetivas do PGDAS (março/2027) usada nos testes da calculadora-rtc-simples-nacional 1.0.2. IRPJ e CSLL seguem as regras descritas nas premissas.</p>
+      <div class="conf" id="conf"></div>
+    </section>
+    <section class="card">
+      <header><h2>Premissas do modelo</h2></header>
+      <ul class="premissas">
+        <li><b>Preço de mercado:</b> o contrato de 2026 é formado no regime atual, com os custos do projeto e a margem líquida informada. Os outros regimes são avaliados a esse mesmo preço. Despesas fixas ficam constantes em reais.</li>
+        <li><b>Preço de mercado × margem constante:</b> no preço de mercado, o cliente PF paga o mesmo contrato de 2026 e o cliente PJ tem o mesmo custo efetivo de 2026; compara-se o lucro. Na margem constante, cada regime ajusta o preço para manter a margem líquida; compara-se o custo do cliente.</li>
+        <li><b>IRPJ e CSLL no Presumido:</b> presunção de 8% (IRPJ) e 12% (CSLL) da receita, que sobem para 8,8% e 13,2% sobre a parcela acima de R$ 5 milhões por ano (LC 224/2025; há divergência sobre o limite da CSLL e ações judiciais em curso). IRPJ de 15% mais adicional de 10% sobre a base acima de R$ 240 mil por ano; CSLL de 9%. Alíquota efetiva da empresa aplicada à receita do projeto, sem IBS/CBS por fora.</li>
+        <li><b>IRPJ e CSLL no Real:</b> 15% + 9% sobre o lucro, mais adicional de 10% sobre o lucro anual acima de R$ 240 mil, estimado pela margem do projeto aplicada ao faturamento. Prejuízo não gera imposto nem crédito no modelo.</li>
+        <li><b>Simples Nacional:</b> o DAS já inclui IRPJ, CSLL e o INSS patronal (Anexos I e II). Alíquota efetiva pela tabela vigente da LC 123 (até R$ 3,6 milhões). Em 2027–2028 a CBS fica com 13,85% do DAS no Anexo II (15,33% no I) e o IBS com 0,15% (0,17%), conferido com o PGDAS de teste; de 2029 em diante, o IBS assume 10% a 100% da fatia do ICMS (estimativa). No híbrido, IBS/CBS por fora sobre o preço do produto e essas fatias saem do DAS; a opção tem prazo definido pelo Comitê Gestor do Simples.</li>
+        <li><b>Regime regular, IBS/CBS:</b> 2026 é ano de teste (0,9% + 0,1%, compensáveis com PIS/Cofins). A partir de 2027, CBS cheia e IBS de 0,05% + 0,05% até 2028; ICMS a 90%, 80%, 70% e 60% de 2029 a 2032 e extinto em 2033, com o IBS assumindo 10% a 100% da alíquota cheia. O padrão de 26,5% é a estimativa usada nos exemplos da Calculadora.</li>
+        <li><b>Compras:</b> o fornecedor do regime regular mantém o preço sem tributos. O Presumido credita o ICMS; o Real, ICMS e PIS/Cofins; a partir de 2027 os dois creditam todo o IBS/CBS. O Simples puro não credita; o híbrido credita o IBS/CBS.</li>
+        <li><b>Cliente PJ:</b> empresa do regime regular comprando para uso próprio. Recupera o IBS/CBS destacado e, por hipótese, não credita ICMS. De fornecedor no Simples puro, credita só o IBS/CBS que está no DAS (LC 214, art. 47, §9º).</li>
+        <li><b>Fora do modelo:</b> desoneração da folha do setor moveleiro (em transição até 2028), IPI, frete, descontos, créditos sobre despesas gerais, compensação de prejuízos e distribuição de lucros.</li>
+      </ul>
+    </section>
+    <p class="rodape">Simulação gerencial para decisão de regime, preço e canal. Não substitui o planejamento tributário nem a orientação do contador.</p>
+  </div>
+</div>
+
+<script>
+// ENGINE START
+const ENGINE = (() => {
+  function rhe(x, d) {
+    const neg = x < 0;
+    const s = Math.abs(x).toFixed(10);
+    const [ip, fp] = s.split('.');
+    const big = BigInt(ip + fp);
+    const div = 10n ** BigInt(10 - d);
+    let q = big / div;
+    const r = big % div;
+    const half = div / 2n;
+    if (r > half || (r === half && q % 2n === 1n)) q += 1n;
+    const out = Number(q) / 10 ** d;
+    return neg && out !== 0 ? -out : out;
+  }
+  function tributo(vBC, aliq, red = 0) { const pEf = rhe(aliq * (1 - red / 100), 4); return { pAliq: aliq, pEf, v: rhe(vBC * pEf / 100, 2) }; }
+  function ibscbs(base, r, red = 0) {
+    const vBC = rhe(base, 2);
+    const cbs = tributo(vBC, r.cbs, red), uf = tributo(vBC, r.ibsUf, red), mun = tributo(vBC, r.ibsMun, red);
+    const vIBS = rhe(uf.v + mun.v, 2);
+    return { vBC, cbs, uf, mun, vIBS, total: rhe(cbs.v + vIBS, 2) };
+  }
+
+  const ANOS = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033];
+  const FRAC = { 2029: 0.1, 2030: 0.2, 2031: 0.3, 2032: 0.4, 2033: 1 };
+  const FASE_RR = { 2026: 'Ano de teste', 2027: 'CBS cheia', 2028: 'CBS cheia', 2029: 'IBS 10%', 2030: 'IBS 20%', 2031: 'IBS 30%', 2032: 'IBS 40%', 2033: 'Alíquota cheia' };
+  const FASE_SN = { 2026: 'Base', 2027: 'CBS no DAS', 2028: 'CBS no DAS', 2029: 'IBS 10%', 2030: 'IBS 20%', 2031: 'IBS 30%', 2032: 'IBS 40%', 2033: 'Pleno' };
+  const fatorIcms = t => t <= 2028 ? 1 : (t >= 2033 ? 0 : 1 - FRAC[t]);
+  function regras(t, p) {
+    if (t === 2026) return { t, cbs: 0.9, ibsUf: 0.1, ibsMun: 0, icms: p.icms, pc: p.pc, cobrado: false };
+    if (t <= 2028) return { t, cbs: p.cbs, ibsUf: 0.05, ibsMun: 0.05, icms: p.icms, pc: 0, cobrado: true };
+    if (t <= 2032) { const f = FRAC[t]; return { t, cbs: p.cbs, ibsUf: rhe(p.ibsUf * f, 4), ibsMun: rhe(p.ibsMun * f, 4), icms: rhe(p.icms * (1 - f), 4), pc: 0, cobrado: true }; }
+    return { t, cbs: p.cbs, ibsUf: p.ibsUf, ibsMun: p.ibsMun, icms: 0, pc: 0, cobrado: true };
+  }
+  const kCheio = r => (rhe(r.cbs, 4) + rhe(r.ibsUf, 4) + rhe(r.ibsMun, 4)) / 100;
+  function compras(inp, t, p) {
+    const N = inp.ins * (1 - inp.icmsF / 100) * (1 - inp.pcF / 100);
+    if (t <= 2026) return { N, pago: inp.ins, k: 0, credIbsCbs: 0 };
+    const r = regras(t, p), k = kCheio(r), iF = inp.icmsF / 100 * fatorIcms(t);
+    return { N, pago: rhe(N / (1 - iF) + k * N, 2), k, credIbsCbs: rhe(N * k, 2) };
+  }
+
+  // IRPJ e CSLL
+  const LIM_LC224 = 5000000;
+  function irpjCsllPresumido(R) {
+    if (!(R > 0)) return { taxa: 0, irpj: 0, csll: 0 };
+    const exc = Math.max(0, R - LIM_LC224), ate = R - exc;
+    const baseIr = 0.08 * ate + 0.088 * exc, baseCs = 0.12 * ate + 0.132 * exc;
+    const irpj = 0.15 * baseIr + 0.10 * Math.max(0, baseIr - 240000), csll = 0.09 * baseCs;
+    return { taxa: (irpj + csll) / R, irpj, csll, baseIr, baseCs };
+  }
+  const taxaReal = L => L > 0 ? 0.24 + 0.10 * Math.max(0, L - 240000) / L : 0.24;
+  function margemPreReal(m, R) { let t = 0.24; for (let i = 0; i < 40; i++) t = taxaReal(m / (1 - t) * R); return m / (1 - t); }
+
+  // Regime regular
+  const TIPOS = {
+    movel:   { red: 0,   credito: true,  info: 'NCM 9401/9403 · cClassTrib 000001 · tributação integral' },
+    clinico: { red: 60,  credito: true,  info: 'NCM 9402.90 · cClassTrib 200030 · Anexo IV · redução de 60%. No Simples, sem redução no modelo.' },
+    acess:   { red: 100, credito: false, info: 'NCM 8302.41 · cClassTrib 200007 · Anexo XIII · redução de 100%. No Simples, sem redução no modelo.' },
+  };
+  const pcRegime = rg => rg === 'real' ? 9.25 : 3.65;
+  function insLiqRR(inp, rg, t) {
+    const N = inp.ins * (1 - inp.icmsF / 100) * (1 - inp.pcF / 100);
+    if (t >= 2027 || rg === 'real') return N;
+    return inp.ins * (1 - inp.icmsF / 100);
+  }
+  const moRR = inp => rhe(inp.mo * (1 + inp.enc / 100), 2);
+  const custoRR = (inp, rg, t) => rhe(insLiqRR(inp, rg, t) + moRR(inp) + inp.outros, 2);
+
+  // Simples
+  const ANEXOS = {
+    II: { nome: 'Anexo II · indústria', faixas: [[180000, 4.5, 0], [360000, 7.8, 5940], [720000, 10, 13860], [1800000, 11.2, 22500], [3600000, 14.7, 85500]], pisCofins: 14.00, icms: [32, 32, 32, 32, 32], cbs2027: 13.85, ibs2027: 0.15 },
+    I:  { nome: 'Anexo I · comércio',  faixas: [[180000, 4, 0], [360000, 7.3, 5940], [720000, 9.5, 13860], [1800000, 10.7, 22500], [3600000, 14.3, 87300]], pisCofins: 15.50, icms: [34, 34, 33.5, 33.5, 33.5], cbs2027: 15.33, ibs2027: 0.17 },
+  };
+  function das(anexo, rbt) {
+    if (!(rbt > 0)) return null;
+    const A = ANEXOS[anexo], i = A.faixas.findIndex(f => rbt <= f[0]);
+    if (i < 0) return null;
+    const [, nom, pd] = A.faixas[i];
+    return { faixa: i + 1, nominal: nom, deduzir: pd, efetiva: (rbt * nom / 100 - pd) / rbt * 100, icms: A.icms[i], A };
+  }
+  function partilha(d, t) {
+    if (t <= 2026) return { cbs: 0, ibs: 0 };
+    if (t <= 2028) return { cbs: d.A.cbs2027, ibs: d.A.ibs2027 };
+    return { cbs: d.A.pisCofins, ibs: rhe(d.icms * FRAC[t], 4) };
+  }
+  function virada(gPF, gPJ) {
+    const eps = 1e-9;
+    if (gPF > eps && gPJ > eps) return { tipo: 'sempre', w: 0 };
+    if (gPF <= eps && gPJ <= eps) return { tipo: 'nunca', w: null };
+    const w = gPF / (gPF - gPJ);
+    return gPJ > 0 ? { tipo: 'acima', w } : { tipo: 'abaixo', w };
+  }
+
+  // Preço de mercado de 2026, formado no regime atual.
+  function precoMercado(inp) {
+    const rt = inp.rt / 100, fix = inp.fix / 100, m = inp.m / 100;
+    if (!(inp.rbt > 0)) return { erro: 'Informe o faturamento anual da empresa.' };
+    if (inp.atual === 'simples') {
+      const d = das(inp.anexo, inp.rbt);
+      if (!d) return { erro: 'Com faturamento acima de R$ 3,6 milhões, o Simples sai do modelo (sublimite). Escolha Presumido ou Real como regime atual.' };
+      const den = 1 - d.efetiva / 100 - rt - fix - m;
+      if (den <= 0.02) return { erro: 'DAS, RT, despesas fixas e margem somam mais de 98% do preço. Reduza algum desses percentuais.' };
+      const C0 = inp.ins + inp.mo + inp.outros;
+      if (!(C0 > 0)) return { erro: 'Informe ao menos um custo maior que zero.' };
+      return { V: rhe(C0 / den, 2) };
+    }
+    const i = inp.icms / 100, pc = pcRegime(inp.atual) / 100;
+    const tax = inp.atual === 'presumido' ? irpjCsllPresumido(inp.rbt).taxa : 0;
+    const mEq = inp.atual === 'real' ? margemPreReal(m, inp.rbt) : m;
+    const den = 1 - i - pc * (1 - i) - rt - fix - tax - mEq;
+    if (den <= 0.02) return { erro: 'ICMS, PIS/Cofins, IRPJ/CSLL, RT, despesas fixas e margem somam mais de 98% do preço. Reduza algum desses percentuais.' };
+    const C0 = custoRR(inp, inp.atual, 2026);
+    if (!(C0 > 0)) return { erro: 'Informe ao menos um custo maior que zero.' };
+    return { V: rhe(C0 / den, 2) };
+  }
+
+  function simularRR(inp, rg, V, F) {
+    const tipo = TIPOS[inp.tipo] || TIPOS.movel, red = tipo.red, R = inp.rbt;
+    const p = { icms: inp.icms, pc: pcRegime(rg), cbs: inp.cbs, ibsUf: inp.ibsUf, ibsMun: inp.ibsMun };
+    const ir = irpjCsllPresumido(R), tp = rg === 'presumido' ? ir.taxa : 0;
+    const mEq = rg === 'real' ? margemPreReal(inp.m / 100, R) : inp.m / 100;
+    const MO = moRR(inp);
+    function avaliar(P, r, C, credita) {
+      const icms = rhe(P * r.icms / 100, 2), pcv = rhe((P - icms) * r.pc / 100, 2);
+      const trib = ibscbs(P - icms - pcv, r, red);
+      const cobrado = r.cobrado ? trib.total : 0;
+      const contrato = rhe(P + cobrado, 2);
+      const credito = credita && r.cobrado ? trib.total : 0;
+      const comissao = rhe(contrato * inp.rt / 100, 2);
+      const antes = rhe(P - icms - pcv - comissao - C - F, 2);
+      const ircs = rg === 'presumido' ? rhe(P * tp, 2) : (antes > 0 ? rhe(antes * taxaReal(antes / P * R), 2) : 0);
+      const lucro = rhe(antes - ircs, 2);
+      return { P, icms, pc: pcv, trib, cobrado, contrato, credito, custo: rhe(contrato - credito, 2), comissao, antes, ircs, lucro, margem: P > 0 ? lucro / P : 0 };
+    }
+    const anos = [];
+    for (const t of ANOS) {
+      const r = regras(t, p);
+      const kEf = (rhe(r.cbs * (1 - red / 100), 4) + rhe(r.ibsUf * (1 - red / 100), 4) + rhe(r.ibsMun * (1 - red / 100), 4)) / 100;
+      const g = r.cobrado ? 1 + kEf * (1 - r.icms / 100) : 1;
+      const C = custoRR(inp, rg, t);
+      let Ppf, Ppj;
+      if (inp.lente === 'mercado') { Ppf = rhe(V / g, 2); Ppj = V; }
+      else {
+        const den = 1 - r.icms / 100 - (r.pc / 100) * (1 - r.icms / 100) - (inp.rt / 100) * g - tp - mEq;
+        if (den <= 0.02) return { erro: `Em ${t}, tributos, RT e margem passam de 98% do preço no ${rg === 'real' ? 'Lucro Real' : 'Lucro Presumido'}.` };
+        Ppf = Ppj = rhe((C + F) / den, 2);
+      }
+      const pf = avaliar(Ppf, r, C, false), pj = avaliar(Ppj, r, C, tipo.credito);
+      const cp = compras(inp, t, p), w = inp.mix / 100;
+      anos.push({ t, fase: FASE_RR[t], r, C, F, MO, insLiq: rhe(insLiqRR(inp, rg, t), 2), pago: cp.pago, pf, pj,
+        recolher: t >= 2027 ? rhe(pf.trib.total - cp.credIbsCbs, 2) : null,
+        blendLucro: w * pj.lucro + (1 - w) * pf.lucro, blendMargem: w * pj.margem + (1 - w) * pf.margem, blendCusto: w * pj.custo + (1 - w) * pf.custo });
+    }
+    return { modo: 'rr', rg, V, F, tp, ir, anos };
+  }
+
+  function simularSN(inp, V, F) {
+    const d = das(inp.anexo, inp.rbt);
+    if (!d) return { fora: true };
+    const a = d.efetiva / 100, rt = inp.rt / 100, m = inp.m / 100, w = inp.mix / 100;
+    const p = { icms: 0, pc: 0, cbs: inp.cbs, ibsUf: inp.ibsUf, ibsMun: inp.ibsMun };
+    const anos = [];
+    for (const t of ANOS) {
+      const pt = partilha(d, t);
+      const pC = d.efetiva * pt.cbs / 100, pI = d.efetiva * pt.ibs / 100;
+      const rr = regras(t, p), k = t <= 2026 ? 0 : kCheio(rr);
+      const cp = compras(inp, t, p), G = cp.pago, cred = t <= 2026 ? 0 : cp.credIbsCbs;
+      const avalSN = (P, credita) => {
+        const vDas = rhe(P * a, 2);
+        const vNoDas = t <= 2026 ? 0 : rhe(rhe(P * pC / 100, 2) + rhe(P * pI / 100, 2), 2);
+        const comissao = rhe(P * rt, 2);
+        const lucro = rhe(P - vDas - comissao - G - inp.mo - inp.outros - F, 2);
+        const credito = credita ? vNoDas : 0;
+        return { P, contrato: P, fora: 0, das: vDas, noDas: vNoDas, comissao, insumos: G, credCompras: 0, lucro, margem: lucro / P, credito, custo: rhe(P - credito, 2) };
+      };
+      const avalHB = (P, credita) => {
+        const trib = ibscbs(P, rr);
+        const contrato = rhe(P + trib.total, 2);
+        const vDas = rhe(P * a * (1 - (pt.cbs + pt.ibs) / 100), 2);
+        const comissao = rhe(contrato * rt, 2);
+        const lucro = rhe(P - vDas - comissao - (G - cred) - inp.mo - inp.outros - F, 2);
+        const credito = credita ? trib.total : 0;
+        return { P, contrato, fora: trib.total, das: vDas, noDas: 0, comissao, insumos: G, credCompras: cred, lucro, margem: lucro / P, credito, custo: rhe(contrato - credito, 2), recolher: rhe(trib.total - cred, 2) };
+      };
+      let sn, hb = null;
+      const c = (pC + pI) / 100;
+      if (inp.lente === 'mercado') {
+        sn = { pf: avalSN(V, false), pj: avalSN(rhe(t <= 2026 ? V : V / (1 - c), 2), true) };
+        if (t >= 2027) hb = { pf: avalHB(rhe(V / (1 + k), 2), false), pj: avalHB(V, true) };
+      } else {
+        const den = 1 - a - rt - m;
+        if (den <= 0.02) return { erro: 'No Simples, DAS, RT e margem passam de 98% do preço.' };
+        const Ps = rhe((G + inp.mo + inp.outros + F) / den, 2);
+        sn = { pf: avalSN(Ps, false), pj: avalSN(Ps, true) };
+        if (t >= 2027) {
+          const denH = 1 - a * (1 - (pt.cbs + pt.ibs) / 100) - rt * (1 + k) - m;
+          if (denH <= 0.02) return { erro: `Em ${t}, DAS, RT e margem passam de 98% do preço no híbrido.` };
+          const Ph = rhe((G - cred + inp.mo + inp.outros + F) / denH, 2);
+          hb = { pf: avalHB(Ph, false), pj: avalHB(Ph, true) };
+        }
+      }
+      const bl = x => ({ lucro: w * x.pj.lucro + (1 - w) * x.pf.lucro, margem: w * x.pj.margem + (1 - w) * x.pf.margem, custo: w * x.pj.custo + (1 - w) * x.pf.custo });
+      const bSN = bl(sn), bHB = hb ? bl(hb) : null;
+      const vir = !hb ? null : inp.lente === 'mercado'
+        ? virada(hb.pf.lucro - sn.pf.lucro, hb.pj.lucro - sn.pj.lucro)
+        : virada(sn.pf.custo / hb.pf.custo - 1, sn.pj.custo / hb.pj.custo - 1);
+      anos.push({ t, fase: FASE_SN[t], G, cred, F, pt, pC, pI, k, sn, hb, bSN, bHB, vir });
+    }
+    return { modo: 'sn', d, V, F, anos };
+  }
+
+  // Tudo de uma vez: mesmo preço de mercado e mesmas despesas fixas para os quatro caminhos.
+  function simular(inp) {
+    const pm = precoMercado(inp);
+    if (pm.erro) return pm;
+    const V = pm.V, F = rhe(V * inp.fix / 100, 2);
+    const pres = simularRR(inp, 'presumido', V, F); if (pres.erro) return pres;
+    const real = simularRR(inp, 'real', V, F); if (real.erro) return real;
+    const sn = simularSN(inp, V, F); if (sn.erro) return sn;
+    const w = inp.mix / 100, merc = inp.lente === 'mercado';
+    const comp = ANOS.map((t, i) => {
+      const op = [
+        { id: 'presumido', x: pres.anos[i] },
+        { id: 'real', x: real.anos[i] },
+      ];
+      if (!sn.fora) {
+        op.push({ id: 'sn', x: { pf: sn.anos[i].sn.pf, pj: sn.anos[i].sn.pj } });
+        if (sn.anos[i].hb) op.push({ id: 'hb', x: { pf: sn.anos[i].hb.pf, pj: sn.anos[i].hb.pj } });
+      }
+      for (const o of op) {
+        o.pf = o.x.pf; o.pj = o.x.pj;
+        o.lucro = w * o.pj.lucro + (1 - w) * o.pf.lucro;
+        o.custo = w * o.pj.custo + (1 - w) * o.pf.custo;
+        o.valor = merc ? o.lucro : -o.custo;
+      }
+      const melhor = op.reduce((a, b) => b.valor > a.valor + 1e-6 ? b : a);
+      return { t, op, melhor };
+    });
+    return { V, F, pres, real, sn, comp };
+  }
+
+  // Check-up 2027: catálogo de alavancas com semáforo de risco.
+  const UF_SUDENE = ['AL', 'BA', 'CE', 'PB', 'PE', 'PI', 'RN', 'SE', 'MA', 'MG', 'ES'];
+  const UF_SUDAM = ['AC', 'AM', 'AP', 'PA', 'RO', 'RR', 'TO', 'MT', 'MA'];
+  function checkup(inp) {
+    const sim = simular({ ...inp, lente: 'mercado' });
+    if (sim.erro) return sim;
+    const NOMES = { presumido: 'Lucro Presumido', real: 'Lucro Real', sn: 'Simples puro', hb: 'Simples híbrido' };
+    const R = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0, minimumFractionDigits: 0 });
+    const P = v => (v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+    const N = inp.rbt / sim.V, w = inp.mix / 100, i = inp.icms / 100;
+    const atualId = inp.atual === 'simples' ? 'sn' : inp.atual;
+    const c27 = sim.comp[1], c33 = sim.comp[7];
+    const at27 = c27.op.find(o => o.id === atualId) || c27.op[0];
+    const best = c27.melhor, rec = best.id, best33 = c33.melhor, credita = rec !== 'sn';
+    const k27 = (inp.cbs + 0.1) / 100, k33 = (inp.cbs + inp.ibsUf + inp.ibsMun) / 100;
+    const L = [];
+    const add = o => L.push({ ganho: null, pontual: null, emJogo: null, passos: [], ...o });
+
+    // 1. Regime
+    const muda = rec !== atualId;
+    add({ id: 'regime', aplica: true, sem: 'verde', valida: 'Contador',
+      titulo: muda ? (rec === 'hb' ? 'Optar pelo Simples híbrido em 2027' : `Migrar para o ${NOMES[rec]} em 2027`) : `Manter o ${NOMES[rec]} em 2027`,
+      ganho: muda ? Math.max(0, (best.lucro - at27.lucro) * N) : 0,
+      porque: `Com ${inp.mix}% das vendas para empresas, o lucro líquido por projeto em 2027 é ${R(best.lucro)} no ${NOMES[rec]}` +
+        (muda ? `, contra ${R(at27.lucro)} no ${NOMES[atualId]}.` : ', o melhor entre os caminhos comparados.') +
+        (best33.id !== rec ? ` Em 2033 o melhor passa a ser o ${NOMES[best33.id]}: a escolha precisa ser revista todo ano.` : ''),
+      passos: !muda ? ['Revisar a decisão todo ano com o simulador', 'Acompanhar o faturamento e a parte das vendas para empresas']
+        : rec === 'hb' ? ['Confirmar com o contador o prazo de opção pelo regime regular do IBS e da CBS', 'Ajustar a NF-e (IBS/CBS destacados) e a tabela de preços', 'Rever o caixa: IBS/CBS por fora e créditos nas compras']
+        : ['Planejar a mudança com o contador: a escolha do regime vale para o ano todo', 'Preparar folha (INSS patronal fora do DAS), escrituração e emissão de notas', 'Rever preços e contratos para o novo regime'] });
+
+    // 2. Canal e preço
+    const rOp = c27.op.find(o => o.id === rec), cred = rOp.pj.credito;
+    if (w > 0 && cred > 1) add({ id: 'canal', aplica: true, sem: 'verde', valida: 'Gestão comercial', titulo: 'Tabela de preço por canal (PF × PJ)',
+      emJogo: cred * N * w,
+      porque: `No ${NOMES[rec]}, o cliente empresa recupera ${R(cred)} de IBS/CBS por projeto em 2027. A comparação de regimes supõe que esse valor vira preço; com o mesmo preço para PF e PJ, ele fica todo com o cliente.`,
+      passos: ['Ter tabela de preço separada para PF e PJ', 'Mostrar ao cliente empresa o custo efetivo depois do crédito', 'Treinar o comercial para usar o crédito como argumento'] });
+    else add({ id: 'canal', aplica: false, titulo: 'Tabela de preço por canal (PF × PJ)', motivo: w === 0 ? 'não há vendas para empresas' : 'no caminho recomendado, o crédito do cliente PJ é pequeno' });
+
+    // 3. Nichos com redução
+    const pcl = inp.qClin / 100, pac = inp.qAcess / 100, tNicho = 'Classificação fiscal dos nichos com redução';
+    if (pcl + pac > 0) {
+      if (credita) {
+        const f = rec === 'hb' ? 1 : 1 - i, g = 1 + k27 * f;
+        add({ id: 'nicho', aplica: true, sem: 'verde', valida: 'Contador', titulo: tNicho,
+          ganho: inp.rbt * (pcl * k27 * 0.6 * f + pac * k27 * f) / g,
+          porque: `${P(pcl + pac)} do faturamento vem de mobiliário clínico ou de acessibilidade, que têm redução de 60% (NCM 9402.90, cClassTrib 200030) e de 100% (NCM 8302.41, cClassTrib 200007). Classificados corretamente, pagam menos IBS/CBS ao mesmo preço; o ganho cresce até 2033. Classificar móvel comum nesses códigos é ilegal: a Calculadora da Receita rejeita a combinação (erro REG-011).`,
+          passos: ['Conferir NCM e cClassTrib de cada item vendido nesses nichos', 'Validar o XML da nota antes de emitir', 'Guardar a documentação do uso clínico ou de acessibilidade'] });
+      } else add({ id: 'nicho', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tNicho,
+        porque: `${P(pcl + pac)} do faturamento vem de mobiliário clínico ou de acessibilidade. No regime regular e no híbrido, esses itens têm redução de 60% e de 100% no IBS/CBS; no Simples puro, o efeito dentro do DAS precisa ser confirmado com o contador.`,
+        passos: ['Confirmar com o contador o tratamento no DAS', 'Incluir esse ganho na decisão de regime'] });
+    } else add({ id: 'nicho', aplica: false, titulo: tNicho, motivo: 'sem vendas de mobiliário clínico ou de acessibilidade' });
+
+    // 4. Fornecedores
+    const pfs = inp.qFornSN / 100, insAno = inp.ins * N, tForn = 'Fornecedores que geram crédito';
+    if (!credita) add({ id: 'forn', aplica: false, titulo: tForn, motivo: 'no Simples puro a marcenaria não aproveita crédito; passa a valer se mudar de caminho' });
+    else if (pfs <= 0) add({ id: 'forn', aplica: false, titulo: tForn, motivo: 'as compras de insumos já vêm de fornecedores do regime regular' });
+    else {
+      const g33 = insAno * pfs * (k33 / (1 + k33) - 0.043);
+      add({ id: 'forn', aplica: true, sem: 'verde', valida: 'Contador e compras', titulo: tForn,
+        ganho: insAno * pfs * (k27 / (1 + k27) - 0.013),
+        porque: `${P(pfs)} das compras de insumos (cerca de ${R(insAno * pfs)} por ano) vêm de fornecedores do Simples, que geram crédito de cerca de 1,3% do preço, contra ${P(k27 / (1 + k27))} de quem está no regime regular. Em 2033 a perda sobe para cerca de ${R(g33)} por ano.`,
+        passos: ['Listar os fornecedores do Simples e comparar o preço líquido do crédito', 'Negociar desconto equivalente ao crédito perdido ou trocar de fornecedor', 'Registrar o regime tributário no cadastro de fornecedores'] });
+    }
+
+    // 5. Máquinas
+    const tMaq = 'Máquinas: crédito, momento da compra e depreciação';
+    if (inp.qMaq > 0) {
+      const cr = inp.qMaq * k27 / (1 + k27);
+      const espera = rec === 'presumido' ? inp.qMaq * (1 - inp.icmsF / 100) * inp.pcF / 100 : rec === 'hb' ? inp.qMaq * inp.pcF / 100 : 0;
+      const turnos = Number(inp.qTurnos) || 1, fatorT = turnos >= 3 ? 2 : turnos === 2 ? 1.5 : 1;
+      const dep = rec !== 'real' ? '' : turnos > 1
+        ? ` No Lucro Real, a depreciação e a manutenção reduzem o IRPJ e a CSLL; com ${turnos} turnos de operação, a taxa de depreciação das máquinas pode ser multiplicada por ${fatorT.toLocaleString('pt-BR')}, antecipando a dedução.`
+        : ' No Lucro Real, a depreciação e a manutenção reduzem o IRPJ e a CSLL.';
+      const txtEspera = espera > 0 ? ` Se a compra puder esperar janeiro de 2027, o PIS/Cofins embutido no preço sai e a CBS entra como crédito: economia de cerca de ${R(espera)}, se o fornecedor repassar a mudança.` : '';
+      if (credita) add({ id: 'maq', aplica: true, sem: 'verde', valida: 'Contador', titulo: tMaq, pontual: cr,
+        porque: `Dos ${R(inp.qMaq)} previstos em máquinas, cerca de ${R(cr)} são IBS/CBS que voltam como crédito no ${NOMES[rec]}, pela alíquota de 2027.${txtEspera}${dep}`,
+        passos: ['Comprar de fornecedor do regime regular, com IBS/CBS destacados', espera > 0 ? 'Adiar para janeiro de 2027 as compras que podem esperar' : null, 'Planejar o caixa: o crédito abate o IBS/CBS a recolher', rec === 'real' && turnos > 1 ? 'Documentar as horas de operação para a depreciação por turnos' : null].filter(Boolean) });
+      else add({ id: 'maq', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tMaq,
+        porque: `No Simples puro não há crédito. Os ${R(inp.qMaq)} em máquinas trariam cerca de ${R(cr)} de crédito no híbrido ou no regime regular, e esperar janeiro de 2027 ainda evitaria o PIS/Cofins embutido no preço (cerca de ${R(inp.qMaq * inp.pcF / 100)} no híbrido). Inclua esses valores na decisão de regime antes de comprar.`,
+        passos: ['Simular o híbrido incluindo o crédito da máquina', 'Decidir o regime antes de fechar a compra'] });
+    } else add({ id: 'maq', aplica: false, titulo: tMaq, motivo: 'sem investimento em máquinas previsto' });
+
+    // 6. Cláusula de reajuste
+    const tCont = 'Cláusula de reajuste tributário nos contratos';
+    if (inp.qCarteira > 0) {
+      let exp = 0;
+      if (rec === 'presumido' || rec === 'real') { const pc = rec === 'real' ? 0.0925 : 0.0365, f = 1 - i, g = 1 + k27 * f; exp = inp.qCarteira * ((1 - 1 / g) - pc * f); }
+      else if (rec === 'hb') { const d = das(inp.anexo, inp.rbt); const s = d ? d.efetiva / 100 * (d.A.cbs2027 + d.A.ibs2027) / 100 : 0.013; exp = inp.qCarteira * ((1 - 1 / (1 + k27)) - s); }
+      exp = Math.max(0, exp);
+      add({ id: 'contrato', aplica: true, sem: 'verde', valida: 'Advogado', titulo: tCont, pontual: exp,
+        porque: exp > 0 ? `Dos ${R(inp.qCarteira)} em contratos com entrega em 2027, cerca de ${R(exp)} viram tributo a mais no ${NOMES[rec]} se o preço foi fechado com os tributos de 2026.`
+          : `No ${NOMES[rec]}, a carga sobre a carteira de 2027 quase não muda, mas a cláusula protege contra mudanças de alíquota até 2033.`,
+        passos: ['Incluir cláusula de reajuste por mudança de tributo nos novos contratos', 'Negociar aditivo nos contratos já assinados com entrega em 2027', 'Separar no orçamento o valor do IBS/CBS'] });
+    } else add({ id: 'contrato', aplica: false, titulo: tCont, motivo: 'sem contratos assinados com entrega em 2027' });
+
+    // 7. Folha e sócios
+    const alto = inp.qRetirada > 50000, regular = rec !== 'sn', partes = [];
+    if (alto) partes.push(`Lucros acima de R$ 50 mil por mês, da mesma empresa para o mesmo sócio, têm retenção de 10% sobre o total desde 2026 (Lei 15.270/2025), e rendas acima de R$ 600 mil por ano entram no IR mínimo. Com retirada de ${R(inp.qRetirada)} por mês, a retenção pode chegar a ${R(inp.qRetirada * 12 * 0.1)} por ano se tudo sair como lucro.`);
+    if (regular && inp.qCprb === 'sim') partes.push('A desoneração da folha está acabando: em 2027 a empresa paga 15% sobre a folha mais 40% da contribuição sobre a receita, e em 2028 volta aos 20%. O custo da mão de obra sobe ano a ano.');
+    if (regular && inp.qCprb === 'naosei') partes.push('Confirme se a atividade da empresa está na desoneração da folha (CPRB), que acaba em 2028.');
+    const tFolha = 'Folha e remuneração dos sócios';
+    if (partes.length) add({ id: 'folha', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tFolha, porque: partes.join(' '),
+      passos: [alto ? 'Rever o equilíbrio entre pró-labore, lucros e reinvestimento' : null, 'Projetar o custo da folha até 2028', 'Formalizar a política de distribuição de lucros'].filter(Boolean) });
+    else add({ id: 'folha', aplica: false, titulo: tFolha, motivo: 'retiradas de até R$ 50 mil por mês por sócio e sem desoneração da folha no caminho recomendado' });
+
+    // 8. Incentivos
+    const uf = inp.qUf, naSudene = UF_SUDENE.includes(uf), naSudam = UF_SUDAM.includes(uf), parcial = ['MG', 'ES', 'MA'].includes(uf);
+    let txt = '';
+    if (naSudene || naSudam) txt += `${uf} está ${parcial ? 'em parte ' : ''}na área da ${naSudene && naSudam ? 'SUDENE e da SUDAM' : naSudene ? 'SUDENE' : 'SUDAM'}: projetos aprovados no Lucro Real podem reduzir 75% do IRPJ sobre o lucro da exploração${parcial ? ' (confira se o município está na área)' : ''}. `;
+    txt += rec === 'sn' ? 'No Simples, os benefícios estaduais de ICMS costumam ser limitados: confira se o estado tem regra própria para a indústria do Simples.'
+      : 'Benefícios estaduais de ICMS para a indústria (crédito presumido, diferimento) valem até 2032, quando o ICMS acaba: confira os programas do estado.';
+    add({ id: 'incentivo', aplica: true, sem: 'amarelo', valida: 'Contador e advogado', titulo: 'Incentivos estaduais e regionais', porque: txt,
+      passos: ['Levantar os programas de ICMS do estado para a indústria moveleira', (naSudene || naSudam) ? 'Avaliar a redução do IRPJ na SUDENE/SUDAM (exige Lucro Real)' : null, 'Comparar o ganho com o custo de cumprir as exigências'].filter(Boolean) });
+
+    // 9. Holding
+    const tHold = 'Holding patrimonial';
+    if (inp.qImovel === 'alugado') add({ id: 'holding', aplica: false, titulo: tHold, motivo: 'o imóvel da fábrica é alugado de terceiros' });
+    else add({ id: 'holding', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: tHold,
+      porque: `O imóvel da fábrica está ${inp.qImovel === 'empresa' ? 'no nome da empresa' : 'no nome do sócio'}. Uma holding patrimonial pode organizar a sucessão, proteger o patrimônio e formalizar o aluguel para a operação. Tem custos (ITBI, ITCMD, contabilidade própria) e precisa de propósito além da economia de imposto.`,
+      passos: ['Avaliar sucessão e proteção patrimonial com advogado', 'Comparar o custo de montar e manter a holding com o ganho', 'Se fizer sentido, formalizar o aluguel a valor de mercado'] });
+
+    // 10. Separação de atividades
+    if (inp.qSeparar === 'avaliando') add({ id: 'separar', aplica: true, sem: 'vermelho', valida: 'Advogado', titulo: 'Dividir o faturamento em outra empresa',
+      porque: `Abrir outra empresa para dividir o faturamento e continuar no Simples, com os mesmos sócios, a mesma estrutura ou a mesma operação, é planejamento abusivo: a Receita soma as receitas, exclui do Simples e cobra a diferença com multa.${inp.rbt > 3600000 ? ' Acima de R$ 3,6 milhões a tentação é maior, e o risco também.' : ''} Compare antes com o Lucro Presumido e o híbrido.`,
+      passos: ['Não separar sem operação real e independente', 'Comparar o Presumido e o híbrido no simulador', 'Se houver um negócio de fato diferente, estruturar com advogado'] });
+    else if (inp.qSeparar === 'grupo') add({ id: 'separar', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: 'Substância das empresas do grupo',
+      porque: 'O grupo já tem mais de uma empresa. Cada uma precisa de substância própria: sócios, funcionários, endereço, contabilidade e clientes. Sem isso, a Receita pode somar as receitas e excluir do Simples.',
+      passos: ['Conferir sócios, funcionários, endereço e contabilidade de cada empresa', 'Documentar o motivo de negócio de cada uma', 'Revisar os contratos entre as empresas do grupo'] });
+    else add({ id: 'separar', aplica: false, titulo: 'Dividir o faturamento em outra empresa', motivo: 'não há plano de dividir o faturamento' });
+
+    // 11. RAT e FAP
+    const folhaAno = inp.qFolha * 12, rat = Number(inp.qRat) / 100, fap = inp.qFap, tRat = 'RAT e FAP (seguro de acidente sobre a folha)';
+    const sumula = ' Se houver estabelecimento com CNPJ próprio só administrativo ou de venda, o RAT dele pode seguir o risco daquele estabelecimento (STJ, Súmula 351).';
+    if (rec === 'sn' || rec === 'hb') add({ id: 'rat', aplica: false, titulo: tRat, motivo: 'no Simples (Anexos I e II) o RAT está dentro do DAS' });
+    else if (!(folhaAno > 0)) add({ id: 'rat', aplica: false, titulo: tRat, motivo: 'folha de salários não informada' });
+    else {
+      const custo = folhaAno * rat * fap, passo = folhaAno * rat * 0.1;
+      if (fap > 1.0001) add({ id: 'rat', aplica: true, sem: 'verde', valida: 'Contador e segurança do trabalho', titulo: tRat, ganho: folhaAno * rat * (fap - 1),
+        porque: `O RAT de ${P(rat)} multiplicado pelo FAP de ${fap.toLocaleString('pt-BR', { maximumFractionDigits: 4 })} custa ${R(custo)} por ano sobre a folha. Com o FAP acima de 1, a empresa paga mais que a média do setor: contestar erros do cálculo e reduzir afastamentos traz o FAP para 1,0 e economiza ${R(folhaAno * rat * (fap - 1))} por ano. Cada 0,1 a menos no FAP vale ${R(passo)} por ano.${sumula}`,
+        passos: ['Conferir o FAP publicado e contestar erros no prazo anual', 'Prevenção: CIPA, EPI, treinamento e controle de afastamentos', 'Conferir CNAE e grau de risco do RAT e pedir de volta o que foi pago a mais nos últimos 5 anos, se houver erro'] });
+      else add({ id: 'rat', aplica: true, sem: 'amarelo', valida: 'Contador e segurança do trabalho', titulo: tRat, rotulo: `${R(passo)} por ano a cada 0,1 de FAP`,
+        porque: `O RAT de ${P(rat)} multiplicado pelo FAP de ${fap.toLocaleString('pt-BR', { maximumFractionDigits: 4 })} custa ${R(custo)} por ano sobre a folha. O FAP já está na média ou abaixo; com prevenção, ele pode cair até 0,5, e cada 0,1 a menos vale ${R(passo)} por ano.${sumula}`,
+        passos: ['Conferir se CNAE e grau de risco do RAT estão corretos', 'Manter a prevenção e o controle de afastamentos', 'Conferir o FAP publicado todo ano'] });
+    }
+
+    // 12. Créditos sobre despesas gerais
+    const despAno = inp.qDespPJ * 12, tDesp = 'Créditos sobre despesas gerais';
+    const cDesp27 = despAno * k27 / (1 + k27), cDesp33 = despAno * k33 / (1 + k33);
+    if (!(despAno > 0)) add({ id: 'despesas', aplica: false, titulo: tDesp, motivo: 'despesas com fornecedores do regime regular não informadas' });
+    else if (credita) add({ id: 'despesas', aplica: true, sem: 'verde', valida: 'Contador', titulo: tDesp, ganho: cDesp27,
+      porque: `Com o crédito amplo do IBS/CBS, despesas pagas a empresas do regime regular também geram crédito: energia elétrica, aluguel pago a empresa, software, contabilidade, marketing. Nos ${R(despAno)} por ano informados, isso dá cerca de ${R(cDesp27)} em 2027 e ${R(cDesp33)} em 2033. A comparação de regimes trata as despesas fixas como sem crédito, então esse valor soma ao resultado.`,
+      passos: ['Mapear as despesas por fornecedor e regime tributário', 'Exigir nota com IBS/CBS destacados e guardar os XMLs', 'Conferir os créditos todo mês, antes da apuração'] });
+    else add({ id: 'despesas', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tDesp, rotulo: `${R(cDesp27)} por ano no híbrido`,
+      porque: `No Simples puro, despesas não geram crédito. No híbrido ou no regime regular, os ${R(despAno)} por ano pagos a empresas do regime regular renderiam cerca de ${R(cDesp27)} de crédito em 2027 e ${R(cDesp33)} em 2033. Esse valor pesa a favor do híbrido e não está na comparação de regimes.`,
+      passos: ['Somar esse crédito na decisão de regime', 'Mapear desde já as despesas por fornecedor'] });
+
+    // 13. Contratar funcionário como PJ (pejotização)
+    const simples = rec === 'sn' || rec === 'hb', fatorEnc = simples ? 0.29 : 0.63, econ = folhaAno * fatorEnc;
+    if (inp.qPejot === 'avaliando' && folhaAno > 0) add({ id: 'pejot', aplica: true, sem: 'vermelho', valida: 'Advogado trabalhista', titulo: 'Transformar funcionários em PJ', rotulo: `aparente: ${R(econ)} por ano`,
+      porque: `A conta vendida é economizar os encargos da CLT (${simples ? 'FGTS, férias e 13º; no Simples o INSS patronal já está no DAS' : 'INSS patronal, RAT, terceiros, FGTS, férias e 13º'}) e ainda tomar crédito. Na sua folha, a economia aparente é de ${R(econ)} por ano. Mas se a pessoa continua com horário, chefe, exclusividade e trabalho pessoal, é emprego: a Justiça reconhece o vínculo e a Receita cobra o INSS com multa de 75% a 150%, até 5 anos para trás, o que dá cerca de ${R(econ * 5)} mais multas e juros. E o crédito não vem: um montador MEI gera crédito de IBS/CBS praticamente nulo. O STF ainda julga o tema (Tema 1389), sem decisão final. Montador por empreitada, sem horário e sem exclusividade, é outro caso: prestação de serviço legítima (veja a alavanca de montagem).`,
+      passos: ['Não converter em PJ quem trabalha com subordinação', 'Se o objetivo é custo, atacar produtividade, perdas e retrabalho na fábrica', 'Se a montagem pode ser terceirizada de verdade, contratar empresa com estrutura própria'] });
+    else add({ id: 'pejot', aplica: false, titulo: 'Transformar funcionários em PJ', motivo: folhaAno > 0 ? 'não há plano de converter funcionários em PJ' : 'folha de salários não informada' });
+
+    // 14. Montagem terceirizada
+    const montAno = inp.outros * N, cMont = montAno * k27 / (1 + k27);
+    const checklist = ['Contrato por empreitada, com escopo, prazo e preço de cada projeto', 'Nota fiscal do MEI em toda empreitada; autônomo sem CNPJ tem encargos próprios, a confirmar com o contador', 'Pagamento por projeto entregue, nunca salário fixo por mês', 'Liberdade real: o montador define como e quando executa, usa ferramentas próprias e pode recusar projeto', 'Sem rotina de empregado: sem horário, ponto, crachá ou chefe dando ordens no dia a dia', 'Guardar sinais de que ele atende outras marcenarias e não depender de um único montador por anos'];
+    const credMont = credita ? ` Para ter crédito de IBS/CBS, a alternativa é uma empresa de montagem do regime regular: nos cerca de ${R(montAno)} por ano em montagem e frete, até ${R(cMont)} em 2027.` : '';
+    if (inp.qMontagem === 'mei' && inp.qMontAut === 'nao') add({ id: 'montagem', aplica: true, sem: 'vermelho', valida: 'Advogado trabalhista', titulo: 'Montadores com rotina de empregado', rotulo: `passivo de até ${R(montAno * fatorEnc * 5)} em 5 anos`,
+      porque: `Com horário, exclusividade e chefe, o montador contratado como MEI é empregado: a Justiça reconhece o vínculo e a Receita cobra os encargos com multa. Nos cerca de ${R(montAno)} por ano pagos à montagem, isso dá encargos de cerca de ${R(montAno * fatorEnc)} por ano, até 5 anos para trás, mais multas e juros.`,
+      passos: ['Registrar quem trabalha como empregado', 'Ou reestruturar para empreitada de verdade, cumprindo o checklist de autonomia', 'Revisar com advogado trabalhista os contratos atuais'] });
+    else if (inp.qMontagem === 'mei' && inp.qMontAut === 'parte') add({ id: 'montagem', aplica: true, sem: 'amarelo', valida: 'Advogado trabalhista e contador', titulo: 'Montagem por empreitada: ajustar a autonomia',
+      rotulo: credita ? `até ${R(cMont)} por ano em crédito` : 'corrigir antes que vire vínculo',
+      porque: `A montagem por empreitada é prestação de serviço legítima, mas parte da rotina hoje lembra emprego. O risco está na prova do dia a dia: corrija os pontos do checklist antes que um montador entre com reclamação trabalhista. O MEI gera crédito de IBS/CBS praticamente nulo.${credMont}`,
+      passos: checklist });
+    else if (inp.qMontagem === 'mei') add({ id: 'montagem', aplica: true, sem: 'verde', valida: 'Contador e advogado trabalhista', titulo: 'Montagem por empreitada (MEI)',
+      rotulo: credita ? `até ${R(cMont)} por ano em crédito` : 'manter a blindagem',
+      porque: `Montador que pega um projeto, entrega e só pega outro se quiser, sem horário e sem exclusividade, é prestador de serviço, não empregado. É uma estrutura legítima e econômica; o cuidado é manter a prova em dia, porque numa reclamação trabalhista vale a rotina real, não o contrato. O MEI gera crédito de IBS/CBS praticamente nulo.${credMont}`,
+      passos: checklist });
+    else if (inp.qMontagem === 'empresa') add({ id: 'montagem', aplica: true, sem: credita ? 'verde' : 'amarelo', valida: 'Contador', titulo: 'Montagem terceirizada com empresa',
+      rotulo: credita ? `até ${R(cMont)} por ano em crédito` : null,
+      porque: credita ? `Com a empresa de montagem no regime regular, os cerca de ${R(montAno)} por ano em montagem e frete geram até ${R(cMont)} de crédito de IBS/CBS em 2027. Se ela estiver no Simples, o crédito cai para cerca de 1,3% do valor.`
+        : 'No Simples puro não há crédito sobre a montagem terceirizada; no híbrido ou no regime regular, a contratação de empresa do regime regular passaria a gerar crédito.',
+      passos: ['Confirmar o regime tributário da empresa de montagem', 'Contrato com escopo, prazo e preço por serviço', 'Exigir nota com IBS/CBS destacados'] });
+    else add({ id: 'montagem', aplica: false, titulo: 'Montagem terceirizada', motivo: 'a montagem é feita por equipe própria registrada' });
+
+    // 15. Frota usada na operação
+    const frotaAno = inp.qGastoFrota * 12, cFrota = frotaAno * k27 / (1 + k27), tFrota = 'Frota usada na operação';
+    const irFrota = rec === 'real' ? ' No Lucro Real, essas despesas e a depreciação dos veículos também reduzem o IRPJ e a CSLL, desde que ligadas à produção ou à venda.' : rec === 'presumido' ? ' No Presumido, elas não mudam o IRPJ e a CSLL, que saem de um percentual fixo da receita.' : '';
+    if (!(inp.qVeicOp > 0 && frotaAno > 0)) add({ id: 'frota', aplica: false, titulo: tFrota, motivo: 'sem veículos de operação ou gasto de frota informado' });
+    else if (credita) add({ id: 'frota', aplica: true, sem: 'verde', valida: 'Contador', titulo: tFrota, ganho: cFrota,
+      porque: `Os ${inp.qVeicOp} veículos de entrega, montagem e medição geram crédito de IBS/CBS sobre manutenção, peças, seguro e combustível (o combustível tem regra própria, monofásica). Nos ${R(frotaAno)} por ano informados, são cerca de ${R(cFrota)} em 2027.${irFrota}`,
+      passos: ['Veículos no nome da empresa e usados na atividade', 'Controle de quilometragem, rotas e notas de entrega por veículo', 'Nota com IBS/CBS destacados em peças, serviços e combustível'] });
+    else add({ id: 'frota', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tFrota, rotulo: `${R(cFrota)} por ano no híbrido`,
+      porque: `No Simples puro, a frota não gera crédito. No híbrido, os ${R(frotaAno)} por ano em manutenção, peças, seguro e combustível dos ${inp.qVeicOp} veículos de operação renderiam cerca de ${R(cFrota)} de crédito em 2027: mais um ponto a favor do híbrido, fora da comparação de regimes.`,
+      passos: ['Somar esse crédito na decisão de regime', 'Começar já o controle de quilometragem e rotas por veículo'] });
+
+    // 16. Carros dos sócios
+    if (inp.qVeicSocio > 0) add({ id: 'carrosocio', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: 'Carros usados pelos sócios', rotulo: 'só com prova de uso',
+      porque: `${inp.qVeicSocio === 1 ? 'O carro usado pelos sócios só gera' : `Os ${inp.qVeicSocio} carros usados pelos sócios só geram`} crédito de IBS/CBS, e despesa dedutível no Lucro Real, na parte usada na atividade: visitas a clientes, medição de obra, compras. É uma posição de interpretação que se defende com prova, e quem prova é a empresa. Sem controle de quilometragem e agenda, a Receita trata como uso pessoal, glosa o crédito e cobra multa de 75%, ou de 150% se entender que houve fraude. Lançar como frota um carro de passeio sem uso na atividade não é interpretação: é sonegação.`,
+      passos: ['Agenda de visitas e medições ligada a cada deslocamento', 'Controle de quilometragem separando o uso pessoal, que fica fora do crédito', 'Política de veículos aprovada pelos sócios e aplicada'] });
+    else add({ id: 'carrosocio', aplica: false, titulo: 'Carros usados pelos sócios', motivo: 'sem carros de uso dos sócios informados' });
+
+    // 17. Locadora de frota e máquinas
+    const tLoc = 'Empresa locadora de frota e máquinas';
+    if (inp.qBens > 0) {
+      if (rec === 'real') {
+        const aluguel = inp.qBens * 0.012 * 12, gLoc = aluguel * (0.34 - 0.32 * 0.34);
+        add({ id: 'locadora', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: tLoc, rotulo: `estimativa: ${R(gLoc)} por ano`,
+          porque: `Com a fábrica no Lucro Real, os ${R(inp.qBens)} em frota e máquinas podem ficar numa empresa locadora que aluga para a operação. O aluguel reduz o lucro tributado a cerca de 34% na fábrica, e a locadora no Presumido paga IRPJ e CSLL sobre uma base presumida de 32% do aluguel. Com aluguel de mercado de 1,2% ao mês (premissa), a diferença fica perto de ${R(gLoc)} por ano. O IBS/CBS sobre o aluguel se anula: débito na locadora, crédito na fábrica. É planejamento com risco de interpretação: a Receita questiona quando o aluguel foge do mercado ou a locadora não tem estrutura própria.`,
+          passos: ['Laudo de aluguel a preço de mercado', 'Locadora com contrato, contabilidade e gestão próprias', 'Calcular o custo de transferir os bens antes de montar a estrutura'] });
+      } else add({ id: 'locadora', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: tLoc, rotulo: 'ganho patrimonial, não tributário',
+        porque: `No ${NOMES[rec]}, mover os ${R(inp.qBens)} em frota e máquinas para uma locadora não reduz imposto: a dedução do aluguel só pesa no Lucro Real. O ganho fica na proteção do patrimônio e na sucessão, com o custo de montar e manter outra empresa.`,
+        passos: ['Avaliar junto com a holding patrimonial', 'Conferir na aba Comparar regimes se o Lucro Real passa a valer a pena'] });
+    } else add({ id: 'locadora', aplica: false, titulo: tLoc, motivo: 'valor de frota e máquinas não informado' });
+
+    // 18. Frete e logística
+    const freteAno = inp.qFrete * 12, cFrete = freteAno * k27 / (1 + k27), tFrete = 'Frete e logística de entrega';
+    const mesmaAliq = ' No IBS/CBS, frete e produto pagam a mesma alíquota: separar os dois na nota não reduz esse imposto.';
+    if (inp.qEntrega === 'transportadora' && freteAno > 0) {
+      if (credita) add({ id: 'frete', aplica: true, sem: 'verde', valida: 'Contador', titulo: tFrete, ganho: cFrete,
+        porque: `Com transportadora do regime regular, os ${R(freteAno)} por ano em frete geram cerca de ${R(cFrete)} de crédito de IBS/CBS em 2027. Se a transportadora estiver no Simples, o crédito cai para perto de 1,3% do valor.${mesmaAliq}`,
+        passos: ['Confirmar o regime tributário da transportadora', 'Exigir documento de transporte com IBS/CBS destacados', 'Comparar transportadoras pelo preço líquido do crédito'] });
+      else add({ id: 'frete', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: tFrete, rotulo: `${R(cFrete)} por ano no híbrido`,
+        porque: `No Simples puro, o frete não gera crédito. No híbrido, os ${R(freteAno)} por ano com transportadora do regime regular renderiam cerca de ${R(cFrete)} em 2027.`, passos: ['Somar esse crédito na decisão de regime'] });
+    } else if (inp.qEntrega === 'grupo') add({ id: 'frete', aplica: true, sem: 'amarelo', valida: 'Advogado e contador', titulo: 'Transportadora do grupo',
+      porque: `Uma transportadora do próprio grupo só se sustenta com estrutura própria: veículos e motoristas dela, outros clientes e frete a preço de mercado. Sem isso, a Receita trata o frete como parte da venda, cobra a diferença com multa e pode desconsiderar a empresa.${mesmaAliq}`,
+      passos: ['Conferir veículos, motoristas e clientes próprios da transportadora', 'Frete a preço de mercado, com contrato e documento de transporte', 'Revisar se a estrutura ainda faz sentido com a reforma'] });
+    else if (inp.qEntrega === 'autonomos') add({ id: 'frete', aplica: true, sem: 'amarelo', valida: 'Contador', titulo: 'Frete com transportador autônomo',
+      rotulo: credita && freteAno > 0 ? `até ${R(cFrete)} por ano com transportadora` : null,
+      porque: `O transportador autônomo pessoa física tem regra própria de crédito, a confirmar com o contador. Uma transportadora do regime regular gera o crédito integral${credita && freteAno > 0 ? `: nos ${R(freteAno)} por ano em frete, até ${R(cFrete)} em 2027` : ''}. Compare pelo preço líquido do crédito.${mesmaAliq}`,
+      passos: ['Confirmar com o contador o crédito na contratação de autônomo', 'Cotar transportadoras do regime regular'] });
+    else add({ id: 'frete', aplica: false, titulo: tFrete, motivo: inp.qEntrega === 'propria' ? 'entrega com frota própria (veja a alavanca da frota)' : 'gasto com frete de terceiros não informado' });
+
+    const ordem = { verde: 0, amarelo: 1, vermelho: 2 };
+    const peso = x => x.ganho || x.pontual || 0;
+    const ap = L.filter(x => x.aplica).sort((a, b) => ((b.id === 'regime') - (a.id === 'regime')) || (ordem[a.sem] - ordem[b.sem]) || (peso(b) - peso(a)));
+    const na = L.filter(x => !x.aplica);
+    const total = ap.filter(x => x.sem === 'verde' && x.ganho > 0).reduce((s, x) => s + x.ganho, 0);
+    const pontual = ap.reduce((s, x) => s + (x.pontual > 0 ? x.pontual : 0), 0);
+    const cont = { verde: ap.filter(x => x.sem === 'verde').length, amarelo: ap.filter(x => x.sem === 'amarelo').length, vermelho: ap.filter(x => x.sem === 'vermelho').length };
+    return { sim, N, rec, atualId, best, at27, best33, muda, ap, na, total, pontual, cont, NOMES };
+  }
+
+  return { rhe, ibscbs, regras, das, partilha, virada, irpjCsllPresumido, taxaReal, margemPreReal, precoMercado, simular, checkup, TIPOS, ANOS, FASE_RR, FASE_SN, ANEXOS };
+})();
+// ENGINE END
+// CONSULTA START
+const CONSULTA = (() => {
+  const vale = (ini, fim, data) => ini <= data && data <= fim;
+  function classesDoCodigo(D, tipo, cod, data) {
+    const ids = new Set();
+    if (tipo === 'ncm') {
+      for (const [id, pref, cl, ini, fim] of D.ncmApl) {
+        if (!cod.startsWith(pref) || !vale(ini, fim, data)) continue;
+        if (D.ncmExc.some(([nid, ncm, i2, f2]) => nid === id && cod.startsWith(ncm) && vale(i2, f2, data))) continue;
+        ids.add(cl);
+      }
+    } else {
+      for (const [pref, cl, ini, fim] of D.nbsApl) if (cod.startsWith(pref) && vale(ini, fim, data)) ids.add(cl);
+    }
+    return [...ids].map(id => ({ id, ...D.classes[String(id)] })).filter(c => c.cd && vale(c.ini, c.fim, data)).sort((a, b) => a.cd.localeCompare(b.cd));
+  }
+  // Classificações que não dependem de lista de códigos: regra geral e as que dependem da operação ou de quem fornece.
+  function classesSemLista(D, tipo, data) {
+    const comLista = new Set([...D.ncmApl.map(r => r[2]), ...D.nbsApl.map(r => r[1])]);
+    const aceita = tipo === 'ncm' ? ['NCM', 'NBS ou NCM'] : ['NBS', 'NBS ou NCM'];
+    return Object.entries(D.classes).map(([id, c]) => ({ id: Number(id), ...c }))
+      .filter(c => !comLista.has(c.id) && aceita.includes(c.nom) && vale(c.ini, c.fim, data));
+  }
+  function sujeitoIS(D, cod, data) { return D.isNcm.some(([pref, ini, fim]) => cod.startsWith(pref) && vale(ini, fim, data)); }
+  function hierarquia(lista, cod) { // lista ordenada [[codigo, descricao]]
+    const mapa = new Map(lista.map(r => [r[0], r[1]]));
+    const out = [];
+    for (let n = 1; n <= cod.length; n++) { const p = cod.slice(0, n); if (mapa.has(p)) out.push([p, mapa.get(p)]); }
+    return out;
+  }
+  return { classesDoCodigo, classesSemLista, sujeitoIS, hierarquia };
+})();
+// CONSULTA END
+if (typeof module !== 'undefined') module.exports = ENGINE;
+</script>
+
+<script>
+(() => {
+  if (typeof document === 'undefined') return;
+  const { rhe, ibscbs, das, partilha, simular, irpjCsllPresumido, TIPOS, ANOS, FASE_RR, FASE_SN } = ENGINE;
+  const ABAS = ['checkup', 'assistente', 'consulta', 'comparar', 'presumido', 'real', 'simples'];
+  const NOME = { presumido: 'Lucro Presumido', real: 'Lucro Real', sn: 'Simples puro', hb: 'Simples híbrido', simples: 'Simples Nacional' };
+  const COR = { presumido: '--pres', real: '--real', sn: '--sn', hb: '--hb' };
+
+  const PADRAO = {
+    atual: 'simples', anexo: 'II', rbt: 2400000, tipo: 'movel', icms: 18, enc: 20, mix: 70,
+    ins: 30000, mo: 16000, outros: 4000, rt: 8, fix: 12, m: 12,
+    icmsF: 18, pcF: 9.25, cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85, lente: 'mercado', ano: 2027,
+    qEmpresa: 'Marcenaria Exemplo', qUf: 'SP', qResp: '', qClin: 10, qAcess: 0, qFornSN: 20, qCarteira: 150000, qMaq: 120000, qRetirada: 30000,
+    qCprb: 'naosei', qImovel: 'socio', qSeparar: 'nao',
+    qFolha: 36000, qRat: '3', qFap: 1, qDespPJ: 15000, qMontagem: 'mei', qPejot: 'avaliando',
+    qVeicOp: 3, qGastoFrota: 6000, qVeicSocio: 2, qBens: 800000, qEntrega: 'propria', qFrete: 0, qTurnos: '1', qMontAut: 'sim', ctxExtra: '',
+  };
+  const NUM = {
+    rbt: { tipo: 'brl', max: 1e10 }, icms: { tipo: 'pct', max: 40 }, enc: { tipo: 'pct', max: 60 },
+    ins: { tipo: 'brl', max: 1e9 }, mo: { tipo: 'brl', max: 1e9 }, outros: { tipo: 'brl', max: 1e9 },
+    rt: { tipo: 'pct', max: 60 }, fix: { tipo: 'pct', max: 80 }, m: { tipo: 'pct', max: 80 },
+    icmsF: { tipo: 'pct', max: 40 }, pcF: { tipo: 'pct', max: 20 }, cbs: { tipo: 'pct', max: 30 }, ibsUf: { tipo: 'pct', max: 30 }, ibsMun: { tipo: 'pct', max: 30 },
+    qClin: { tipo: 'pct', max: 100 }, qAcess: { tipo: 'pct', max: 100 }, qFornSN: { tipo: 'pct', max: 100 },
+    qCarteira: { tipo: 'brl', max: 1e10 }, qMaq: { tipo: 'brl', max: 1e10 }, qRetirada: { tipo: 'brl', max: 1e9 },
+    qFolha: { tipo: 'brl', max: 1e9 }, qFap: { tipo: 'pct', min: 0.5, max: 2 }, qDespPJ: { tipo: 'brl', max: 1e9 },
+    qVeicOp: { tipo: 'pct', max: 1000 }, qGastoFrota: { tipo: 'brl', max: 1e9 }, qVeicSocio: { tipo: 'pct', max: 100 }, qBens: { tipo: 'brl', max: 1e10 }, qFrete: { tipo: 'brl', max: 1e9 },
+  };
+  const CHAVE = 'diametro-app-tributario-v2';
+  let est = { ...PADRAO };
+  try {
+    const salvo = JSON.parse(localStorage.getItem(CHAVE) || 'null');
+    if (salvo && typeof salvo === 'object') for (const k of Object.keys(PADRAO)) if (k in salvo && typeof salvo[k] === typeof PADRAO[k]) est[k] = salvo[k];
+  } catch (e) {}
+  const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(est)); } catch (e) {} };
+  let aba = ABAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'checkup';
+
+  const $ = id => document.getElementById(id);
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const brl0 = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0, minimumFractionDigits: 0 });
+  const pct = (v, d = 1) => (v * 100).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%';
+  const pp = (v, d = 2) => v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: Math.max(d, 4) }) + '%';
+  const numFmt = (v, tipo) => tipo === 'brl' ? v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const sinal = v => Math.abs(v) < 0.0005 ? '' : (v > 0 ? '+' : '−');
+  const difBRL = v => (Math.abs(v) < 0.5 ? '' : v > 0 ? '+' : '−') + brl0(Math.abs(v));
+  function lerNumero(txt) {
+    let s = String(txt).trim().replace(/\s|R\$|%/g, '');
+    if (!s) return NaN;
+    if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+    return /^-?\d*\.?\d+$/.test(s) ? Number(s) : NaN;
+  }
+
+  for (const [id, cfg] of Object.entries(NUM)) {
+    const el = $(id), campo = el.closest('.field');
+    el.value = numFmt(est[id], cfg.tipo);
+    el.addEventListener('input', () => {
+      const v = lerNumero(el.value);
+      const ok = Number.isFinite(v) && v >= (cfg.min ?? 0) && v <= cfg.max;
+      campo.classList.toggle('erro', !ok);
+      let msg = campo.querySelector('.msg');
+      if (!ok) {
+        if (!msg) { msg = document.createElement('span'); msg.className = 'msg'; campo.appendChild(msg); }
+        msg.textContent = Number.isFinite(v) ? `Use um valor entre ${numFmt(cfg.min ?? 0, cfg.tipo)} e ${numFmt(cfg.max, cfg.tipo)}.` : 'Digite só números, como 30.000,00.';
+        return;
+      }
+      if (msg) msg.remove();
+      est[id] = v; atualizar();
+    });
+    el.addEventListener('blur', () => { campo.classList.remove('erro'); const msg = campo.querySelector('.msg'); if (msg) msg.remove(); el.value = numFmt(est[id], cfg.tipo); });
+  }
+  $('tipo').value = est.tipo;
+  $('tipo').addEventListener('change', e => { est.tipo = e.target.value; atualizar(); });
+  $('mix').value = est.mix;
+  $('mix').addEventListener('input', e => { est.mix = Number(e.target.value); atualizar(); });
+  const segmentado = (id, chave, conv = v => v) => $(id).addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]'); if (!b) return; est[chave] = conv(b.dataset.v); atualizar();
+  });
+  segmentado('atual', 'atual'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente'); segmentado('qCprb', 'qCprb');
+  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar', 'qRat', 'qMontagem', 'qPejot', 'qEntrega', 'qTurnos', 'qMontAut'];
+  const preencherQ = () => { TXT.forEach(id => { $(id).value = est[id]; }); SEL.forEach(id => { $(id).value = est[id]; }); };
+  TXT.forEach(id => $(id).addEventListener('input', e => { est[id] = e.target.value.slice(0, 80); atualizar(); }));
+  SEL.forEach(id => $(id).addEventListener('change', e => { est[id] = e.target.value; atualizar(); }));
+  preencherQ();
+  $('ano').innerHTML = ANOS.map(a => `<button type="button" data-v="${a}">${a}</button>`).join('');
+  segmentado('ano', 'ano', Number);
+  const marcar = (id, v) => $(id).querySelectorAll('button[data-v]').forEach(b => { const on = String(b.dataset.v) === String(v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  $('restaurar').addEventListener('click', () => {
+    est = { ...PADRAO };
+    for (const [id, cfg] of Object.entries(NUM)) { $(id).value = numFmt(est[id], cfg.tipo); const c = $(id).closest('.field'); c.classList.remove('erro'); const mm = c.querySelector('.msg'); if (mm) mm.remove(); }
+    $('tipo').value = est.tipo; $('mix').value = est.mix; preencherQ(); $('ctxExtra').value = est.ctxExtra; atualizar();
+  });
+  const setAno = a => { est.ano = a; atualizar(); };
+  window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (ABAS.includes(h)) { aba = h; atualizar(); } });
+
+  // Gráfico de linhas: um eixo, rótulos diretos no fim, crosshair com tooltip, nulos e linha tracejada aceitos.
+  function grafico(el, cfg) {
+    const { series, fmtEixo, fmtTip, extra, dominio, ref, fase } = cfg;
+    const W = Math.max(280, el.clientWidth || 520), H = 236;
+    const m = { l: 62, r: 48, t: 14, b: 30 };
+    const n = ANOS.length, iw = W - m.l - m.r, ih = H - m.t - m.b;
+    let y0, y1, ticks = [];
+    if (dominio) { [y0, y1] = dominio; for (let v = y0; v <= y1 + 1e-9; v += (y1 - y0) / 4) ticks.push(v); }
+    else {
+      const vals = series.flatMap(s => s.v).filter(v => v != null);
+      let lo = Math.min(...vals), hi = Math.max(...vals);
+      if (hi - lo < Math.abs(hi) * 0.02 || hi === lo) { const pad = Math.max(Math.abs(hi) * 0.05, 0.01); lo -= pad; hi += pad; }
+      const bruto = (hi - lo) / 4, mag = 10 ** Math.floor(Math.log10(bruto));
+      const passo = [1, 2, 2.5, 5, 10].map(k => k * mag).find(s => s >= bruto) || 10 * mag;
+      y0 = Math.floor(lo / passo) * passo; y1 = Math.ceil(hi / passo) * passo;
+      for (let v = y0; v <= y1 + passo / 2; v += passo) ticks.push(v);
+    }
+    const X = i => m.l + i * iw / (n - 1), Y = v => m.t + ih - (v - y0) / (y1 - y0) * ih, col = iw / (n - 1);
+    const si = ANOS.indexOf(est.ano);
+    let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(cfg.rotulo)}">`;
+    s += `<rect x="${X(si) - col / 2}" y="${m.t}" width="${col}" height="${ih}" rx="6" fill="var(--panel-2)"></rect>`;
+    for (const t of ticks) {
+      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-width="1"></line>`;
+      s += `<text x="${m.l - 8}" y="${Y(t) + 4}" text-anchor="end" fill="var(--muted)">${esc(fmtEixo(t))}</text>`;
+    }
+    if (ref) {
+      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(ref.v)}" y2="${Y(ref.v)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"></line>`;
+      s += `<text x="${m.l + 6}" y="${Y(ref.v) - 6}" fill="var(--text)">${esc(ref.rot)}</text>`;
+    }
+    ANOS.forEach((a, i) => { s += `<text x="${X(i)}" y="${H - 8}" text-anchor="middle" fill="${i === si ? 'var(--text)' : 'var(--muted)'}" font-weight="${i === si ? 700 : 400}">${a}</text>`; });
+    for (const sr of series) {
+      let d = '', pen = false;
+      sr.v.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`; pen = true; });
+      s += `<path d="${d}" fill="none" stroke="var(${sr.cor})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${sr.tracejado ? ' stroke-dasharray="6 4"' : ''}></path>`;
+    }
+    for (const sr of series) sr.v.forEach((v, i) => {
+      if (v == null) return;
+      s += sr.tracejado
+        ? `<circle cx="${X(i)}" cy="${Y(v)}" r="${i === si ? 5 : 4}" fill="var(--panel)" stroke="var(${sr.cor})" stroke-width="2"></circle>`
+        : `<circle cx="${X(i)}" cy="${Y(v)}" r="${i === si ? 5 : 4}" fill="var(${sr.cor})" stroke="var(--panel)" stroke-width="2"></circle>`;
+    });
+    const fim = series.filter(sr => sr.curto && sr.v[n - 1] != null).map(sr => ({ sr, y: Y(sr.v[n - 1]) })).sort((a, b) => a.y - b.y);
+    for (let it = 0; it < 6; it++) for (let j = 1; j < fim.length; j++) if (fim[j].y - fim[j - 1].y < 13) { const mid = (fim[j].y + fim[j - 1].y) / 2; fim[j - 1].y = mid - 6.5; fim[j].y = mid + 6.5; }
+    for (const f of fim) s += `<text x="${X(n - 1) + 10}" y="${f.y + 4}" fill="var(--text)" font-weight="600">${esc(f.sr.curto)}</text>`;
+    s += `<line class="cruz" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"></line>`;
+    ANOS.forEach((a, i) => { s += `<rect class="alvo" data-i="${i}" x="${X(i) - col / 2}" y="${m.t}" width="${col}" height="${ih + m.b}" fill="transparent" style="cursor:pointer"></rect>`; });
+    s += '</svg>';
+    el.innerHTML = s + '<div class="tooltip" hidden></div>';
+    const svg = el.querySelector('svg'), tip = el.querySelector('.tooltip'), cruz = svg.querySelector('.cruz');
+    svg.querySelectorAll('.alvo').forEach(r => {
+      const i = Number(r.dataset.i);
+      r.addEventListener('mouseenter', () => {
+        cruz.setAttribute('x1', X(i)); cruz.setAttribute('x2', X(i)); cruz.setAttribute('visibility', 'visible');
+        tip.innerHTML = `<b>${ANOS[i]} · ${esc(fase[ANOS[i]])}</b>` + series.map(sr => `<div class="l"><span><i class="dot" style="background:var(${sr.cor})"></i>${esc(sr.nome)}</span><span class="mono">${esc(fmtTip(sr.v[i], i))}</span></div>`).join('') + (extra ? `<div class="l"><span>${esc(extra.rot)}</span><span class="mono">${esc(extra.f(i))}</span></div>` : '');
+        tip.hidden = false;
+        const escala = el.clientWidth / W; let left = X(i) * escala + 12;
+        if (left + 210 > el.clientWidth) left = X(i) * escala - 210;
+        tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '8px';
+      });
+      r.addEventListener('mouseleave', () => { tip.hidden = true; cruz.setAttribute('visibility', 'hidden'); });
+      r.addEventListener('click', () => setAno(ANOS[i]));
+    });
+  }
+  const eixoBRL = v => 'R$ ' + (v / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil';
+  const eixoPct = v => (v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+  const amostra = (cor, tracejado) => `<svg width="22" height="10" aria-hidden="true"><line x1="1" y1="5" x2="21" y2="5" stroke="var(${cor})" stroke-width="2"${tracejado ? ' stroke-dasharray="5 3"' : ''}></line></svg>`;
+  const legenda = itens => itens.map(([cor, txt, tr]) => `<span>${amostra(cor, tr)}${esc(txt)}</span>`).join('');
+  const textoVirada = v => !v ? '—' : v.tipo === 'sempre' ? 'compensa com qualquer mix' : v.tipo === 'nunca' ? 'não compensa' : `${v.tipo === 'acima' ? 'acima de' : 'abaixo de'} ${pct(v.w, 0)} PJ`;
+  const linha = (rot, val, forte) => `<div${forte ? ' class="forte"' : ''}><dt>${rot}</dt><dd>${val}</dd></div>`;
+  const ligarTabela = () => $('tab-anos').querySelectorAll('tr[data-ano]').forEach(tr => {
+    tr.addEventListener('click', () => setAno(Number(tr.dataset.ano)));
+    tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAno(Number(tr.dataset.ano)); } });
+  });
+  const etiquetaMargem = mg => { const meta = est.m / 100, t = numFmt(est.m, 'pct') + '%';
+    return mg <= 0 ? '<span class="etiqueta perigo">prejuízo</span>'
+      : mg + 0.0005 < meta ? `<span class="etiqueta alerta">abaixo de ${t}</span>`
+      : mg > meta + 0.0005 ? `<span class="etiqueta ok">acima de ${t}</span>` : `<span class="etiqueta ok">na meta de ${t}</span>`; };
+
+  let ultimo = null;
+  function atualizar() {
+    salvar();
+    const merc = est.lente === 'mercado';
+    document.querySelectorAll('#abas a').forEach(a => { const on = a.dataset.aba === aba; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    marcar('atual', est.atual); marcar('anexo', est.anexo); marcar('lente', est.lente); marcar('ano', est.ano); marcar('qCprb', est.qCprb);
+    $('vista-checkup').hidden = aba !== 'checkup'; $('vista-assist').hidden = aba !== 'assistente'; $('vista-consulta').hidden = aba !== 'consulta'; $('vista-sim').hidden = ['checkup', 'assistente', 'consulta'].includes(aba);
+    document.querySelectorAll('[data-abas]').forEach(e => { e.hidden = !e.dataset.abas.split(' ').includes(aba); });
+    $('mix-out').textContent = est.mix + '%';
+    $('pleno').value = numFmt(rhe(est.cbs + est.ibsUf + est.ibsMun, 4), 'pct');
+    $('tipo-info').textContent = TIPOS[est.tipo].info;
+    $('lente-info').textContent = merc
+      ? 'O cliente PF paga o mesmo contrato de 2026 e o PJ, o mesmo custo efetivo. Compara quanto sobra de lucro.'
+      : 'Cada regime ajusta o preço para manter a margem líquida de 2026. Compara quanto o cliente paga.';
+    const d = das(est.anexo, est.rbt);
+    $('das-info').innerHTML = d
+      ? `<span><b>${d.A.nome} · faixa ${d.faixa}</b> · alíquota efetiva do DAS <b>${pp(rhe(d.efetiva, 4), 2)}</b></span><span>IBS/CBS no DAS em 2027: <b>${pp(rhe(d.efetiva * (d.A.cbs2027 + d.A.ibs2027) / 100, 4), 2)}</b> do preço</span>`
+      : '<span>Faturamento acima de R$ 3,6 milhões: o Simples fica fora da comparação (sublimite).</span>';
+
+    const sim = simular(est);
+    if (sim.erro) {
+      $('erro').textContent = sim.erro; $('erro').hidden = false; $('preco-info').innerHTML = '';
+      document.querySelectorAll('.vista').forEach(e => e.style.opacity = .35);
+      return;
+    }
+    $('erro').hidden = true;
+    document.querySelectorAll('.vista').forEach(e => e.style.opacity = '');
+    ultimo = sim;
+    $('preco-info').innerHTML = `<span>Preço de mercado em 2026: <b>${brl(sim.V)}</b></span><span>Formado no ${esc(NOME[est.atual])} com margem líquida de ${numFmt(est.m, 'pct')}%.</span>`;
+    if (aba === 'checkup') renderCheckup();
+    else if (aba === 'assistente') { /* conversa renderizada sob demanda */ }
+    else if (aba === 'consulta') abrirConsulta();
+    else if (aba === 'comparar') renderComparar(sim);
+    else if (aba === 'simples') {
+      if (sim.sn.fora) renderSemSimples(); else renderSN(sim.sn);
+    } else renderRR(aba === 'real' ? sim.real : sim.pres);
+    desenhar();
+  }
+
+  // ───────── Comparar regimes ─────────
+  function renderComparar(sim) {
+    const merc = est.lente === 'mercado', i = ANOS.indexOf(est.ano), c = sim.comp[i];
+    const atualId = est.atual === 'simples' ? 'sn' : est.atual;
+    const oAtual = c.op.find(o => o.id === atualId) || c.op[0];
+    const ord = [...c.op].sort((a, b) => b.valor - a.valor);
+    const m = c.melhor;
+    $('big-rot').textContent = `Melhor regime em ${c.t} com ${est.mix}% de vendas PJ`;
+    $('big').textContent = NOME[m.id]; $('big').style.color = `var(${COR[m.id]})`;
+    $('big-sub').textContent = merc
+      ? `Lucro líquido pelo mix: ${brl0(m.lucro)} por projeto${m.id === oAtual.id ? ' · é o seu regime atual' : ` · ${difBRL(m.lucro - oAtual.lucro)} contra o ${NOME[oAtual.id]}`}`
+      : `Custo médio do cliente: ${brl0(m.custo)}${m.id === oAtual.id ? ' · é o seu regime atual' : ` · ${difBRL(m.custo - oAtual.custo)} contra o ${NOME[oAtual.id]}`}`;
+    const frases = [];
+    frases.push(`Ordem em ${c.t}: ${ord.map(o => `<b>${esc(NOME[o.id])}</b> (${merc ? brl0(o.lucro) : brl0(o.custo)})`).join(', ')}.`);
+    const bestPF = c.op.reduce((a, b) => (merc ? b.pf.lucro > a.pf.lucro : b.pf.custo < a.pf.custo) ? b : a);
+    const bestPJ = c.op.reduce((a, b) => (merc ? b.pj.lucro > a.pj.lucro : b.pj.custo < a.pj.custo) ? b : a);
+    frases.push(bestPF.id === bestPJ.id
+      ? `${esc(NOME[bestPF.id])} lidera nos dois canais, venda PF e venda PJ.`
+      : `Na venda PF, o melhor é o <b>${esc(NOME[bestPF.id])}</b>; na venda PJ, o <b>${esc(NOME[bestPJ.id])}</b>. O mix de vendas decide.`);
+    if (sim.sn.fora) frases.push('Com faturamento acima de R$ 3,6 milhões, o Simples fica fora da comparação.');
+    else if (c.t === 2026) frases.push('O híbrido entra na comparação a partir de 2027.');
+    if (merc) frases.push(`Todos os regimes partem do mesmo contrato de ${brl(sim.V)}, preço que você pratica hoje no ${esc(NOME[est.atual])}.`);
+    $('resumo').innerHTML = frases.map(f => `<p>${f}</p>`).join('');
+
+    const val = (o, k) => merc ? `${brl0(o[k].lucro)}<span class="sub">${pct(o[k].lucro / o[k].contrato)} do contrato</span>` : `${brl0(o[k].custo)}<span class="sub">contrato ${brl0(o[k].contrato)}</span>`;
+    const mixV = o => merc ? brl0(o.lucro) : brl0(o.custo);
+    const vsAtual = o => o.id === oAtual.id ? '<span class="etiqueta neutra">regime atual</span>' : (merc ? difBRL(o.lucro - oAtual.lucro) : difBRL(o.custo - oAtual.custo));
+    const linhas = ord.map(o => `<tr class="${o.id === m.id ? 'melhor' : ''}"><td><span class="nome"><i class="dot" style="background:var(${COR[o.id]})"></i>${esc(NOME[o.id])}</span>${o.id === m.id ? ' <span class="etiqueta ok">melhor</span>' : ''}</td><td>${val(o, 'pf')}</td><td>${val(o, 'pj')}</td><td><b>${mixV(o)}</b></td><td>${vsAtual(o)}</td></tr>`).join('')
+      + (sim.sn.fora ? '<tr class="fora"><td>Simples puro e híbrido</td><td colspan="4" class="txt">fora: faturamento acima de R$ 3,6 milhões</td></tr>' : (c.t === 2026 ? '<tr class="fora"><td>Simples híbrido</td><td colspan="4" class="txt">a opção começa em 2027</td></tr>' : ''));
+    const linhaTempo = sim.comp.map(x => `<button type="button" data-ano="${x.t}" class="${x.t === est.ano ? 'on' : ''}"><span class="ano">${x.t}</span><span class="quem"><i class="dot" style="background:var(${COR[x.melhor.id]})"></i>${esc(NOME[x.melhor.id])}</span></button>`).join('');
+    $('cards').innerHTML = `<section class="card span2"><header><h2>${merc ? 'Lucro líquido por projeto' : 'Custo para o cliente'} em ${c.t}</h2><span class="small muted">${merc ? 'Depois de todos os tributos, IRPJ e CSLL inclusive' : 'PJ: custo efetivo, depois do crédito'}</span></header>
+      <div class="tabela"><table class="ranking"><thead><tr><th>Regime</th><th>Venda PF</th><th>Venda PJ</th><th>Pelo mix (${est.mix}% PJ)</th><th>Contra o regime atual</th></tr></thead><tbody>${linhas}</tbody></table></div>
+      <h2>Melhor regime a cada ano</h2><div class="linha-tempo" id="linha-tempo">${linhaTempo}</div></section>`;
+    $('linha-tempo').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setAno(Number(b.dataset.ano))));
+
+    $('dre-tit').textContent = `Detalhe por regime em ${c.t}`;
+    const ids = c.op.map(o => o.id);
+    const L = (rot, f, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${rot}</td>${c.op.map(o => `<td>${f(o)}</td>`).join('')}</tr>`;
+    const ircsPF = o => (o.id === 'presumido' || o.id === 'real') ? brl(o.pf.ircs) : 'no DAS';
+    const tribVenda = o => (o.id === 'presumido' || o.id === 'real') ? brl(o.pf.icms + o.pf.pc) : brl(o.pf.das);
+    $('dre').innerHTML = `<thead><tr><th>${c.t}</th>${ids.map(id => `<th><span class="nome"><i class="dot" style="background:var(${COR[id]})"></i>${esc(NOME[id])}</span></th>`).join('')}</tr></thead><tbody>` +
+      L('Venda PF · valor do contrato', o => brl(o.pf.contrato), 'total') +
+      L('Receita (sem IBS/CBS por fora)', o => brl(o.pf.P)) +
+      L('ICMS + PIS/Cofins, ou DAS', tribVenda) +
+      L('IRPJ e CSLL fora do DAS', ircsPF) +
+      L('Lucro líquido na venda PF', o => brl(o.pf.lucro), 'total') +
+      L('Margem líquida PF (sobre a receita)', o => pct(o.pf.margem)) +
+      L('Venda PJ · valor do contrato', o => brl(o.pj.contrato), 'total') +
+      L('Crédito do cliente PJ', o => brl(o.pj.credito)) +
+      L('Custo efetivo do cliente PJ', o => brl(o.pj.custo)) +
+      L('Lucro líquido na venda PJ', o => brl(o.pj.lucro), 'total') +
+      L('Margem líquida PJ (sobre a receita)', o => pct(o.pj.margem)) + '</tbody>';
+
+    $('tab-tit').textContent = merc ? 'Lucro líquido pelo mix, ano a ano' : 'Custo médio do cliente pelo mix, ano a ano';
+    const todos = ['presumido', 'real'].concat(sim.sn.fora ? [] : ['sn', 'hb']);
+    $('tab-anos').innerHTML = `<thead><tr><th>Ano</th>${todos.map(id => `<th>${esc(NOME[id])}</th>`).join('')}<th>Melhor</th></tr></thead><tbody>` +
+      sim.comp.map(x => `<tr class="clicavel${x.t === est.ano ? ' sel' : ''}" data-ano="${x.t}" tabindex="0"><td>${x.t}</td>${todos.map(id => { const o = x.op.find(z => z.id === id); return `<td>${o ? (merc ? brl0(o.lucro) : brl0(o.custo)) : '—'}</td>`; }).join('')}<td class="txt"><span class="nome"><i class="dot" style="background:var(${COR[x.melhor.id]})"></i>${esc(NOME[x.melhor.id])}</span></td></tr>`).join('') + '</tbody>';
+    ligarTabela();
+  }
+
+  // ───────── Presumido ou Real ─────────
+  function renderRR(sim) {
+    const a = sim.anos.find(x => x.t === est.ano), base = sim.anos[0], { pf, pj } = a, rg = sim.rg, nome = NOME[rg];
+    const vant = rhe(pf.custo - pj.custo, 2);
+    if (est.lente === 'mercado') {
+      $('big-rot').textContent = `${nome} · lucro líquido por projeto em ${a.t} (${est.mix}% PJ)`;
+      $('big').textContent = brl0(a.blendLucro); $('big').style.color = a.blendLucro < 0 ? 'var(--red)' : '';
+      $('big-sub').textContent = `Venda PF ${brl0(pf.lucro)} · venda PJ ${brl0(pj.lucro)} · margem pelo mix ${pct(a.blendMargem)}`;
+    } else {
+      $('big-rot').textContent = `${nome} · vantagem de custo do cliente PJ em ${a.t}`;
+      $('big').textContent = brl0(vant); $('big').style.color = '';
+      $('big-sub').textContent = `${pf.custo > 0 ? pct(vant / pf.custo) + ' a menos que o PF · ' : ''}lucro pelo mix ${brl0(a.blendLucro)} por projeto`;
+    }
+    const frases = [];
+    if (a.t === 2026) frases.push(`Em 2026, ano de teste, a CBS de 0,9% e o IBS de 0,1% saem destacados na nota (${brl(pf.trib.total)}), mas são compensáveis com PIS/Cofins. PF e PJ pagam o mesmo: <b>${brl(pf.contrato)}</b>.`);
+    else if (pf.trib.total === 0) frases.push(`Com redução de 100%, não há IBS/CBS a cobrar em ${a.t}. PF e PJ pagam o mesmo contrato de <b>${brl(pf.contrato)}</b>.`);
+    else frases.push(`Em ${a.t}, o cliente PF paga <b>${brl(pf.contrato)}</b>. O cliente PJ paga <b>${brl(pj.contrato)}</b>, recupera ${brl(pj.credito)} de IBS/CBS e fica com custo efetivo de <b>${brl(pj.custo)}</b>.`);
+    frases.push(`No ${nome}, o IRPJ e a CSLL levam ${brl(pf.ircs)} na venda PF${rg === 'presumido' ? ` (${pp(rhe(sim.tp * 100, 4))} da receita, pela presunção)` : ' (sobre o lucro do projeto)'}. Lucro líquido: <b>${brl(pf.lucro)}</b> na venda PF e <b>${brl(pj.lucro)}</b> na venda PJ.`);
+    if (est.lente === 'mercado' && a.t !== 2026) frases.push(`Ao preço de mercado, a margem líquida na venda PF vai de ${pct(base.pf.margem)} em 2026 para <b>${pct(pf.margem)}</b> em ${a.t}.`);
+    $('resumo').innerHTML = frases.map(f => `<p>${f}</p>`).join('');
+
+    const ibsTxt = a.t === 2026 ? 'IBS/CBS destacado (compensável)' : 'IBS/CBS na nota';
+    const cartao = (titulo, desc, tr, x, b) => `<section class="card"><header>${amostra(COR[rg], tr)}<h3>${titulo}</h3><p>${desc}</p></header><dl class="linhas">${
+      linha('Valor do contrato', brl(x.contrato)) + linha(ibsTxt, brl(x.trib.total)) + linha('Crédito do cliente', brl(x.credito)) +
+      linha('Custo efetivo do cliente', brl(x.custo), true) + linha('IRPJ e CSLL', brl(x.ircs)) + linha('Lucro líquido', brl(x.lucro), true) +
+      linha('Margem líquida', `${etiquetaMargem(x.margem)}${pct(x.margem)}`)}</dl></section>`;
+    $('cards').innerHTML = cartao('Venda para pessoa física', 'Consumidor final: não recupera IBS/CBS.', false, pf, base.pf) + cartao('Venda para empresa', 'Regime regular, uso próprio: recupera o IBS/CBS destacado.', true, pj, base.pj);
+
+    $('dre-tit').textContent = `Resultado do projeto em ${a.t} · ${nome}`;
+    const L = (rot, f, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${rot}</td><td>${f(pf)}</td><td>${f(pj)}</td></tr>`;
+    const neg = v => v ? '−' + brl(v) : brl(0);
+    $('dre').innerHTML = `<thead><tr><th>${a.t} · ${esc(a.fase)}</th><th>Venda PF</th><th>Venda PJ</th></tr></thead><tbody>` +
+      L('Valor do contrato (o que o cliente paga)', x => brl(x.contrato), 'total') +
+      L(a.t === 2026 ? '(−) IBS/CBS cobrado no contrato (2026: não cobrado)' : '(−) IBS/CBS repassado ao fisco', x => neg(x.cobrado)) +
+      L('= Receita da marcenaria', x => brl(x.P), 'total') +
+      L('(−) ICMS', x => neg(x.icms)) + L('(−) PIS/Cofins', x => neg(x.pc)) +
+      L(`(−) RT / comissão (${numFmt(est.rt, 'pct')}% do contrato)`, x => neg(x.comissao)) +
+      L(`(−) Insumos, líquidos dos créditos (pago: ${brl(a.pago)})`, () => neg(a.insLiq)) +
+      L(`(−) Mão de obra com INSS patronal (${numFmt(est.enc, 'pct')}%)`, () => neg(a.MO)) +
+      L('(−) Outros custos', () => neg(est.outros)) + L('(−) Despesas fixas', () => neg(a.F)) +
+      L('= Lucro antes de IRPJ/CSLL', x => brl(x.antes), 'total') +
+      L(rg === 'presumido' ? `(−) IRPJ e CSLL (${pp(rhe(sim.tp * 100, 4))} da receita)` : '(−) IRPJ e CSLL (sobre o lucro)', x => neg(x.ircs)) +
+      L('= Lucro líquido', x => brl(x.lucro), 'total') + L('Margem líquida', x => pct(x.margem), 'total') +
+      L('Crédito de IBS/CBS do cliente', x => brl(x.credito), 'sub') + L('Custo efetivo para o cliente', x => brl(x.custo), 'sub') + '</tbody>';
+
+    $('tab-tit').textContent = `Ano a ano · ${nome}`;
+    $('tab-anos').innerHTML = `<thead><tr><th>Ano</th><th>Fase</th><th>CBS</th><th>IBS</th><th>ICMS</th><th>IBS/CBS<br>(PF)</th><th>Insumos<br>líquidos</th><th>Contrato<br>PF</th><th>Lucro<br>PF</th><th>Margem<br>PF</th><th>Custo efetivo<br>PJ</th><th>Lucro<br>PJ</th><th>Margem<br>PJ</th><th>IBS/CBS a recolher<br>(PF, estim.)</th></tr></thead><tbody>` +
+      sim.anos.map(x => `<tr class="clicavel${x.t === est.ano ? ' sel' : ''}" data-ano="${x.t}" tabindex="0"><td>${x.t}</td><td class="txt">${esc(x.fase)}</td>
+        <td>${pp(x.pf.trib.cbs.pEf)}</td><td>${pp(rhe(x.pf.trib.uf.pEf + x.pf.trib.mun.pEf, 4))}</td><td>${pp(x.r.icms)}</td>
+        <td>${brl(x.pf.trib.total)}</td><td>${brl0(x.insLiq)}</td><td>${brl(x.pf.contrato)}</td><td>${brl0(x.pf.lucro)}</td><td>${pct(x.pf.margem)}</td>
+        <td>${brl(x.pj.custo)}</td><td>${brl0(x.pj.lucro)}</td><td>${pct(x.pj.margem)}</td><td>${x.recolher == null ? '—' : brl(x.recolher)}</td></tr>`).join('') + '</tbody>';
+    ligarTabela();
+  }
+
+  // ───────── Simples ─────────
+  function renderSemSimples() {
+    $('big-rot').textContent = 'Simples Nacional'; $('big').textContent = 'Fora do limite'; $('big').style.color = '';
+    $('big-sub').textContent = 'Faturamento acima de R$ 3,6 milhões (sublimite)';
+    $('resumo').innerHTML = '<p>Acima de R$ 3,6 milhões em 12 meses, o ICMS e o IBS saem do DAS. Esta versão cobre o Simples até esse limite. Use as abas do Lucro Presumido e do Lucro Real.</p>';
+    ['cards', 'dre', 'tab-anos'].forEach(id => $(id).innerHTML = '');
+  }
+  function renderSN(sim) {
+    const a = sim.anos.find(x => x.t === est.ano), base = sim.anos[0], merc = est.lente === 'mercado';
+    const frases = [];
+    if (!a.hb) {
+      $('big-rot').textContent = 'Simples Nacional em 2026';
+      $('big').textContent = 'Simples puro'; $('big').style.color = 'var(--sn)';
+      $('big-sub').textContent = 'A opção pelo híbrido começa em 2027';
+      frases.push(`Em 2026 a CBS e o IBS de teste não se aplicam ao Simples. O projeto sai por <b>${brl(base.sn.pf.contrato)}</b>, com DAS de ${brl(base.sn.pf.das)} e lucro líquido de ${brl(base.sn.pf.lucro)} (${pct(base.sn.pf.margem)}).`);
+      frases.push('Escolha 2027 ou um ano posterior para comparar com o híbrido.');
+    } else {
+      const hbMelhor = merc ? a.bHB.lucro > a.bSN.lucro + 1e-6 : a.bHB.custo < a.bSN.custo - 1e-6;
+      $('big-rot').textContent = `Simples Nacional · melhor caminho em ${a.t} com ${est.mix}% de vendas PJ`;
+      $('big').textContent = hbMelhor ? 'Híbrido' : 'Simples puro';
+      $('big').style.color = hbMelhor ? 'var(--hb)' : 'var(--sn)';
+      $('big-sub').textContent = merc ? `Lucro líquido pelo mix: ${brl0(a.bSN.lucro)} no Simples puro e ${brl0(a.bHB.lucro)} no híbrido` : `Custo médio do cliente: ${brl0(a.bSN.custo)} no Simples puro e ${brl0(a.bHB.custo)} no híbrido`;
+      const v = a.vir;
+      if (v.tipo === 'acima') frases.push(`<b>Ponto de virada em ${a.t}: o híbrido compensa quando mais de ${pct(v.w, 0)} do faturamento vem de clientes PJ.</b>`);
+      else if (v.tipo === 'abaixo') frases.push(`<b>Ponto de virada em ${a.t}: o híbrido compensa quando menos de ${pct(v.w, 0)} do faturamento vem de clientes PJ.</b>`);
+      else if (v.tipo === 'sempre') frases.push(`<b>Em ${a.t}, o híbrido é melhor nos dois canais, qualquer que seja o mix.</b>`);
+      else frases.push(`<b>Em ${a.t}, o Simples puro é melhor nos dois canais, qualquer que seja o mix.</b>`);
+      if (merc) {
+        frases.push(`Na venda PF, o híbrido põe IBS/CBS por fora e, para manter o preço do cliente, sua receita cai: lucro de <b>${brl(a.hb.pf.lucro)}</b> contra ${brl(a.sn.pf.lucro)} no Simples puro.`);
+        frases.push(`Na venda PJ, o cliente recupera ${brl(a.hb.pj.credito)} no híbrido contra ${brl(a.sn.pj.credito)} no Simples puro. Com o mesmo custo efetivo para ele, seu lucro vai a <b>${brl(a.hb.pj.lucro)}</b>, contra ${brl(a.sn.pj.lucro)}.`);
+      } else {
+        frases.push(`Para manter a margem, o cliente PF paga <b>${brl(a.hb.pf.custo)}</b> no híbrido contra ${brl(a.sn.pf.custo)} no Simples puro (${sinal(a.hb.pf.custo / a.sn.pf.custo - 1)}${pct(Math.abs(a.hb.pf.custo / a.sn.pf.custo - 1))}).`);
+        frases.push(`O cliente PJ fica com custo efetivo de <b>${brl(a.hb.pj.custo)}</b> no híbrido contra ${brl(a.sn.pj.custo)} no Simples puro (${sinal(a.hb.pj.custo / a.sn.pj.custo - 1)}${pct(Math.abs(a.hb.pj.custo / a.sn.pj.custo - 1))}).`);
+      }
+    }
+    $('resumo').innerHTML = frases.map(f => `<p>${f}</p>`).join('');
+    const mini = r => `<div class="tabela"><table class="mini"><thead><tr><th></th><th>Venda PF</th><th>Venda PJ</th></tr></thead><tbody>
+      <tr><td>Valor do contrato</td><td>${brl(r.pf.contrato)}</td><td>${brl(r.pj.contrato)}</td></tr>
+      <tr><td>Crédito do cliente</td><td>${brl(r.pf.credito)}</td><td>${brl(r.pj.credito)}</td></tr>
+      <tr class="forte"><td>Custo do cliente</td><td>${brl(r.pf.custo)}</td><td>${brl(r.pj.custo)}</td></tr>
+      <tr class="forte"><td>Lucro líquido</td><td>${brl(r.pf.lucro)}</td><td>${brl(r.pj.lucro)}</td></tr>
+      <tr><td>Margem líquida</td><td>${pct(r.pf.margem)}</td><td>${pct(r.pj.margem)}</td></tr></tbody></table></div>`;
+    $('cards').innerHTML =
+      `<section class="card"><header><span class="dot sn"></span><h3>Simples puro</h3><p>IBS e CBS dentro do DAS. O cliente PJ só credita o que está no DAS.</p></header>${mini(a.sn)}</section>` +
+      `<section class="card"><header><span class="dot hb"></span><h3>Simples híbrido</h3><p>DAS sem IBS/CBS; os dois por fora, com crédito nas compras e crédito integral para o cliente PJ.</p></header>${a.hb ? mini(a.hb) : '<p class="vazio">A opção pelo regime regular do IBS/CBS começa em 2027.</p>'}</section>`;
+    $('dre-tit').textContent = `Resultado do projeto em ${a.t} · Simples Nacional`;
+    const cols = [a.sn.pf, a.sn.pj].concat(a.hb ? [a.hb.pf, a.hb.pj] : []);
+    const L = (rot, f, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${rot}</td>${cols.map(x => `<td>${f(x)}</td>`).join('')}</tr>`;
+    const neg = v => v ? '−' + brl(v) : brl(0);
+    $('dre').innerHTML = `<thead><tr class="grupo"><th></th><th colspan="2">Simples puro</th>${a.hb ? '<th colspan="2">Híbrido</th>' : ''}</tr><tr><th>${a.t} · ${esc(a.fase)}</th><th>PF</th><th>PJ</th>${a.hb ? '<th>PF</th><th>PJ</th>' : ''}</tr></thead><tbody>` +
+      L('Valor do contrato (o que o cliente paga)', x => brl(x.contrato), 'total') +
+      L('(−) IBS/CBS por fora, repassado ao fisco', x => neg(x.fora)) +
+      L('= Receita da marcenaria', x => brl(x.P), 'total') +
+      L('(−) DAS (inclui IRPJ, CSLL e INSS patronal)', x => neg(x.das)) + L('dos quais IBS/CBS dentro do DAS', x => brl(x.noDas), 'sub') +
+      L(`(−) RT / comissão (${numFmt(est.rt, 'pct')}% do contrato)`, x => neg(x.comissao)) +
+      L('(−) Insumos, preço pago ao fornecedor', x => neg(x.insumos)) + L('(+) Crédito de IBS/CBS nas compras', x => brl(x.credCompras)) +
+      L('(−) Mão de obra própria', () => neg(est.mo)) + L('(−) Outros custos', () => neg(est.outros)) + L('(−) Despesas fixas', () => neg(a.F)) +
+      L('= Lucro líquido', x => brl(x.lucro), 'total') + L('Margem líquida', x => pct(x.margem), 'total') +
+      L('Crédito de IBS/CBS do cliente', x => brl(x.credito), 'sub') + L('Custo efetivo para o cliente', x => brl(x.custo), 'sub') + '</tbody>';
+    $('tab-tit').textContent = 'Ano a ano · Simples Nacional';
+    const f2 = (x, k) => merc ? brl0(x[k].lucro) : brl0(x[k].custo);
+    $('tab-anos').innerHTML = `<thead><tr class="grupo"><th></th><th></th><th></th><th></th><th></th><th></th><th colspan="2">${merc ? 'Lucro PF' : 'Custo PF'}</th><th colspan="2">${merc ? 'Lucro PJ' : 'Custo PJ'}</th><th></th></tr>
+      <tr><th>Ano</th><th>Fase</th><th>DAS<br>efetivo</th><th>IBS/CBS<br>no DAS</th><th>IBS/CBS<br>híbrido</th><th>Insumos<br>pagos</th><th>Simples</th><th>Híbrido</th><th>Simples</th><th>Híbrido</th><th>Ponto de virada</th></tr></thead><tbody>` +
+      sim.anos.map(x => `<tr class="clicavel${x.t === est.ano ? ' sel' : ''}" data-ano="${x.t}" tabindex="0"><td>${x.t}</td><td class="txt">${esc(x.fase)}</td>
+        <td>${pp(rhe(sim.d.efetiva, 4))}</td><td>${x.t <= 2026 ? '—' : pp(rhe(x.pC + x.pI, 4))}</td><td>${x.t <= 2026 ? '—' : pp(rhe(x.k * 100, 4))}</td><td>${brl0(x.G)}</td>
+        <td>${f2(x.sn, 'pf')}</td><td>${x.hb ? f2(x.hb, 'pf') : '—'}</td><td>${f2(x.sn, 'pj')}</td><td>${x.hb ? f2(x.hb, 'pj') : '—'}</td>
+        <td class="txt">${esc(textoVirada(x.vir))}</td></tr>`).join('') + '</tbody>';
+    ligarTabela();
+  }
+
+  // ───────── Check-up 2027 ─────────
+  const SEM = { verde: '<span class="etiqueta ok">Verde · fazer</span>', amarelo: '<span class="etiqueta alerta">Amarelo · com parecer</span>', vermelho: '<span class="etiqueta perigo">Vermelho · não fazer</span>' };
+  const SEMTXT = { verde: 'VERDE', amarelo: 'AMARELO', vermelho: 'VERMELHO' };
+  const valorAlav = x => x.rotulo ? x.rotulo : x.ganho > 0 ? `${brl0(x.ganho)} por ano` : x.ganho === 0 ? 'já no melhor caminho' : x.pontual > 0 ? `${brl0(x.pontual)} pontual` : x.pontual === 0 ? 'sem perda relevante' : x.emJogo > 0 ? `${brl0(x.emJogo)} por ano em jogo` : x.sem === 'vermelho' ? 'não fazer' : 'a quantificar com parecer';
+  function renderCheckup() {
+    const ck = ENGINE.checkup(est);
+    if (ck.erro) { $('erro').textContent = ck.erro; $('erro').hidden = false; return; }
+    const V = ck.sim.V, nomeAtual = ck.NOMES[ck.atualId], nomeRec = ck.NOMES[ck.rec];
+    $('ck-big').textContent = `${brl0(ck.total)} por ano`;
+    $('ck-sub').textContent = `${ck.pontual > 0 ? `Mais ${brl0(ck.pontual)} de impacto pontual · ` : ''}${ck.cont.verde} verdes · ${ck.cont.amarelo} amarelas · ${ck.cont.vermelho} vermelhas`;
+    $('ck-resumo').innerHTML = [
+      `Caminho recomendado para 2027: <b>${esc(nomeRec)}</b>${ck.muda ? ` (hoje: ${esc(nomeAtual)})` : ', o regime atual'}.${ck.best33.id !== ck.rec ? ` Em 2033 o melhor passa a ser o <b>${esc(ck.NOMES[ck.best33.id])}</b>.` : ''}`,
+      `O ganho soma as alavancas verdes com valor anual. Impacto pontual é crédito na compra de máquinas e tributo evitado na carteira de 2027. Base: ${ck.N.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} projetos por ano (faturamento dividido pelo contrato típico de ${brl(V)}).`,
+      'Comece pelas verdes. As amarelas pedem parecer de contador ou advogado; as vermelhas não devem ser feitas.',
+    ].map(f => `<p>${f}</p>`).join('');
+    $('alavancas').innerHTML = ck.ap.map((x, n) => `<article class="alav"><div class="alav-top"><span class="num">${n + 1}</span>${SEM[x.sem]}<h3>${esc(x.titulo)}</h3><span class="valor">${esc(valorAlav(x))}</span></div>
+      <p>${esc(x.porque)}</p><ul>${x.passos.map(p => `<li>${esc(p)}</li>`).join('')}</ul><span class="quem">Quem valida: ${esc(x.valida)}</span></article>`).join('')
+      + (ck.na.length ? `<details class="na"><summary>Não se aplica agora (${ck.na.length})</summary><ul>${ck.na.map(x => `<li>${esc(x.titulo)}: ${esc(x.motivo)}</li>`).join('')}</ul></details>` : '');
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const t = [];
+    t.push('CHECK-UP REFORMA TRIBUTÁRIA 2027');
+    t.push(`${est.qEmpresa || 'Empresa'} · ${est.qUf}`);
+    t.push(`Data: ${hoje} · Responsável: ${est.qResp || '—'}`);
+    t.push('Base de regras: LC 214/2025, LC 123/2006, LC 224/2025 e Lei 15.270/2025 · Simulador Tributário Moveleiro (Diâmetro), regras de nov/2026');
+    t.push('', 'PERFIL');
+    t.push(`Regime atual: ${nomeAtual} · Faturamento anual: ${brl0(est.rbt)} · Vendas para empresas: ${est.mix}%`);
+    t.push(`Contrato típico: ${brl(V)} · Projetos por ano: ${ck.N.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}`);
+    t.push('', 'RESULTADO');
+    t.push(`Economia potencial identificada: ${brl0(ck.total)} por ano`);
+    if (ck.pontual > 0) t.push(`Impacto pontual: ${brl0(ck.pontual)} (crédito em máquinas e tributo evitado na carteira de 2027)`);
+    t.push(`Caminho recomendado para 2027: ${nomeRec}${ck.best33.id !== ck.rec ? ` · em 2033: ${ck.NOMES[ck.best33.id]}` : ''}`);
+    t.push('', 'RECOMENDAÇÕES');
+    ck.ap.forEach((x, n) => {
+      t.push(`${n + 1}. [${SEMTXT[x.sem]}] ${x.titulo} · ${valorAlav(x)}`);
+      t.push(`   Por quê: ${x.porque}`);
+      t.push(`   Próximos passos: ${x.passos.join('; ')}.`);
+      t.push(`   Quem valida: ${x.valida}`);
+    });
+    if (ck.na.length) { t.push('', 'NÃO SE APLICA AGORA'); ck.na.forEach(x => t.push(`- ${x.titulo}: ${x.motivo}`)); }
+    t.push('', 'IMPORTANTE');
+    t.push('Simulação gerencial feita com o projeto típico informado. As alíquotas de 2027 em diante são estimativas. Nenhuma recomendação deve ser implementada sem a validação do profissional indicado em cada item.');
+    $('relatorio').textContent = t.join('\n');
+  }
+  $('copiar').addEventListener('click', () => {
+    const txt = $('relatorio').textContent;
+    const ok = () => { $('copiado').textContent = 'Relatório copiado.'; setTimeout(() => { $('copiado').textContent = ''; }, 2500); };
+    const falha = () => { const r = document.createRange(); r.selectNodeContents($('relatorio')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); $('copiado').textContent = 'Texto selecionado: use Ctrl+C para copiar.'; };
+    try { navigator.clipboard.writeText(txt).then(ok, falha); } catch (e) { falha(); }
+  });
+
+  // ───────── Assistente de teses (capacidade sample) ─────────
+  const REGRAS = `Você é o assistente de teses tributárias da Diâmetro, consultoria de gestão para marcenarias e fábricas de móveis no Brasil. Você conversa com o consultor sobre uma empresa cliente e propõe teses de elisão fiscal: economia lícita, planejada antes do fato gerador, com propósito negocial e prova.
+
+Contexto legal (novembro de 2026; confirme o que for usar):
+- Reforma do consumo (LC 214/2025): CBS e IBS substituem PIS/Cofins (2027), ICMS e ISS (transição de 2029 a 2032, IBS pleno em 2033). Crédito amplo: gera crédito o que é usado na atividade, exceto uso e consumo pessoal. Alíquota cheia estimada em 26,5% (CBS 8,8% + IBS 17,7%), ainda a ser fixada.
+- Simples Nacional (LC 123): a partir de 2027 a empresa pode recolher IBS e CBS por fora (híbrido). No Simples puro, o comprador do regime regular só credita o IBS/CBS que está no DAS (LC 214, art. 47, §9º). Nos Anexos I e II, o DAS inclui IRPJ, CSLL e o INSS patronal com RAT.
+- Lucro Presumido: presunção de 8% (IRPJ) e 12% (CSLL) na venda de mercadorias e produtos, com acréscimo de 10% sobre a receita acima de R$ 5 milhões por ano (LC 224/2025, com divergências e ações judiciais). IRPJ de 15% mais adicional de 10% sobre a base acima de R$ 240 mil por ano; CSLL de 9%. Despesas não reduzem esse imposto.
+- Lucro Real: IRPJ de 15% mais adicional de 10% sobre o lucro acima de R$ 240 mil por ano; CSLL de 9%. Despesas necessárias, depreciação e manutenção reduzem o imposto. A depreciação de bens móveis pode ser acelerada pelo número de turnos (1,5 vez com dois turnos de 8 horas, 2 vezes com três). Gasto que aumenta a vida útil do bem em mais de um ano é capitalizado. Veículos só são dedutíveis se ligados à produção ou à venda.
+- Lucros e dividendos (Lei 15.270/2025): retenção de 10% sobre o total pago no mês acima de R$ 50 mil, da mesma empresa ao mesmo sócio; IR mínimo para rendas acima de R$ 600 mil por ano.
+- Folha: fim da desoneração (CPRB) em 2028 (Lei 14.973/2024). RAT de 1% a 3% multiplicado pelo FAP (0,5 a 2), contestável todo ano; estabelecimento com CNPJ próprio pode ter o RAT do próprio risco (Súmula 351 do STJ).
+- Pessoa jurídica no lugar de empregado: tema em julgamento no STF (Tema 1389), sem decisão final. Havendo subordinação, horário, exclusividade e pessoalidade, há vínculo. Já o montador por empreitada (contrato por projeto, nota fiscal, pagamento por entrega, sem horário, sem exclusividade, atendendo outras marcenarias) é prestação de serviço legítima: trate como [VERDE] quando a rotina confirma a autonomia, ou [AMARELO] quando parte dela lembra emprego, sempre listando as provas a manter.
+- Norma antielisiva (CTN, art. 116, parágrafo único): atos sem propósito negocial ou com abuso de forma podem ser desconsiderados.
+
+Como classificar cada tese:
+- [VERDE]: aplicação direta da lei, com documentação normal.
+- [AMARELO]: risco de interpretação. A posição se defende com prova e parecer, mas a Receita pode discutir. Diga qual prova sustenta a tese.
+- [VERMELHO]: depende de fato que não existe ou de ocultação (simulação, nota fria, uso pessoal lançado como da empresa sem prova, funcionário com subordinação contratado como PJ, divisão artificial de empresa para ficar no Simples, subfaturamento). Não recomende. Explique a consequência (multa de 75% ou 150%, crime contra a ordem tributária, responsabilidade dos sócios e de quem orientou) e ofereça o caminho lícito para o mesmo objetivo.
+Se o consultor pedir algo [VERMELHO], responda com essa explicação e com a alternativa lícita, sem montar o esquema.
+
+Como responder:
+- Português do Brasil, direto, no tom de um consultor sênior. Não use tabelas.
+- Use os dados da empresa abaixo. Quando der, quantifique com a conta aberta (valor × taxa = resultado) e marque como estimativa. Não invente números da empresa: se faltar um dado, diga qual e faça uma suposição explícita.
+- Cite base legal só quando tiver certeza; caso contrário, escreva "base legal a confirmar com o contador". Não invente números de artigo.
+- Para cada tese, use este formato:
+### Título da tese [VERDE] (ou [AMARELO] ou [VERMELHO])
+- Como funciona: ...
+- Ganho estimado: ... (com a conta)
+- O que precisa ser verdade: requisitos e provas
+- Riscos: ...
+- Quem valida: contador, advogado tributarista ou advogado trabalhista
+- Próximo passo: ...
+- Termine com no máximo 3 perguntas objetivas que melhorariam a análise.
+- É análise gerencial: nenhuma tese deve ser implementada sem validação profissional.`;
+  const ATALHOS = [
+    ['Gerar teses para esta empresa', 'Monte as melhores teses de elisão fiscal para esta empresa, da maior para a menor economia, com o semáforo de cada uma. Use os números do contexto e mostre as contas.'],
+    ['Patrimônio e imóveis', 'Analise patrimônio e imóveis: imóvel próprio ou no nome do sócio, holding, aluguel para a operação, sucessão e o efeito no IRPJ/CSLL, no IBS/CBS, no ITBI e no ITCMD. Quais teses fazem sentido para esta empresa?'],
+    ['Máquinas, frota e investimentos', 'Analise máquinas, frota e investimentos: crédito de IBS/CBS na compra, momento da compra (2026 ou 2027), depreciação e turnos no Lucro Real, manutenção, leasing e locadora de ativos. Quais teses fazem sentido para esta empresa?'],
+    ['Folha, sócios e lucros', 'Analise folha e remuneração dos sócios: pró-labore, distribuição de lucros com a Lei 15.270/2025, RAT e FAP, terceirização da montagem. Quais teses fazem sentido para esta empresa?'],
+    ['Onde está o maior risco?', 'Onde esta empresa corre mais risco fiscal hoje, ou pode cair numa armadilha vendida como planejamento? Liste e explique como se proteger.'],
+  ];
+  const CHAVE_CHAT = 'diametro-assistente-v1';
+  let conversa = [];
+  try { const c = JSON.parse(localStorage.getItem(CHAVE_CHAT) || '[]'); if (Array.isArray(c)) conversa = c.filter(t => t && (t.role === 'user' || t.role === 'assistant') && typeof t.content === 'string' && t.content.trim()); } catch (e) {}
+  const salvarConversa = () => { try { localStorage.setItem(CHAVE_CHAT, JSON.stringify(conversa.slice(-30))); } catch (e) {} };
+  let pedirClaude = null, ctlChat = null, ocupado = false;
+
+  function contextoEmpresa() {
+    const L = [];
+    const q = (rot, v) => L.push(`- ${rot}: ${v}`);
+    L.push('Empresa e projeto típico:');
+    q('Empresa', est.qEmpresa || 'não informada'); q('Estado da fábrica', est.qUf);
+    q('Regime atual', NOME[est.atual]); q('Faturamento anual', brl0(est.rbt)); q('Atividade no Simples', `Anexo ${est.anexo}`);
+    q('Vendas para empresas (PJ)', `${est.mix}%`); q('ICMS na venda', `${numFmt(est.icms, 'pct')}%`); q('INSS patronal fora do Simples', `${numFmt(est.enc, 'pct')}% da mão de obra`);
+    q('Tipo de produto (regime regular)', TIPOS[est.tipo].info);
+    q('Projeto típico', `insumos ${brl0(est.ins)} pelo preço pago; mão de obra ${brl0(est.mo)}; outros custos sem crédito ${brl0(est.outros)}; RT ${numFmt(est.rt, 'pct')}% do contrato; despesas fixas ${numFmt(est.fix, 'pct')}% do faturamento; margem líquida em 2026 ${numFmt(est.m, 'pct')}%`);
+    q('Fornecedor', `ICMS ${numFmt(est.icmsF, 'pct')}%, PIS/Cofins ${numFmt(est.pcF, 'pct')}%`);
+    q('Alíquotas cheias usadas', `CBS ${numFmt(est.cbs, 'pct')}%, IBS ${numFmt(est.ibsUf, 'pct')}% + ${numFmt(est.ibsMun, 'pct')}%`);
+    L.push('Respostas do Check-up:');
+    q('Faturamento com mobiliário clínico', `${numFmt(est.qClin, 'pct')}%`); q('Faturamento com acessibilidade', `${numFmt(est.qAcess, 'pct')}%`);
+    q('Insumos de fornecedor do Simples', `${numFmt(est.qFornSN, 'pct')}%`); q('Contratos com entrega em 2027', brl0(est.qCarteira));
+    q('Máquinas a comprar em 24 meses', brl0(est.qMaq)); q('Turnos de operação', `${est.qTurnos}`); q('Maior retirada mensal de um sócio', brl0(est.qRetirada));
+    q('Desoneração da folha', { sim: 'usa', nao: 'não usa', naosei: 'não sabe' }[est.qCprb]);
+    q('Imóvel da fábrica', { empresa: 'da empresa', socio: 'no nome do sócio', alugado: 'alugado de terceiros' }[est.qImovel]);
+    q('Outra empresa para dividir o faturamento', { nao: 'não', avaliando: 'avaliando', grupo: 'o grupo já tem mais de uma' }[est.qSeparar]);
+    q('Folha mensal de salários', brl0(est.qFolha)); q('RAT e FAP', `${est.qRat}% × ${numFmt(est.qFap, 'pct')}`);
+    q('Despesas mensais com empresas do regime regular', brl0(est.qDespPJ));
+    q('Montagem', { clt: 'equipe própria registrada', mei: 'montadores MEI ou autônomos', empresa: 'empresa de montagem' }[est.qMontagem] + (est.qMontagem === 'mei' ? `; trabalham por empreitada, sem horário e sem exclusividade: ${{ sim: 'sim', parte: 'em parte', nao: 'não' }[est.qMontAut]}` : ''));
+    q('Converter funcionários em PJ', est.qPejot === 'avaliando' ? 'avaliando' : 'não');
+    q('Frota', `${est.qVeicOp} veículos de operação; gasto mensal ${brl0(est.qGastoFrota)}; ${est.qVeicSocio} carros usados pelos sócios; frota e máquinas valem ${brl0(est.qBens)}`);
+    q('Entrega', `${{ propria: 'frota própria', transportadora: 'transportadora contratada', grupo: 'transportadora do grupo', autonomos: 'transportador autônomo' }[est.qEntrega]}; frete de terceiros ${brl0(est.qFrete)} por mês`);
+    const ck = ENGINE.checkup(est);
+    if (!ck.erro) {
+      L.push('Resultados já calculados pelo simulador (estimativas):');
+      q('Preço de mercado do projeto em 2026', `${brl0(ck.sim.V)}; cerca de ${ck.N.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} projetos por ano`);
+      for (const [i, t] of [[1, 2027], [7, 2033]]) {
+        const c = ck.sim.comp[i];
+        q(`Lucro líquido por projeto pelo mix em ${t}`, c.op.map(o => `${NOME[o.id]} ${brl0(o.lucro)}`).join('; ') + `; melhor: ${NOME[c.melhor.id]}`);
+      }
+      q('Economia identificada no Check-up', `${brl0(ck.total)} por ano, mais ${brl0(ck.pontual)} de impacto pontual`);
+      L.push('Alavancas do Check-up:');
+      ck.ap.forEach(x => L.push(`- [${SEMTXT[x.sem]}] ${x.titulo}: ${valorAlav(x)}`));
+      ck.na.forEach(x => L.push(`- [NÃO SE APLICA] ${x.titulo}: ${x.motivo}`));
+    }
+    if (est.ctxExtra.trim()) { L.push('Informações do consultor sobre a empresa:'); L.push(est.ctxExtra.trim().slice(0, 4000)); }
+    return L.join('\n');
+  }
+
+  function md(texto) {
+    const inl = t => t.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\[VERDE\]/g, '<span class="etiqueta ok">Verde</span>').replace(/\[AMARELO\]/g, '<span class="etiqueta alerta">Amarelo</span>').replace(/\[VERMELHO\]/g, '<span class="etiqueta perigo">Vermelho</span>');
+    let html = '', lista = null;
+    const fechar = () => { if (lista) { html += `</${lista}>`; lista = null; } };
+    for (const bruta of esc(texto).split('\n')) {
+      const l = bruta.trimEnd(); let m;
+      if ((m = l.match(/^#{1,6}\s+(.*)$/))) { fechar(); html += `<h4>${inl(m[1])}</h4>`; }
+      else if ((m = l.match(/^\s*[-*•]\s+(.*)$/))) { if (lista !== 'ul') { fechar(); html += '<ul>'; lista = 'ul'; } html += `<li>${inl(m[1])}</li>`; }
+      else if ((m = l.match(/^\s*\d+[.)]\s+(.*)$/))) { if (lista !== 'ol') { fechar(); html += '<ol>'; lista = 'ol'; } html += `<li>${inl(m[1])}</li>`; }
+      else if (!l.trim()) fechar();
+      else { fechar(); html += `<p>${inl(l)}</p>`; }
+    }
+    fechar();
+    return html;
+  }
+  const rolarFim = () => { const c = $('conversa'); c.scrollTop = c.scrollHeight; };
+  function renderConversa() {
+    const c = $('conversa');
+    if (!conversa.length) { c.innerHTML = '<p class="vazio">Comece por um dos atalhos acima ou faça uma pergunta. Quanto mais você contar sobre patrimônio, imóveis, máquinas e planos, melhores ficam as teses.</p>'; return; }
+    c.innerHTML = '';
+    for (const t of conversa) {
+      const d = document.createElement('div');
+      d.className = 'msg ' + (t.role === 'user' ? 'eu' : 'ia');
+      if (t.role === 'user') d.textContent = t.content; else d.innerHTML = md(t.content);
+      c.appendChild(d);
+    }
+    rolarFim();
+  }
+  const ERROS = {
+    cancelled: 'Resposta interrompida.',
+    not_granted: 'O assistente precisa da sua permissão para usar o Claude. Sem ela, ele fica desligado nesta visita.',
+    rate_limited: 'Muitas perguntas seguidas ou limite de uso atingido. Tente de novo em alguns minutos.',
+    session_expired: 'Sua sessão expirou. Entre de novo no Claude e tente outra vez.',
+    refused: 'O Claude não respondeu a esse pedido. Reformule a pergunta.',
+    prompt_too_large: 'Contexto grande demais. Encurte as informações sobre a empresa ou limpe a conversa.',
+    empty_completion: 'O Claude não devolveu texto. Reformule ou peça uma parte de cada vez.',
+  };
+  const DESLIGA = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
+  const status = t => { $('assist-status').textContent = t || ''; };
+  function desligarAssistente(texto) {
+    $('assist-off').textContent = texto; $('assist-off').hidden = false;
+    $('assist-chat').hidden = true; $('atalhos').querySelectorAll('button').forEach(b => { b.disabled = true; });
+  }
+  async function perguntar(texto) {
+    texto = String(texto || '').trim();
+    if (!texto || ocupado) return;
+    if (!pedirClaude) { desligarAssistente('O assistente funciona quando o app é aberto pelo Claude (claude.ai). Nesta cópia, use o Check-up e as outras abas.'); return; }
+    conversa.push({ role: 'user', content: texto }); salvarConversa(); renderConversa();
+    $('pergunta').value = '';
+    const bolha = document.createElement('div'); bolha.className = 'msg ia'; bolha.textContent = 'Pensando…';
+    $('conversa').appendChild(bolha); rolarFim();
+    ocupado = true; ctlChat = new AbortController(); $('parar').hidden = false; $('enviar').disabled = true; status('');
+    const hist = conversa.slice(-12);
+    const entrada = [{ role: 'user', content: `${REGRAS}\n\nDADOS DA EMPRESA (atualizados agora)\n${contextoEmpresa()}` }, ...(hist[0].role === 'assistant' ? hist.slice(1) : hist)];
+    try {
+      const r = await pedirClaude(entrada, { cache: false, signal: ctlChat.signal, onText: ({ text }) => { bolha.innerHTML = md(text); rolarFim(); } });
+      conversa.push({ role: 'assistant', content: r.text }); salvarConversa();
+      if (r.truncated) status('A resposta foi cortada no limite de tamanho. Peça uma parte de cada vez.');
+    } catch (e) {
+      const code = e && e.code;
+      if (e && e.text) { conversa.push({ role: 'assistant', content: `${e.text}\n\n(resposta interrompida)` }); salvarConversa(); }
+      else if (code !== 'cancelled') { conversa.pop(); salvarConversa(); $('pergunta').value = texto; }
+      else { conversa.pop(); salvarConversa(); $('pergunta').value = texto; }
+      if (DESLIGA.includes(code)) desligarAssistente(code === 'not_granted' ? ERROS.not_granted : 'O Claude não está disponível para este app nesta conta.');
+      else status(ERROS[code] || 'Não foi possível responder agora. Tente de novo.');
+    } finally {
+      ocupado = false; ctlChat = null; $('parar').hidden = true; $('enviar').disabled = false; renderConversa();
+    }
+  }
+  $('atalhos').innerHTML = ATALHOS.map(([rot], i) => `<button type="button" data-i="${i}">${esc(rot)}</button>`).join('');
+  $('atalhos').addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (b) perguntar(ATALHOS[Number(b.dataset.i)][1]); });
+  $('enviar').addEventListener('click', () => perguntar($('pergunta').value));
+  $('pergunta').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); perguntar($('pergunta').value); } });
+  $('parar').addEventListener('click', () => { if (ctlChat) ctlChat.abort(); });
+  $('limpar-chat').addEventListener('click', () => { if (ocupado) return; conversa = []; salvarConversa(); renderConversa(); status('Conversa limpa.'); });
+  $('copiar-chat').addEventListener('click', () => {
+    const txt = conversa.map(t => `${t.role === 'user' ? 'CONSULTOR' : 'ASSISTENTE'}:\n${t.content}`).join('\n\n');
+    if (!txt) { status('Nada para copiar ainda.'); return; }
+    try { navigator.clipboard.writeText(txt).then(() => status('Conversa copiada.'), () => status('Não deu para copiar automaticamente. Selecione o texto e copie.')); }
+    catch (e) { status('Não deu para copiar automaticamente. Selecione o texto e copie.'); }
+  });
+  $('ctxExtra').value = est.ctxExtra;
+  $('ctxExtra').addEventListener('input', e => { est.ctxExtra = e.target.value.slice(0, 4000); salvar(); });
+  renderConversa();
+  (async () => {
+    try { pedirClaude = window.claude && typeof window.claude.use === 'function' ? await window.claude.use('sample') : null; } catch (e) { pedirClaude = null; }
+    if (!pedirClaude) desligarAssistente('O assistente funciona quando o app é aberto pelo Claude (claude.ai). Nesta cópia, use o Check-up e as outras abas.');
+  })();
+
+  // ───────── Consulta NCM/NBS (base oficial) ─────────
+  const CS = { D: null, NCM: null, carregando: null, tipo: 'nbs', sel: null, valor: 10000 };
+  const ATALHOS_CS = [['nbs', '114011100', 'Consultoria em gestão estratégica'], ['nbs', '122051900', 'Treinamento'], ['ncm', '94036000', 'Móveis de madeira'], ['ncm', '94029090', 'Mobiliário clínico'], ['ncm', '83024100', 'Ferragens de acessibilidade']];
+  const fmtNcm = c => c.length <= 4 ? c : c.length <= 6 ? `${c.slice(0, 4)}.${c.slice(4)}` : `${c.slice(0, 4)}.${c.slice(4, 6)}.${c.slice(6)}`;
+  const fmtNbs = c => c.length <= 1 ? c : c[0] + '.' + c.slice(1, 5) + (c.length > 5 ? '.' + c.slice(5, 7) : '') + (c.length > 7 ? '.' + c.slice(7, 9) : '');
+  const fmtCod = (t, c) => t === 'ncm' ? fmtNcm(c) : fmtNbs(c);
+  const semAcento = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  function abrirConsulta() {
+    marcar('cs-tipo', CS.tipo);
+    if (CS.D || CS.carregando) return;
+    $('cs-res').innerHTML = '<p class="vazio">Carregando a base oficial…</p>';
+    CS.carregando = Promise.all([fetch('dados/classificacao.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }), fetch('dados/ncm.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })])
+      .then(([d, n]) => {
+        CS.D = d; CS.NCM = n; CS.nbsLista = d.nbs.map(r => [r[0], r[1]]);
+        CS.idxNcm = n.map(r => [r[0], semAcento(r[1])]); CS.idxNbs = d.nbs.map(r => [r[0], semAcento(r[1])]);
+        $('cs-base').textContent = `Base oficial da Receita · ${d.base.versao} de ${String(d.base.data).slice(0, 10).split('-').reverse().join('/')}`;
+        buscar();
+      })
+      .catch(() => { CS.carregando = null; $('cs-res').innerHTML = '<p class="vazio">Não foi possível carregar a base de classificações. Recarregue a página para tentar de novo.</p>'; });
+  }
+  function buscar() {
+    if (!CS.D) return;
+    const q = $('cs-q').value.trim();
+    const lista = CS.tipo === 'ncm' ? CS.NCM : CS.nbsLista, idx = CS.tipo === 'ncm' ? CS.idxNcm : CS.idxNbs;
+    const desc = new Map(lista);
+    let res = [];
+    const dig = q.replace(/[.\s-]/g, '');
+    if (!q) { $('cs-res').innerHTML = '<p class="vazio">Digite um código ou uma descrição, ou use um dos atalhos.</p>'; return; }
+    if (/^\d+$/.test(dig)) res = lista.filter(r => r[0].startsWith(dig)).slice(0, 60).map(r => r[0]);
+    else {
+      const palavras = semAcento(q).split(/\s+/).filter(w => w.length > 1);
+      res = idx.filter(([c, d]) => palavras.every(w => d.includes(w))).slice(0, 60).map(r => r[0]);
+    }
+    if (!res.length) { $('cs-res').innerHTML = '<p class="vazio">Nada encontrado. Tente outra palavra ou só o começo do código.</p>'; return; }
+    const pai = c => { for (let n = c.length - 1; n >= 2; n--) if (desc.has(c.slice(0, n))) return `${fmtCod(CS.tipo, c.slice(0, n))} · ${desc.get(c.slice(0, n))}`; return ''; };
+    $('cs-res').innerHTML = res.map(c => `<button type="button" class="cs-item" data-c="${c}"><span class="cod">${fmtCod(CS.tipo, c)}</span><span>${esc(desc.get(c))}<span class="pai">${esc(pai(c))}</span></span></button>`).join('');
+  }
+  function aliqAno(data) {
+    if (data < '2027-01-01') return { cbs: 0.9, ibsUf: 0.1, ibsMun: 0 };
+    if (data < '2029-01-01') return { cbs: est.cbs, ibsUf: 0.05, ibsMun: 0.05 };
+    return { cbs: est.cbs, ibsUf: est.ibsUf, ibsMun: est.ibsMun };
+  }
+  function linhaClasse(c, data, destaque) {
+    const a = aliqAno(data), red = c.red, efet = [a.cbs * (1 - red[0] / 100), a.ibsUf * (1 - red[1] / 100), a.ibsMun * (1 - red[2] / 100)];
+    const tot = efet.reduce((x, y) => x + y, 0), tributo = ENGINE.ibscbs(CS.valor, { cbs: efet[0], ibsUf: efet[1], ibsMun: efet[2] }).total;
+    const credito = c.credAdq[0] || c.credAdq[1] ? '<span class="etiqueta ok">cliente PJ credita</span>' : '<span class="etiqueta neutra">sem crédito para o cliente</span>';
+    const redTxt = Math.max(...red) > 0 ? `<span class="etiqueta acao">redução de ${numFmt(Math.max(...red), 'pct')}%</span>` : '';
+    return `<div class="cls"><div class="cls-top"><span class="cod">${esc(c.cd)}</span><span class="etiqueta neutra">CST ${esc(c.cst)}</span>${redTxt}${credito}${destaque ? `<span class="etiqueta alerta">${esc(destaque)}</span>` : ''}</div>
+      <div>${esc(c.d)}</div>
+      <div class="nums"><span>Alíquota efetiva no ano: <b>${pp(rhe(tot, 4), 2)}</b></span><span>IBS/CBS sobre ${brl0(CS.valor)}: <b>${brl(tributo)}</b></span>${c.anexo ? `<span>Anexo ${esc(c.anexo)} da LC 214</span>` : ''}</div>
+      ${c.fund ? `<details><summary>Base legal: ${esc(c.fundCurta || 'LC 214/2025')}</summary><p>${esc(c.fund)}</p></details>` : ''}</div>`;
+  }
+  function detalhe(cod) {
+    CS.sel = cod;
+    const data = $('cs-ano').value, t = CS.tipo, D = CS.D;
+    const lista = t === 'ncm' ? CS.NCM : CS.nbsLista;
+    const trilha = CONSULTA.hierarquia(lista, cod);
+    const folha = t === 'ncm' ? cod.length === 8 : cod.length === 9;
+    const det = $('cs-det'); det.hidden = false;
+    if (!folha) {
+      const filhos = lista.filter(r => r[0].startsWith(cod) && r[0].length === (t === 'ncm' ? 8 : 9)).slice(0, 80);
+      det.innerHTML = `<header><h2>${fmtCod(t, cod)}</h2></header><div class="trilha">${trilha.map(([c, d]) => `<span><b>${fmtCod(t, c)}</b>${esc(d)}</span>`).join('')}</div>
+        <p class="small muted">Esse é um agrupamento. Escolha o código completo, que é o usado na nota:</p><div class="cs-res">${filhos.map(([c, d]) => `<button type="button" class="cs-item" data-c="${c}"><span class="cod">${fmtCod(t, c)}</span><span>${esc(d)}</span></button>`).join('') || '<p class="vazio">Sem códigos completos abaixo deste.</p>'}</div>`;
+      return;
+    }
+    const especificas = CONSULTA.classesDoCodigo(D, t, cod, data);
+    const semLista = CONSULTA.classesSemLista(D, t, data);
+    const geral = semLista.find(c => c.cd === '000001');
+    const condicionais = semLista.filter(c => Math.max(...c.red) > 0).sort((a, b) => Math.max(...b.red) - Math.max(...a.red));
+    const is = t === 'ncm' && CONSULTA.sujeitoIS(D, cod, data);
+    const lc116 = t === 'nbs' ? (D.nbs.find(r => r[0] === cod) || [])[2] : null;
+    const ano = data.slice(0, 4);
+    det.innerHTML = `<header><h2>${fmtCod(t, cod)} · ${ano}</h2>${is ? '<span class="etiqueta perigo">sujeito ao Imposto Seletivo</span>' : ''}</header>
+      <div class="trilha">${trilha.map(([c, d]) => `<span><b>${fmtCod(t, c)}</b>${esc(d)}</span>`).join('')}${lc116 ? `<span><b>LC 116</b>item ${esc(lc116)}</span>` : ''}</div>
+      <div class="valor-sim"><label for="cs-valor" class="small muted">Valor para simular</label><div class="inp"><span class="un">R$</span><input id="cs-valor" inputmode="decimal" autocomplete="off" value="${numFmt(CS.valor, 'brl')}"></div></div>
+      <h2>Classificações específicas deste código</h2>
+      ${especificas.length ? especificas.map(c => linhaClasse(c, data)).join('') : '<p class="vazio">Nenhuma classificação com lista inclui este código: vale a regra geral, salvo as situações que dependem da operação ou de quem fornece.</p>'}
+      <h2>Regra geral</h2>
+      ${geral ? linhaClasse(geral, data) : '<p class="vazio">Regra geral não encontrada para o ano.</p>'}
+      <details><summary class="small"><b>Dependem da operação ou de quem fornece (${condicionais.length})</b>: profissões intelectuais, autônomos, locação e venda de imóveis e outras</summary>
+        ${condicionais.map(c => linhaClasse(c, data, c.cd === '200052' ? 'exige profissional com conselho' : c.cd === '200027' || c.cd === '200046' ? 'operações com imóveis' : '')).join('')}</details>
+      <p class="small muted">Alíquotas cheias de 2029 em diante usam as estimativas da coluna ao lado. A escolha da classificação depende da operação real; confirme com o contador antes de emitir a nota.</p>`;
+    const inp = $('cs-valor');
+    inp.addEventListener('change', () => { const v = lerNumero(inp.value); if (Number.isFinite(v) && v >= 0 && v <= 1e10) { CS.valor = v; detalhe(cod); } else inp.value = numFmt(CS.valor, 'brl'); });
+  }
+  $('cs-atalhos').innerHTML = ATALHOS_CS.map(([t, c, rot], i) => `<button type="button" data-i="${i}">${esc(rot)} · ${fmtCod(t, c)}</button>`).join('');
+  $('cs-atalhos').addEventListener('click', e => {
+    const b = e.target.closest('button[data-i]'); if (!b) return;
+    const [t, c] = ATALHOS_CS[Number(b.dataset.i)];
+    const ir = () => { CS.tipo = t; marcar('cs-tipo', t); $('cs-q').value = fmtCod(t, c); buscar(); detalhe(c); $('cs-det').scrollIntoView({ block: 'start', behavior: 'smooth' }); };
+    if (CS.D) ir(); else { abrirConsulta(); if (CS.carregando) CS.carregando.then(() => { if (CS.D) ir(); }); }
+  });
+  $('cs-tipo').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; CS.tipo = b.dataset.v; marcar('cs-tipo', CS.tipo); $('cs-det').hidden = true; buscar(); });
+  let tBusca = 0; $('cs-q').addEventListener('input', () => { clearTimeout(tBusca); tBusca = setTimeout(buscar, 150); });
+  $('cs-res').addEventListener('click', e => { const b = e.target.closest('.cs-item'); if (b) { detalhe(b.dataset.c); $('cs-det').scrollIntoView({ block: 'start', behavior: 'smooth' }); } });
+  $('cs-det').addEventListener('click', e => { const b = e.target.closest('.cs-item'); if (b) detalhe(b.dataset.c); });
+  $('cs-ano').value = '2027-03-15';
+  $('cs-ano').addEventListener('change', () => { if (CS.sel) detalhe(CS.sel); });
+
+  function desenhar() {
+    if (!ultimo || ['checkup', 'assistente', 'consulta'].includes(aba)) return;
+    const merc = est.lente === 'mercado';
+    const graficosVisiveis = !(aba === 'simples' && ultimo.sn.fora);
+    document.querySelector('.graficos').hidden = !graficosVisiveis;
+    if (!graficosVisiveis) return;
+    if (aba === 'comparar') {
+      const ids = ['presumido', 'real'].concat(ultimo.sn.fora ? [] : ['sn', 'hb']);
+      const curto = { presumido: 'LP', real: 'LR', sn: 'SN', hb: 'HB' };
+      const serie = (id, k) => ({ nome: NOME[id], curto: curto[id], cor: COR[id], v: ultimo.comp.map(x => { const o = x.op.find(z => z.id === id); return o ? (merc ? o[k].lucro : o[k].custo) : null; }) });
+      const leg = legenda(ids.map(id => [COR[id], NOME[id]]));
+      $('g1-tit').textContent = merc ? 'Lucro líquido na venda PF' : 'Custo do cliente PF';
+      $('g1-leg').innerHTML = leg;
+      grafico($('g1'), { rotulo: $('g1-tit').textContent, fase: FASE_RR, series: ids.map(id => serie(id, 'pf')), fmtEixo: eixoBRL, fmtTip: v => v == null ? 'a partir de 2027' : brl0(v) });
+      $('g2-tit').textContent = merc ? 'Lucro líquido na venda PJ' : 'Custo efetivo do cliente PJ';
+      $('g2-leg').innerHTML = leg;
+      grafico($('g2'), { rotulo: $('g2-tit').textContent, fase: FASE_RR, series: ids.map(id => serie(id, 'pj')), fmtEixo: eixoBRL, fmtTip: v => v == null ? 'a partir de 2027' : brl0(v) });
+    } else if (aba === 'simples') {
+      const anos = ultimo.sn.anos;
+      $('g1-tit').textContent = merc ? 'Lucro líquido pelo seu mix' : 'Custo médio do cliente pelo seu mix';
+      $('g1-leg').innerHTML = legenda([['--sn', 'Simples puro'], ['--hb', 'Híbrido']]);
+      grafico($('g1'), { rotulo: $('g1-tit').textContent, fase: FASE_SN,
+        series: [{ nome: 'Simples puro', curto: 'SN', cor: '--sn', v: anos.map(x => merc ? x.bSN.lucro : x.bSN.custo) }, { nome: 'Híbrido', curto: 'HB', cor: '--hb', v: anos.map(x => x.bHB ? (merc ? x.bHB.lucro : x.bHB.custo) : null) }],
+        fmtEixo: eixoBRL, fmtTip: v => v == null ? 'a partir de 2027' : brl0(v), extra: { rot: 'Vendas PJ', f: () => est.mix + '%' } });
+      $('g2-tit').textContent = 'Ponto de virada do híbrido';
+      $('g2-leg').innerHTML = legenda([['--hb', 'Vendas PJ a partir das quais o híbrido compensa']]);
+      grafico($('g2'), { rotulo: 'Ponto de virada por ano', fase: FASE_SN,
+        series: [{ nome: 'Ponto de virada', curto: '', cor: '--hb', v: anos.map(x => !x.vir ? null : x.vir.tipo === 'nunca' ? 1 : Math.min(1, Math.max(0, x.vir.w))) }],
+        fmtEixo: v => pct(v, 0), dominio: [0, 1], fmtTip: (v, i) => textoVirada(anos[i].vir), ref: { v: est.mix / 100, rot: `seu mix: ${est.mix}%` } });
+    } else {
+      const sim = aba === 'real' ? ultimo.real : ultimo.pres, anos = sim.anos, cor = COR[sim.rg];
+      $('g1-tit').textContent = 'Custo efetivo para o cliente';
+      $('g1-leg').innerHTML = legenda([[cor, 'Cliente PF'], [cor, 'Cliente PJ', true]]);
+      grafico($('g1'), { rotulo: 'Custo efetivo para o cliente por ano', fase: FASE_RR,
+        series: [{ nome: 'Cliente PF', curto: 'PF', cor, v: anos.map(x => x.pf.custo) }, { nome: 'Cliente PJ', curto: 'PJ', cor, tracejado: true, v: anos.map(x => x.pj.custo) }],
+        fmtEixo: eixoBRL, fmtTip: v => brl0(v), extra: { rot: 'Diferença', f: i => brl0(anos[i].pf.custo - anos[i].pj.custo) } });
+      $('g2-tit').textContent = 'Lucro líquido por projeto';
+      $('g2-leg').innerHTML = legenda([[cor, 'Venda PF'], [cor, 'Venda PJ', true]]);
+      grafico($('g2'), { rotulo: 'Lucro líquido por ano', fase: FASE_RR,
+        series: [{ nome: 'Venda PF', curto: 'PF', cor, v: anos.map(x => x.pf.lucro) }, { nome: 'Venda PJ', curto: 'PJ', cor, tracejado: true, v: anos.map(x => x.pj.lucro) }],
+        fmtEixo: eixoBRL, fmtTip: v => brl0(v), extra: { rot: 'Pelo mix', f: i => brl0(anos[i].blendLucro) } });
+    }
+  }
+  if ('ResizeObserver' in window) {
+    let raf = 0; const ro = new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(desenhar); });
+    ro.observe($('g1')); ro.observe($('g2'));
+  } else window.addEventListener('resize', desenhar);
+
+  // Conferência
+  const CASOS = [
+    { desc: 'IBS/CBS · cozinha 2026 · base 38.000,00 · CBS 0,9% · IBS 0,1%', api: { CBS: 342.00, IBS: 38.00 }, calc: () => { const t = ibscbs(38000, { cbs: 0.9, ibsUf: 0.1, ibsMun: 0 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'IBS/CBS · projeto 2027 · base 77.044,00 sem ICMS · CBS 8,8% · IBS 0,05% + 0,05%', api: { CBS: 6779.87, IBS: 77.04 }, calc: () => { const t = ibscbs(77044, { cbs: 8.8, ibsUf: 0.05, ibsMun: 0.05 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'IBS/CBS · projeto 2033 · base 94.000,00 · CBS 8,8% · IBS 8,85% + 8,85%', api: { CBS: 8272.00, IBS: 16638.00 }, calc: () => { const t = ibscbs(94000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'IBS/CBS · maca clínica 2033 · cClassTrib 200030 · redução de 60% · base 18.000,00', api: { CBS: 633.60, IBS: 1274.40 }, calc: () => { const t = ibscbs(18000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }, 60); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'IBS/CBS · empate para o par · base 25,00 · CBS 0,9%', api: { CBS: 0.22 }, calc: () => ({ CBS: ibscbs(25, { cbs: 0.9, ibsUf: 0, ibsMun: 0 }).cbs.v }) },
+    { desc: 'Simples · Anexo II · faturamento R$ 720.000 (faixa 3) · PGDAS março/2027', api: { pCBSSN: 1.1184, pIBSSN: 0.0121 }, pp: true, calc: () => { const d = das('II', 720000), t = partilha(d, 2027); return { pCBSSN: rhe(d.efetiva * t.cbs / 100, 4), pIBSSN: rhe(d.efetiva * t.ibs / 100, 4) }; } },
+    { desc: 'Simples · Anexo I · faturamento R$ 720.000 (faixa 3) · PGDAS março/2027', api: { pCBSSN: 1.1612, pIBSSN: 0.0129 }, pp: true, calc: () => { const d = das('I', 720000), t = partilha(d, 2027); return { pCBSSN: rhe(d.efetiva * t.cbs / 100, 4), pIBSSN: rhe(d.efetiva * t.ibs / 100, 4) }; } },
+  ];
+  let ok = 0;
+  $('conf').innerHTML = CASOS.map(c => {
+    const v = c.calc();
+    const bate = Object.keys(c.api).every(k => Math.abs(v[k] - c.api[k]) < (c.pp ? 1e-9 : 0.005));
+    if (bate) ok++;
+    const f = x => c.pp ? pp(x, 4) : brl(x);
+    return `<div><div><div>${esc(c.desc)}</div><div class="vals">${Object.keys(c.api).map(k => `${k}: oficial ${f(c.api[k])} · simulador ${f(v[k])}`).join('<br>')}</div></div>${bate ? '<span class="etiqueta ok">confere</span>' : '<span class="etiqueta perigo">diverge</span>'}</div>`;
+  }).join('');
+  $('conf-status').innerHTML = ok === CASOS.length ? `<span class="etiqueta ok md">${ok} de ${CASOS.length} conferem</span>` : '<span class="etiqueta perigo md">Há divergência</span>';
+
+  atualizar();
+})();
+</script>
+</body>
+</html>
