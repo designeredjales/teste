@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador de Margem PF × PJ · Diâmetro</title>
+<meta name="description" content="Compare o custo do cliente pessoa física e pessoa jurídica e a margem da marcenaria de 2026 a 2033 na Reforma Tributária do Consumo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: painel de gestão Diâmetro. Premissas numa coluna à esquerda, resultado à direita; um número de destaque por tela. */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --panel-2: #f0f2f5; --line: #e3e6eb;
+  --text: #16191f; --muted: #5d6573; --faint: #98a0ad;
+  --accent: #2f6fed; --accent-ink: #ffffff; --on-color: #ffffff;
+  --green: #0f9d76; --red: #d93b3b; --amber: #c77d10;
+  --pf: #8b5cf6; --pj: #0e9f9f;
+  --logo-ink: #000200; --logo-lime: #aabe09;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
+  --shadow-md: 0 10px 30px rgba(10, 14, 20, .18);
+  --sp-2: 4px; --sp-3: 6px; --sp-4: 8px; --sp-5: 12px; --sp-6: 16px; --sp-7: 24px;
+  --r-sm: 4px; --r-md: 8px; --radius: 10px; --r-pill: 999px;
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk", Inter, system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --panel: #171b21; --panel-2: #1f242c; --line: #2a3039;
+    --text: #e7eaee; --muted: #a3abb8; --faint: #6b7482;
+    --accent: #5b8cff; --accent-ink: #ffffff; --on-color: #0f1216;
+    --green: #2fbf94; --red: #f06363; --amber: #e3a23a;
+    --pf: #9d80f7; --pj: #27b0b0;
+    --logo-ink: #e7eaee; --logo-lime: #aabe09;
+    --shadow: none; --shadow-md: 0 10px 30px rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --panel: #171b21; --panel-2: #1f242c; --line: #2a3039;
+  --text: #e7eaee; --muted: #a3abb8; --faint: #6b7482;
+  --accent: #5b8cff; --accent-ink: #ffffff; --on-color: #0f1216;
+  --green: #2fbf94; --red: #f06363; --amber: #e3a23a;
+  --pf: #9d80f7; --pj: #27b0b0;
+  --logo-ink: #e7eaee; --logo-lime: #aabe09;
+  --shadow: none; --shadow-md: 0 10px 30px rgba(0, 0, 0, .45);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 14px/1.45 var(--font-sans); -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { margin: 0; line-height: 1.25; text-wrap: balance; }
+h1 { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+h3 { font-size: 16px; font-weight: 600; }
+p { margin: 0; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+button, input, select { font: inherit; color: inherit; }
+button {
+  background: var(--accent); color: var(--accent-ink); border: 1px solid transparent;
+  border-radius: var(--r-md); padding: 7px 14px; font-weight: 500; cursor: pointer; white-space: nowrap;
+}
+button:hover { filter: brightness(1.07); }
+button.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+button.ghost:hover { background: var(--panel-2); filter: none; }
+button:focus-visible, select:focus-visible, input[type="range"]:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px;
+}
+select {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: 7px 10px; width: 100%; min-width: 0;
+}
+
+/* Estrutura */
+.wrap {
+  max-width: 1320px; margin: 0 auto;
+  padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: var(--sp-7);
+}
+.topo { display: flex; align-items: center; gap: var(--sp-6); flex-wrap: wrap; }
+.topo .mark { width: 62px; height: auto; flex: none; }
+.topo .tit { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; flex: 1 1 320px; }
+.topo .tit p { color: var(--muted); max-width: 70ch; }
+.topo .chips { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.layout { display: grid; grid-template-columns: 344px minmax(0, 1fr); gap: var(--sp-7); align-items: start; }
+@media (max-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr); } .resultado { order: -1; } }
+.lateral { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+@media (min-width: 1001px) {
+  .lateral { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow-y: auto; padding-right: 4px; }
+}
+.resultado { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px; box-shadow: var(--shadow); min-width: 0;
+  display: flex; flex-direction: column; gap: var(--sp-6);
+}
+.card > header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-5); flex-wrap: wrap; }
+
+/* Campos */
+.campos { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
+.campos .full { grid-column: 1 / -1; }
+.field { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.field > label, .field > .rot { font-size: 13px; font-weight: 600; color: var(--muted); }
+.field small { color: var(--muted); font-size: 12px; }
+.inp {
+  display: flex; align-items: center; background: var(--panel);
+  border: 1px solid var(--line); border-radius: var(--r-md); min-width: 0;
+}
+.inp:focus-within { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+.inp .un { padding-left: 10px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.inp .un.dir { padding: 0 10px 0 0; }
+.inp input {
+  border: 0; background: transparent; outline: none; padding: 7px 10px; flex: 1; min-width: 0; width: 100%;
+  text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+}
+.field.erro .inp { border-color: var(--red); }
+.field .msg { color: var(--red); font-size: 12px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.faixa { display: flex; align-items: center; gap: var(--sp-5); }
+.faixa output { min-width: 44px; text-align: right; font-weight: 600; }
+
+/* Segmentado */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; background: var(--panel); max-width: 100%; }
+.seg button { background: transparent; color: var(--muted); border: 0; border-radius: 0; padding: 6px 12px; flex: 1 1 auto; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-weight: 600; }
+.seg.cheio { display: flex; width: 100%; }
+.seg.cheio button { padding: 6px 8px; }
+.rolagem { overflow-x: auto; max-width: 100%; }
+.anos { display: flex; flex-direction: column; gap: var(--sp-4); }
+.anos .seg button { min-width: 58px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Etiqueta */
+.etiqueta {
+  --c: var(--muted);
+  display: inline-flex; align-items: center; gap: var(--sp-2); white-space: nowrap;
+  font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 var(--sp-3);
+  border: 1px solid transparent; border-radius: var(--r-pill);
+  color: color-mix(in srgb, var(--c) 66%, var(--text)); background: color-mix(in srgb, var(--c) 14%, transparent);
+}
+.etiqueta.md { font-size: 12px; line-height: 20px; padding: 0 var(--sp-4); }
+.etiqueta.neutra { background: var(--panel-2); border-color: var(--line); font-weight: 500; }
+.etiqueta.ok { --c: var(--green); }
+.etiqueta.alerta { --c: var(--amber); }
+.etiqueta.perigo { --c: var(--red); }
+.etiqueta.acao { --c: var(--accent); }
+
+/* Destaque */
+.destaque { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: var(--sp-7); align-items: center; }
+@media (max-width: 720px) { .destaque { grid-template-columns: minmax(0, 1fr); } }
+.destaque .big {
+  font-family: var(--font-display); font-size: 42px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.destaque .rotulo { font-size: 13px; color: var(--muted); font-weight: 600; }
+.destaque .resumo { display: flex; flex-direction: column; gap: var(--sp-4); max-width: 68ch; }
+.destaque .resumo p { line-height: 1.55; }
+
+/* Clientes PF e PJ */
+.clientes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+@media (max-width: 640px) { .clientes { grid-template-columns: minmax(0, 1fr); } }
+.cliente header { align-items: center; justify-content: flex-start; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.pf { background: var(--pf); } .dot.pj { background: var(--pj); }
+.linhas { display: flex; flex-direction: column; margin: 0; }
+.linhas > div { display: flex; justify-content: space-between; gap: var(--sp-5); padding: 7px 0; border-top: 1px solid var(--line); align-items: baseline; }
+.linhas > div:first-child { border-top: 0; padding-top: 0; }
+.linhas dt { color: var(--muted); min-width: 0; }
+.linhas dd { margin: 0; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.linhas .forte dt { color: var(--text); font-weight: 600; }
+.linhas dd .etiqueta { font-family: var(--font-sans); margin-right: 6px; }
+.linhas .forte dd { font-weight: 700; font-size: 16px; }
+
+/* Gráficos */
+.graficos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+@media (max-width: 1180px) { .graficos { grid-template-columns: minmax(0, 1fr); } }
+.legenda { display: flex; gap: var(--sp-6); flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legenda span { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.grafico { position: relative; min-width: 0; }
+.grafico svg { display: block; width: 100%; overflow: visible; }
+.grafico svg text { font-family: var(--font-mono); font-size: 11px; }
+.tooltip {
+  position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--r-md); box-shadow: var(--shadow-md); padding: 8px 10px; font-size: 12px;
+  display: flex; flex-direction: column; gap: 3px; min-width: 170px; z-index: 5;
+}
+.tooltip b { font-size: 12px; }
+.tooltip .l { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.tooltip .l span:first-child { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+
+/* Tabelas */
+.tabela { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; vertical-align: bottom; }
+td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td.txt { font-family: var(--font-sans); }
+tbody tr.sel td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+tbody tr.clicavel { cursor: pointer; }
+tbody tr.clicavel:hover td { background: var(--panel-2); }
+tr.total td { font-weight: 700; }
+tr.sub td { color: var(--muted); }
+.dre td:first-child { font-family: var(--font-sans); }
+.dre th:not(:first-child) { min-width: 130px; }
+
+/* Conferência e premissas */
+.conf { display: flex; flex-direction: column; }
+.conf > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-5); padding: 9px 0; border-top: 1px solid var(--line); align-items: center; }
+.conf > div:first-child { border-top: 0; }
+.conf .vals { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); }
+.premissas { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: var(--sp-3); max-width: 90ch; }
+.premissas li { line-height: 1.5; }
+.aviso {
+  border: 1px solid color-mix(in srgb, var(--red) 45%, var(--line)); background: color-mix(in srgb, var(--red) 8%, var(--panel));
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.rodape { color: var(--muted); font-size: 12px; max-width: 100ch; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .seg button, button.ghost, tbody tr td { transition: background-color .15s; }
+}
+html, body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topo">
+    <svg class="mark" viewBox="146 56 566 458" role="img" aria-label="Diâmetro">
+      <defs>
+        <marker style="overflow:visible" id="dmSeta" refX="0" refY="0" orient="auto-start-reverse" markerWidth="4.2071066" markerHeight="7" viewBox="0 0 4.2071068 7" preserveAspectRatio="xMidYMid">
+          <path style="fill:none;stroke:var(--logo-ink);stroke-width:1;stroke-linecap:round" d="M 3,-3 0,0 3,3" transform="rotate(180,0.125,0)"></path>
+        </marker>
+      </defs>
+      <g transform="translate(41.827397,6.6077261)">
+        <g style="fill:none" transform="matrix(2.0575241,0,0,2.0575241,-16.469864,-352.60605)">
+          <path d="m 244.6596,381.7838 c -19.2171,19.4137 -45.8822,31.4418 -75.3502,31.4418 -58.5465,0 -106.026,-47.4795 -106.026,-106.0262 0,-58.5467 47.4795,-106.0262 106.026,-106.0262 26.8075,0 51.2948,9.9546 69.966,26.3673" style="fill:none;fill-rule:evenodd;stroke:var(--logo-ink);stroke-width:8.5039;stroke-linecap:round;stroke-linejoin:miter"></path>
+          <path d="m 245.2039,233.1689 c 18.6431,19.1092 30.1319,45.231 30.1319,74.0305 0,26.2977 -9.5797,50.363 -25.4384,68.8948" style="fill:none;fill-rule:evenodd;stroke:var(--logo-lime);stroke-width:8.5039;stroke-linecap:round;stroke-linejoin:miter"></path>
+          <path d="m 251.2774,221.3083 18.7661,-21.137 h 58.2054" style="fill:none;fill-rule:evenodd;stroke:var(--logo-ink);stroke-width:3.75;stroke-linecap:round;stroke-linejoin:miter;marker-start:url(#dmSeta)"></path>
+          <path style="fill:var(--logo-lime);stroke-linecap:round;stroke-linejoin:round" d="m 169.93359,288.3125 a 1.875,1.875 0 0 0 -1.875,1.875 v 31.70117 a 1.875,1.875 0 0 0 1.875,1.875 1.875,1.875 0 0 0 1.875,-1.875 V 290.1875 a 1.875,1.875 0 0 0 -1.875,-1.875 z"></path>
+          <path style="fill:var(--logo-lime);stroke-linecap:round;stroke-linejoin:round" d="m 154.08203,304.16406 a 1.875,1.875 0 0 0 -1.875,1.875 1.875,1.875 0 0 0 1.875,1.875 h 31.70313 a 1.875,1.875 0 0 0 1.875,-1.875 1.875,1.875 0 0 0 -1.875,-1.875 z"></path>
+        </g>
+      </g>
+    </svg>
+    <div class="tit">
+      <h2>Diâmetro · Reforma Tributária do Consumo</h2>
+      <h1>Simulador de Margem PF × PJ</h1>
+      <p>Quanto o mesmo projeto de móveis custa para o cliente pessoa física e para o cliente empresa, e o que acontece com a margem da marcenaria de 2026 a 2033.</p>
+    </div>
+    <div class="chips">
+      <span class="etiqueta neutra md">LC 214/2025</span>
+      <span class="etiqueta acao md">Motor conferido com a Calculadora RFB 1.7.2</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="lateral" aria-label="Premissas do projeto">
+      <section class="card">
+        <header><h2>Projeto</h2><span class="etiqueta alerta">Exemplo</span></header>
+        <div class="campos">
+          <div class="field full">
+            <label for="tipo">Tipo de produto</label>
+            <select id="tipo">
+              <option value="movel">Móveis planejados e estofados</option>
+              <option value="clinico">Mobiliário clínico (redução de 60%)</option>
+              <option value="acess">Acessibilidade PcD (redução de 100%)</option>
+            </select>
+            <small id="tipo-info">NCM 9401/9403 · cClassTrib 000001 · tributação integral</small>
+          </div>
+          <div class="field full" data-campo="ins">
+            <label for="ins">Insumos (MDF, ferragens, vidros, acessórios)</label>
+            <div class="inp"><span class="un">R$</span><input id="ins" inputmode="decimal" autocomplete="off"></div>
+          </div>
+          <div class="field full" data-campo="mo">
+            <label for="mo">Mão de obra própria com encargos</label>
+            <div class="inp"><span class="un">R$</span><input id="mo" inputmode="decimal" autocomplete="off"></div>
+          </div>
+          <div class="field full" data-campo="serv">
+            <label for="serv">Serviços de terceiros PJ (montagem, frete)</label>
+            <div class="inp"><span class="un">R$</span><input id="serv" inputmode="decimal" autocomplete="off"></div>
+            <small>Informe custos líquidos dos tributos que você já recupera hoje.</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header><h2>Despesas e margem</h2></header>
+        <div class="campos">
+          <div class="field" data-campo="rt">
+            <label for="rt">RT / comissão</label>
+            <div class="inp"><input id="rt" inputmode="decimal" autocomplete="off"><span class="un dir">% contrato</span></div>
+          </div>
+          <div class="field" data-campo="fix">
+            <label for="fix">Despesas fixas</label>
+            <div class="inp"><input id="fix" inputmode="decimal" autocomplete="off"><span class="un dir">% fatur.</span></div>
+          </div>
+          <div class="field full" data-campo="m">
+            <label for="m">Margem líquida alvo</label>
+            <div class="inp"><input id="m" inputmode="decimal" autocomplete="off"><span class="un dir">% da receita</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header><h2>Tributação</h2></header>
+        <div class="campos">
+          <div class="field full">
+            <span class="rot" id="regime-rot">Regime da marcenaria hoje</span>
+            <div class="seg cheio" id="regime" role="group" aria-labelledby="regime-rot">
+              <button type="button" data-v="presumido">Lucro Presumido</button>
+              <button type="button" data-v="real">Lucro Real</button>
+            </div>
+            <small id="regime-info">PIS/Cofins cumulativo de 3,65% em 2026</small>
+          </div>
+          <div class="field full" data-campo="icms">
+            <label for="icms">ICMS na venda hoje (hipótese)</label>
+            <div class="inp"><input id="icms" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="cbs">
+            <label for="cbs">CBS cheia</label>
+            <div class="inp"><input id="cbs" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="ibsUf">
+            <label for="ibsUf">IBS estadual</label>
+            <div class="inp"><input id="ibsUf" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="ibsMun">
+            <label for="ibsMun">IBS municipal</label>
+            <div class="inp"><input id="ibsMun" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field">
+            <span class="rot">Total pleno</span>
+            <div class="inp"><input id="pleno" readonly tabindex="-1" aria-label="Alíquota plena total"><span class="un dir">%</span></div>
+          </div>
+          <div class="field full" data-campo="residuo" id="residuo-campo">
+            <label for="residuo">Queda no custo de insumos a partir de 2027</label>
+            <div class="inp"><input id="residuo" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+            <small>No Presumido, o PIS/Cofins hoje embutido no preço do fornecedor vira crédito. Deixe 0% para o cenário conservador.</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header><h2>Política de preço</h2></header>
+        <div class="campos">
+          <div class="field full">
+            <span class="rot" id="pf-rot">Cliente PF</span>
+            <div class="seg cheio" id="politicaPF" role="group" aria-labelledby="pf-rot">
+              <button type="button" data-v="repassar">Repassar o tributo</button>
+              <button type="button" data-v="manter">Manter preço de 2026</button>
+            </div>
+            <small id="pf-info">Preço recalculado a cada ano para manter a margem alvo.</small>
+          </div>
+          <div class="field full">
+            <label for="captura">Cliente PJ: parte da vantagem de crédito que vira preço</label>
+            <div class="faixa"><input type="range" id="captura" min="0" max="100" step="5"><output id="captura-out" for="captura" class="mono">0%</output></div>
+            <small>0% cobra do PJ o mesmo preço do PF. 100% cobra do PJ até o custo efetivo dele igualar o do PF.</small>
+          </div>
+        </div>
+      </section>
+
+      <button type="button" class="ghost" id="restaurar">Restaurar exemplo</button>
+    </aside>
+
+    <main class="resultado">
+      <section class="anos" aria-label="Ano da simulação">
+        <div class="rolagem"><div class="seg" id="ano" role="group" aria-label="Ano"></div></div>
+      </section>
+
+      <div id="erro" class="aviso" hidden></div>
+
+      <section class="card destaque" id="destaque">
+        <div>
+          <div class="rotulo" id="big-rot">Vantagem de custo do cliente PJ</div>
+          <div class="big" id="big">R$ 0</div>
+          <div class="small muted" id="big-sub"></div>
+        </div>
+        <div class="resumo" id="resumo"></div>
+      </section>
+
+      <div class="clientes">
+        <section class="card cliente">
+          <header><span class="dot pf"></span><h3>Cliente pessoa física</h3></header>
+          <dl class="linhas" id="card-pf"></dl>
+        </section>
+        <section class="card cliente">
+          <header><span class="dot pj"></span><h3>Cliente empresa (regime regular)</h3></header>
+          <dl class="linhas" id="card-pj"></dl>
+        </section>
+      </div>
+
+      <div class="graficos">
+        <section class="card">
+          <header><h2>Custo efetivo para o cliente</h2>
+            <div class="legenda"><span><i class="dot pf"></i>Cliente PF</span><span><i class="dot pj"></i>Cliente PJ</span></div>
+          </header>
+          <div class="grafico" id="g-custo"></div>
+        </section>
+        <section class="card">
+          <header><h2>Margem líquida da marcenaria</h2>
+            <div class="legenda"><span><i class="dot pf"></i>Venda PF</span><span><i class="dot pj"></i>Venda PJ</span></div>
+          </header>
+          <div class="grafico" id="g-margem"></div>
+        </section>
+      </div>
+
+      <section class="card">
+        <header><h2 id="dre-tit">Resultado do projeto</h2><span class="small muted">Clique num ano do gráfico ou da tabela para trocar</span></header>
+        <div class="tabela"><table class="dre" id="dre"></table></div>
+      </section>
+
+      <section class="card">
+        <header><h2>Ano a ano</h2><span class="small muted">Alíquotas de 2027 em diante são estimativas</span></header>
+        <div class="tabela"><table id="tab-anos"></table></div>
+      </section>
+
+      <section class="card">
+        <header><h2>Conferência com a Calculadora oficial</h2><span id="conf-status"></span></header>
+        <p class="small muted">Casos rodados na API da Receita Federal (calculadora-rtc-regime-regular 1.7.2, perfil offline) e recalculados aqui com o mesmo arredondamento: base com 2 casas, alíquota efetiva com 4 casas, valor com 2 casas e empate para o par.</p>
+        <div class="conf" id="conf"></div>
+      </section>
+
+      <section class="card">
+        <header><h2>Premissas do modelo</h2></header>
+        <ul class="premissas">
+          <li><b>2026, ano de teste:</b> CBS de 0,9% e IBS de 0,1%, alíquotas de referência da base oficial. O valor sai destacado na nota e é compensável com PIS/Cofins, então o simulador não muda preço nem custo nesse ano.</li>
+          <li><b>2027 e 2028:</b> CBS cheia, IBS de 0,05% + 0,05%, PIS/Cofins extintos. O ICMS continua integral e sai da base do IBS/CBS, como a Calculadora faz na base unificada.</li>
+          <li><b>2029 a 2032:</b> ICMS a 90%, 80%, 70% e 60% da alíquota de hoje; IBS estimado em 10%, 20%, 30% e 40% da alíquota cheia.</li>
+          <li><b>2033:</b> ICMS extinto, IBS e CBS cheios. O padrão de 26,5% no total é a estimativa usada nos exemplos da própria Calculadora; o Senado ainda fixa as alíquotas de referência.</li>
+          <li><b>Cliente PJ:</b> empresa do regime regular que compra para uso próprio (escritório, clínica, hotel). Recupera 100% do IBS/CBS, como indica a cClassTrib 000001, e por hipótese não credita ICMS hoje. Empresa do Simples Nacional em regra não apropria esse crédito e se comporta como o cliente PF.</li>
+          <li><b>Marcenaria:</b> regime regular (Presumido ou Real). O Simples Nacional tem módulo próprio na Receita e fica fora desta versão.</li>
+          <li><b>Margem:</b> lucro antes de IRPJ/CSLL dividido pela receita sem IBS/CBS. Despesas fixas ficam constantes em reais, calculadas sobre o faturamento de 2026. A RT incide sobre o valor do contrato, que inclui o IBS/CBS a partir de 2027. IPI, frete e descontos não entram.</li>
+          <li><b>IBS/CBS a recolher:</b> débito da venda menos o crédito estimado sobre insumos e serviços de fornecedores do regime regular, à alíquota cheia. Valor negativo é saldo credor.</li>
+        </ul>
+      </section>
+
+      <p class="rodape">Simulação gerencial para decisão de preço e canal. Não substitui a apuração fiscal nem a orientação do contador.</p>
+    </main>
+  </div>
+</div>
+
+<script>
+// ENGINE START
+const ENGINE = (() => {
+  // Arredondamento meio-par (o mesmo da Calculadora: "empates continuam indo para o par").
+  function rhe(x, d) {
+    const neg = x < 0;
+    const s = Math.abs(x).toFixed(10);
+    const [ip, fp] = s.split('.');
+    const big = BigInt(ip + fp);
+    const div = 10n ** BigInt(10 - d);
+    let q = big / div;
+    const r = big % div;
+    const half = div / 2n;
+    if (r > half || (r === half && q % 2n === 1n)) q += 1n;
+    const out = Number(q) / 10 ** d;
+    return neg && out !== 0 ? -out : out;
+  }
+
+  const TIPOS = {
+    movel:   { cClassTrib: '000001', cst: '000', ncm: '94034000', red: 0,   credito: true,  info: 'NCM 9401/9403 · cClassTrib 000001 · tributação integral · cliente PJ recupera o crédito' },
+    clinico: { cClassTrib: '200030', cst: '200', ncm: '94029090', red: 60,  credito: true,  info: 'NCM 9402.90 · cClassTrib 200030 · Anexo IV · camas e mesas de exame · redução de 60%' },
+    acess:   { cClassTrib: '200007', cst: '200', ncm: '83024100', red: 100, credito: false, info: 'NCM 8302.41 · cClassTrib 200007 · Anexo XIII · barras de apoio · redução de 100%' },
+  };
+  const ANOS = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033];
+  const FASE = { 2026: 'Ano de teste', 2027: 'CBS cheia', 2028: 'CBS cheia', 2029: 'IBS 10%', 2030: 'IBS 20%', 2031: 'IBS 30%', 2032: 'IBS 40%', 2033: 'Alíquota cheia' };
+  const FRAC_IBS = { 2029: 0.1, 2030: 0.2, 2031: 0.3, 2032: 0.4 };
+
+  function regras(t, p) {
+    if (t === 2026) return { t, cbs: 0.9, ibsUf: 0.1, ibsMun: 0, icms: p.icms, pc: p.pc, cobrado: false };
+    if (t <= 2028) return { t, cbs: p.cbs, ibsUf: 0.05, ibsMun: 0.05, icms: p.icms, pc: 0, cobrado: true };
+    if (t <= 2032) {
+      const f = FRAC_IBS[t];
+      return { t, cbs: p.cbs, ibsUf: rhe(p.ibsUf * f, 4), ibsMun: rhe(p.ibsMun * f, 4), icms: rhe(p.icms * (1 - f), 4), pc: 0, cobrado: true };
+    }
+    return { t, cbs: p.cbs, ibsUf: p.ibsUf, ibsMun: p.ibsMun, icms: 0, pc: 0, cobrado: true };
+  }
+
+  // Um tributo como na Calculadora: alíquota efetiva com 4 casas, valor com 2 casas.
+  function tributo(vBC, aliq, red) {
+    const pEf = rhe(aliq * (1 - red / 100), 4);
+    return { pAliq: aliq, pEf, v: rhe(vBC * pEf / 100, 2) };
+  }
+  function ibscbs(base, r, red) {
+    const vBC = rhe(base, 2);
+    const cbs = tributo(vBC, r.cbs, red);
+    const uf = tributo(vBC, r.ibsUf, red);
+    const mun = tributo(vBC, r.ibsMun, red);
+    const vIBS = rhe(uf.v + mun.v, 2);
+    return { vBC, cbs, uf, mun, vIBS, total: rhe(cbs.v + vIBS, 2) };
+  }
+  function deducoes(P, r) {
+    const icms = rhe(P * r.icms / 100, 2);
+    const pc = rhe((P - icms) * r.pc / 100, 2);
+    return { icms, pc };
+  }
+  // Base unificada: 2026 tira ICMS e PIS/Cofins; 2027 a 2032 tira o ICMS; 2033 é o valor do produto.
+  function baseIbsCbs(P, r, d) { return P - d.icms - d.pc; }
+
+  function avaliar(P, r, red, C, F, rt, credita) {
+    const d = deducoes(P, r);
+    const trib = ibscbs(baseIbsCbs(P, r, d), r, red);
+    const cobrado = r.cobrado ? trib.total : 0;
+    const contrato = rhe(P + cobrado, 2);
+    const credito = credita && r.cobrado ? trib.total : 0;
+    const custoEfetivo = rhe(contrato - credito, 2);
+    const comissao = rhe(contrato * rt / 100, 2);
+    const lucro = rhe(P - d.icms - d.pc - comissao - C - F, 2);
+    return { P, d, trib, cobrado, contrato, credito, custoEfetivo, comissao, lucro, margem: P > 0 ? lucro / P : 0 };
+  }
+
+  function simular(inp) {
+    const tipo = TIPOS[inp.tipo] || TIPOS.movel;
+    const red = tipo.red;
+    const pc = inp.regime === 'real' ? 9.25 : 3.65;
+    const p = { icms: inp.icms, pc, cbs: inp.cbs, ibsUf: inp.ibsUf, ibsMun: inp.ibsMun };
+    const compras = t => (inp.ins + inp.serv) * ((t >= 2027 && inp.regime === 'presumido') ? 1 - inp.residuo / 100 : 1);
+    const custo = t => rhe(compras(t) + inp.mo, 2);
+
+    const r0 = regras(2026, p);
+    const den0 = 1 - r0.icms / 100 - (r0.pc / 100) * (1 - r0.icms / 100) - inp.rt / 100 - inp.fix / 100 - inp.m / 100;
+    if (den0 <= 0.02) return { erro: 'ICMS, PIS/Cofins, RT, despesas fixas e margem somam mais de 98% do preço de 2026. Reduza algum desses percentuais.' };
+    const P0 = rhe(custo(2026) / den0, 2);
+    const F = rhe(P0 * inp.fix / 100, 2);
+    if (P0 <= 0) return { erro: 'Informe ao menos um custo maior que zero para formar o preço.' };
+
+    const anos = [];
+    for (const t of ANOS) {
+      const r = regras(t, p);
+      const kEf = (rhe(r.cbs * (1 - red / 100), 4) + rhe(r.ibsUf * (1 - red / 100), 4) + rhe(r.ibsMun * (1 - red / 100), 4)) / 100;
+      const kCheio = (r.cbs + r.ibsUf + r.ibsMun) / 100;
+      const g = r.cobrado ? 1 + kEf * (1 - r.icms / 100) : 1;
+      const C = custo(t);
+      let Ppf;
+      if (inp.politicaPF === 'manter') {
+        Ppf = P0 / g;
+      } else {
+        const den = 1 - r.icms / 100 - (r.pc / 100) * (1 - r.icms / 100) - (inp.rt / 100) * g - inp.m / 100;
+        if (den <= 0.02) return { erro: `Em ${t}, RT, tributos e margem passam de 98% do preço. Reduza a RT ou a margem alvo.` };
+        Ppf = (C + F) / den;
+      }
+      Ppf = rhe(Ppf, 2);
+      const pf = avaliar(Ppf, r, red, C, F, inp.rt, false);
+      const Ppj = rhe(Ppf + (inp.captura / 100) * (pf.contrato - Ppf), 2);
+      const pj = avaliar(Ppj, r, red, C, F, inp.rt, tipo.credito);
+      const creditoCompras = rhe(compras(t) * kCheio, 2);
+      anos.push({ t, fase: FASE[t], r, kEf, C, F, pf, pj, creditoCompras, recolherPF: rhe(pf.trib.total - creditoCompras, 2) });
+    }
+    return { P0, F, tipo, pc, anos };
+  }
+
+  return { rhe, tributo, ibscbs, regras, simular, TIPOS, ANOS, FASE };
+})();
+// ENGINE END
+
+if (typeof module !== 'undefined') module.exports = ENGINE;
+</script>
+
+<script>
+(() => {
+  if (typeof document === 'undefined') return;
+  const { rhe, ibscbs, simular, TIPOS, ANOS, FASE } = ENGINE;
+
+  const PADRAO = {
+    tipo: 'movel', ins: 30000, mo: 16000, serv: 4000, rt: 8, fix: 12, m: 12,
+    regime: 'presumido', icms: 18, cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85, residuo: 0,
+    politicaPF: 'repassar', captura: 30, ano: 2027,
+  };
+  const NUM = {
+    ins: { tipo: 'brl', max: 1e9 }, mo: { tipo: 'brl', max: 1e9 }, serv: { tipo: 'brl', max: 1e9 },
+    rt: { tipo: 'pct', max: 60 }, fix: { tipo: 'pct', max: 80 }, m: { tipo: 'pct', max: 80 },
+    icms: { tipo: 'pct', max: 40 }, cbs: { tipo: 'pct', max: 30 }, ibsUf: { tipo: 'pct', max: 30 }, ibsMun: { tipo: 'pct', max: 30 },
+    residuo: { tipo: 'pct', max: 30 },
+  };
+  const CHAVE = 'diametro-simulador-pfpj-v1';
+  let est = { ...PADRAO };
+  try {
+    const salvo = JSON.parse(localStorage.getItem(CHAVE) || 'null');
+    if (salvo && typeof salvo === 'object') {
+      for (const k of Object.keys(PADRAO)) if (k in salvo && typeof salvo[k] === typeof PADRAO[k]) est[k] = salvo[k];
+    }
+  } catch (e) { /* sem armazenamento: segue com o exemplo */ }
+  const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(est)); } catch (e) {} };
+
+  const $ = id => document.getElementById(id);
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const brl0 = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0, minimumFractionDigits: 0 });
+  const pct = (v, d = 1) => (v * 100).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%';
+  const aliq = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + '%';
+  const numFmt = (v, tipo) => tipo === 'brl'
+    ? v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : v.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
+  const sinal = v => Math.abs(v) < 0.0005 ? '' : (v > 0 ? '+' : '−');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function lerNumero(txt) {
+    let s = String(txt).trim().replace(/\s|R\$|%/g, '');
+    if (!s) return NaN;
+    if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+    return /^-?\d*\.?\d+$/.test(s) ? Number(s) : NaN;
+  }
+
+  // Campos numéricos
+  for (const [id, cfg] of Object.entries(NUM)) {
+    const el = $(id), campo = el.closest('.field');
+    el.value = numFmt(est[id], cfg.tipo);
+    el.addEventListener('input', () => {
+      const v = lerNumero(el.value);
+      const ok = Number.isFinite(v) && v >= 0 && v <= cfg.max;
+      campo.classList.toggle('erro', !ok);
+      let msg = campo.querySelector('.msg');
+      if (!ok) {
+        if (!msg) { msg = document.createElement('span'); msg.className = 'msg'; campo.appendChild(msg); }
+        msg.textContent = Number.isFinite(v) ? `Use um valor entre 0 e ${numFmt(cfg.max, cfg.tipo)}.` : 'Digite só números, como 30.000,00.';
+        return;
+      }
+      if (msg) msg.remove();
+      est[id] = v; atualizar();
+    });
+    el.addEventListener('blur', () => {
+      campo.classList.remove('erro'); const msg = campo.querySelector('.msg'); if (msg) msg.remove();
+      el.value = numFmt(est[id], cfg.tipo);
+    });
+  }
+  $('tipo').value = est.tipo;
+  $('tipo').addEventListener('change', e => { est.tipo = e.target.value; atualizar(); });
+  $('captura').value = est.captura;
+  $('captura').addEventListener('input', e => { est.captura = Number(e.target.value); atualizar(); });
+
+  function segmentado(id, chave, conv = v => v) {
+    const box = $(id);
+    box.addEventListener('click', e => {
+      const b = e.target.closest('button[data-v]'); if (!b) return;
+      est[chave] = conv(b.dataset.v); atualizar();
+    });
+  }
+  segmentado('regime', 'regime');
+  segmentado('politicaPF', 'politicaPF');
+  $('ano').innerHTML = ANOS.map(a => `<button type="button" data-v="${a}">${a}</button>`).join('');
+  segmentado('ano', 'ano', Number);
+  const marcar = (id, v) => $(id).querySelectorAll('button[data-v]').forEach(b => {
+    const on = String(b.dataset.v) === String(v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+  });
+
+  $('restaurar').addEventListener('click', () => {
+    est = { ...PADRAO };
+    for (const [id, cfg] of Object.entries(NUM)) {
+      $(id).value = numFmt(est[id], cfg.tipo); const c = $(id).closest('.field'); c.classList.remove('erro');
+      const m = c.querySelector('.msg'); if (m) m.remove();
+    }
+    $('tipo').value = est.tipo; $('captura').value = est.captura; atualizar();
+  });
+
+  function setAno(a) { est.ano = a; atualizar(); }
+
+  // Gráfico de linhas: um eixo, duas séries, rótulo direto no fim, crosshair com tooltip.
+  function grafico(el, series, fmtEixo, fmtTip, extraTip) {
+    const W = Math.max(280, el.clientWidth || 520), H = 236;
+    const m = { l: 62, r: 40, t: 14, b: 30 };
+    const n = ANOS.length, iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const vals = series.flatMap(s => s.v);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (hi - lo < Math.abs(hi) * 0.02 || hi === lo) { const pad = Math.max(Math.abs(hi) * 0.05, 0.01); lo -= pad; hi += pad; }
+    const span = hi - lo, bruto = span / 4, mag = 10 ** Math.floor(Math.log10(bruto));
+    const passo = [1, 2, 2.5, 5, 10].map(k => k * mag).find(s => s >= bruto) || 10 * mag;
+    const y0 = Math.floor(lo / passo) * passo, y1 = Math.ceil(hi / passo) * passo;
+    const ticks = []; for (let v = y0; v <= y1 + passo / 2; v += passo) ticks.push(v);
+    const X = i => m.l + (n === 1 ? iw / 2 : i * iw / (n - 1));
+    const Y = v => m.t + ih - (v - y0) / (y1 - y0) * ih;
+    const col = iw / (n - 1);
+    const si = ANOS.indexOf(est.ano);
+    let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(series.map(x => x.nome).join(' e '))} por ano">`;
+    s += `<rect x="${X(si) - col / 2}" y="${m.t}" width="${col}" height="${ih}" rx="6" fill="var(--panel-2)"></rect>`;
+    for (const t of ticks) {
+      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-width="1"></line>`;
+      s += `<text x="${m.l - 8}" y="${Y(t) + 4}" text-anchor="end" fill="var(--muted)">${esc(fmtEixo(t))}</text>`;
+    }
+    ANOS.forEach((a, i) => {
+      s += `<text x="${X(i)}" y="${H - 8}" text-anchor="middle" fill="${i === si ? 'var(--text)' : 'var(--muted)'}" font-weight="${i === si ? 700 : 400}">${a}</text>`;
+    });
+    for (const sr of series) {
+      const d = sr.v.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+      s += `<path d="${d}" fill="none" stroke="var(${sr.cor})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>`;
+    }
+    for (const sr of series) {
+      sr.v.forEach((v, i) => {
+        s += `<circle cx="${X(i)}" cy="${Y(v)}" r="${i === si ? 5 : 4}" fill="var(${sr.cor})" stroke="var(--panel)" stroke-width="2"></circle>`;
+      });
+    }
+    // Rótulos diretos no último ano, afastados se colidirem
+    const fim = series.map(sr => ({ sr, y: Y(sr.v[n - 1]) }));
+    if (fim.length === 2 && Math.abs(fim[0].y - fim[1].y) < 14) {
+      const mid = (fim[0].y + fim[1].y) / 2, up = fim[0].y <= fim[1].y ? 0 : 1;
+      fim[up].y = mid - 7; fim[1 - up].y = mid + 7;
+    }
+    for (const f of fim) s += `<text x="${X(n - 1) + 10}" y="${f.y + 4}" fill="var(--text)" font-weight="600">${esc(f.sr.curto)}</text>`;
+    s += `<line class="cruz" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"></line>`;
+    ANOS.forEach((a, i) => { s += `<rect class="alvo" data-i="${i}" x="${X(i) - col / 2}" y="${m.t}" width="${col}" height="${ih + m.b}" fill="transparent" style="cursor:pointer"></rect>`; });
+    s += '</svg>';
+    el.innerHTML = s + '<div class="tooltip" hidden></div>';
+    const svg = el.querySelector('svg'), tip = el.querySelector('.tooltip'), cruz = svg.querySelector('.cruz');
+    svg.querySelectorAll('.alvo').forEach(r => {
+      const i = Number(r.dataset.i);
+      r.addEventListener('mouseenter', () => {
+        cruz.setAttribute('x1', X(i)); cruz.setAttribute('x2', X(i)); cruz.setAttribute('visibility', 'visible');
+        tip.innerHTML = `<b>${ANOS[i]} · ${esc(FASE[ANOS[i]])}</b>` + series.map(sr =>
+          `<div class="l"><span><i class="dot" style="background:var(${sr.cor})"></i>${esc(sr.nome)}</span><span class="mono">${esc(fmtTip(sr.v[i]))}</span></div>`).join('') +
+          (extraTip ? `<div class="l"><span>${esc(extraTip.rot)}</span><span class="mono">${esc(extraTip.f(i))}</span></div>` : '');
+        tip.hidden = false;
+        const escala = el.clientWidth / W;
+        let left = X(i) * escala + 12;
+        if (left + 190 > el.clientWidth) left = X(i) * escala - 190;
+        tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '8px';
+      });
+      r.addEventListener('mouseleave', () => { tip.hidden = true; cruz.setAttribute('visibility', 'hidden'); });
+      r.addEventListener('click', () => setAno(ANOS[i]));
+    });
+  }
+
+  const eixoBRL = v => Math.abs(v) >= 1e6 ? 'R$ ' + (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mi'
+    : 'R$ ' + (v / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil';
+  const eixoPct = v => (v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+
+  function etiquetaMargem(mg) {
+    const alvo = est.m / 100;
+    if (mg <= 0) return `<span class="etiqueta perigo">prejuízo</span>`;
+    if (mg + 0.0005 < alvo) return `<span class="etiqueta alerta">abaixo do alvo</span>`;
+    if (mg > alvo + 0.0005) return `<span class="etiqueta ok">acima do alvo</span>`;
+    return `<span class="etiqueta ok">no alvo</span>`;
+  }
+
+  let ultimo = null;
+  function atualizar() {
+    salvar();
+    marcar('regime', est.regime); marcar('politicaPF', est.politicaPF); marcar('ano', est.ano);
+    $('captura-out').textContent = est.captura + '%';
+    $('residuo-campo').hidden = est.regime !== 'presumido';
+    $('regime-info').textContent = est.regime === 'real' ? 'PIS/Cofins não cumulativo de 9,25% em 2026' : 'PIS/Cofins cumulativo de 3,65% em 2026';
+    $('pf-info').textContent = est.politicaPF === 'manter'
+      ? 'O PF paga o mesmo valor de contrato de 2026; a marcenaria absorve a diferença.'
+      : 'Preço recalculado a cada ano para manter a margem alvo.';
+    $('tipo-info').textContent = TIPOS[est.tipo].info;
+    $('pleno').value = numFmt(rhe(est.cbs + est.ibsUf + est.ibsMun, 4), 'pct');
+
+    const sim = simular(est);
+    const erro = $('erro');
+    if (sim.erro) {
+      erro.textContent = sim.erro; erro.hidden = false;
+      document.querySelectorAll('.resultado > :not(#erro):not(.anos)').forEach(e => e.style.opacity = .35);
+      return;
+    }
+    erro.hidden = true;
+    document.querySelectorAll('.resultado > *').forEach(e => e.style.opacity = '');
+    ultimo = sim;
+    const a = sim.anos.find(x => x.t === est.ano), base = sim.anos[0];
+    const { pf, pj } = a;
+
+    // Destaque
+    const vant = rhe(pf.custoEfetivo - pj.custoEfetivo, 2);
+    $('big-rot').textContent = `Vantagem de custo do cliente PJ em ${a.t}`;
+    $('big').textContent = brl0(vant);
+    $('big-sub').textContent = pf.custoEfetivo > 0 ? `${pct(vant / pf.custoEfetivo)} a menos que o PF pelo mesmo projeto` : '';
+    const frases = [];
+    if (a.t === 2026) {
+      frases.push(`Em 2026, ano de teste, a CBS de 0,9% e o IBS de 0,1% saem destacados na nota (${brl(pf.trib.total)} neste projeto), mas são compensáveis com PIS/Cofins. PF e PJ pagam o mesmo: <b>${brl(pf.contrato)}</b>.`);
+    } else if (pf.trib.total === 0) {
+      frases.push(`Com redução de 100%, não há IBS/CBS a cobrar em ${a.t}. PF e PJ pagam o mesmo contrato de <b>${brl(pf.contrato)}</b>.`);
+    } else {
+      frases.push(`Em ${a.t}, o projeto sai por <b>${brl(pf.contrato)}</b> para o cliente PF. O cliente PJ paga <b>${brl(pj.contrato)}</b>, recupera ${brl(pj.credito)} de IBS/CBS e fica com custo efetivo de <b>${brl(pj.custoEfetivo)}</b>.`);
+    }
+    const varPF = pf.contrato / base.pf.contrato - 1;
+    if (a.t !== 2026) {
+      if (est.politicaPF === 'manter') {
+        frases.push(`Mantendo o contrato de 2026 para o PF, sua margem nesse canal vai de ${pct(base.pf.margem)} para <b>${pct(pf.margem)}</b>.`);
+      } else {
+        frases.push(Math.abs(varPF) < 0.0005 ? `Repassando o tributo, o contrato do PF fica igual ao de 2026 e a margem em ${pct(pf.margem)}.` : `Repassando o tributo, o contrato do PF ${varPF > 0 ? 'sobe' : 'cai'} ${pct(Math.abs(varPF))} em relação a 2026 e a margem fica em ${pct(pf.margem)}.`);
+      }
+      if (est.captura > 0 && pj.credito > 0) {
+        frases.push(`Cobrando do PJ ${est.captura}% da vantagem de crédito, a margem na venda PJ chega a <b>${pct(pj.margem)}</b> e o cliente ainda paga ${brl0(vant)} a menos que o PF.`);
+      } else if (pj.credito > 0) {
+        frases.push(`Com o mesmo preço nos dois canais, toda a vantagem do crédito fica com o cliente PJ: um argumento de venda para lojas, construtoras e escritórios.`);
+      }
+      const pior = sim.anos.slice(1).reduce((x, y) => y.pf.margem < x.pf.margem ? y : x);
+      if (est.politicaPF === 'manter' && pior.pf.margem < base.pf.margem - 0.0005) {
+        frases.push(`O aperto maior na venda PF é em ${pior.t}: margem de ${pct(pior.pf.margem)}.`);
+      }
+    }
+    $('resumo').innerHTML = frases.map(f => `<p>${f}</p>`).join('');
+
+    // Cartões PF e PJ
+    const linha = (rot, val, forte) => `<div${forte ? ' class="forte"' : ''}><dt>${rot}</dt><dd>${val}</dd></div>`;
+    const ibsTxt = a.t === 2026 ? 'IBS/CBS destacado (compensável)' : 'IBS/CBS na nota';
+    $('card-pf').innerHTML =
+      linha('Preço do produto', brl(pf.P)) +
+      linha(ibsTxt, brl(pf.trib.total)) +
+      linha('Valor do contrato', brl(pf.contrato)) +
+      linha('Crédito recuperado', brl(0)) +
+      linha('Custo efetivo', brl(pf.custoEfetivo), true) +
+      linha('Variação do contrato vs 2026', sinal(varPF) + pct(Math.abs(varPF))) +
+      linha('Margem da marcenaria', `${etiquetaMargem(pf.margem)} ${pct(pf.margem)}`);
+    const varPJ = pj.custoEfetivo / base.pj.custoEfetivo - 1;
+    $('card-pj').innerHTML =
+      linha('Preço do produto', brl(pj.P)) +
+      linha(ibsTxt, brl(pj.trib.total)) +
+      linha('Valor do contrato', brl(pj.contrato)) +
+      linha('Crédito recuperado', brl(pj.credito)) +
+      linha('Custo efetivo', brl(pj.custoEfetivo), true) +
+      linha('Variação do custo vs 2026', sinal(varPJ) + pct(Math.abs(varPJ))) +
+      linha('Margem da marcenaria', `${etiquetaMargem(pj.margem)} ${pct(pj.margem)}`);
+
+    desenharGraficos();
+
+    // Resultado do ano (DRE)
+    $('dre-tit').textContent = `Resultado do projeto em ${a.t}`;
+    const L = (rot, f, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${rot}</td><td>${f(pf)}</td><td>${f(pj)}</td></tr>`;
+    const neg = v => v ? '−' + brl(v) : brl(0);
+    $('dre').innerHTML = `<thead><tr><th>${a.t} · ${esc(a.fase)}</th><th>Venda PF</th><th>Venda PJ</th></tr></thead><tbody>` +
+      L('Valor do contrato (o que o cliente paga)', x => brl(x.contrato), 'total') +
+      L(a.t === 2026 ? '(−) IBS/CBS cobrado no contrato (2026: não cobrado)' : '(−) IBS/CBS repassado ao fisco', x => neg(x.cobrado)) +
+      L('= Receita da marcenaria', x => brl(x.P), 'total') +
+      L('(−) ICMS', x => neg(x.d.icms)) +
+      L('(−) PIS/Cofins', x => neg(x.d.pc)) +
+      L(`(−) RT / comissão (${numFmt(est.rt, 'pct')}% do contrato)`, x => neg(x.comissao)) +
+      L('(−) Custos diretos', () => neg(a.C)) +
+      L('(−) Despesas fixas', () => neg(a.F)) +
+      L('= Lucro antes de IRPJ/CSLL', x => brl(x.lucro), 'total') +
+      L('Margem líquida', x => pct(x.margem), 'total') +
+      L('Crédito de IBS/CBS do cliente', x => brl(x.credito), 'sub') +
+      L('Custo efetivo para o cliente', x => brl(x.custoEfetivo), 'sub') +
+      '</tbody>';
+
+    // Ano a ano
+    $('tab-anos').innerHTML = `<thead><tr><th>Ano</th><th>Fase</th><th>CBS</th><th>IBS</th><th>ICMS</th><th>Base IBS/CBS<br>(PF)</th><th>IBS/CBS<br>(PF)</th><th>Contrato<br>PF</th><th>Margem<br>PF</th><th>Contrato<br>PJ</th><th>Custo efetivo<br>PJ</th><th>Margem<br>PJ</th><th>IBS/CBS a recolher<br>(PF, estim.)</th></tr></thead><tbody>` +
+      sim.anos.map(x => `<tr class="clicavel${x.t === est.ano ? ' sel' : ''}" data-ano="${x.t}" tabindex="0">
+        <td>${x.t}</td><td class="txt">${esc(x.fase)}</td><td>${aliq(x.pf.trib.cbs.pEf)}</td><td>${aliq(rhe(x.pf.trib.uf.pEf + x.pf.trib.mun.pEf, 4))}</td><td>${aliq(x.r.icms)}</td>
+        <td>${brl(x.pf.trib.vBC)}</td><td>${brl(x.pf.trib.total)}</td><td>${brl(x.pf.contrato)}</td><td>${pct(x.pf.margem)}</td>
+        <td>${brl(x.pj.contrato)}</td><td>${brl(x.pj.custoEfetivo)}</td><td>${pct(x.pj.margem)}</td><td>${x.t === 2026 ? '—' : brl(x.recolherPF)}</td></tr>`).join('') + '</tbody>';
+    $('tab-anos').querySelectorAll('tr[data-ano]').forEach(tr => {
+      tr.addEventListener('click', () => setAno(Number(tr.dataset.ano)));
+      tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAno(Number(tr.dataset.ano)); } });
+    });
+  }
+
+  function desenharGraficos() {
+    if (!ultimo) return;
+    const anos = ultimo.anos;
+    grafico($('g-custo'), [
+      { nome: 'Cliente PF', curto: 'PF', cor: '--pf', v: anos.map(x => x.pf.custoEfetivo) },
+      { nome: 'Cliente PJ', curto: 'PJ', cor: '--pj', v: anos.map(x => x.pj.custoEfetivo) },
+    ], eixoBRL, brl0, { rot: 'Diferença', f: i => brl0(anos[i].pf.custoEfetivo - anos[i].pj.custoEfetivo) });
+    grafico($('g-margem'), [
+      { nome: 'Venda PF', curto: 'PF', cor: '--pf', v: anos.map(x => x.pf.margem) },
+      { nome: 'Venda PJ', curto: 'PJ', cor: '--pj', v: anos.map(x => x.pj.margem) },
+    ], eixoPct, v => pct(v), { rot: 'Alvo', f: () => pct(est.m / 100) });
+  }
+  if ('ResizeObserver' in window) {
+    let raf = 0;
+    const ro = new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(desenharGraficos); });
+    ro.observe($('g-custo')); ro.observe($('g-margem'));
+  } else window.addEventListener('resize', desenharGraficos);
+
+  // Conferência com a Calculadora oficial
+  const CASOS = [
+    { desc: 'Cozinha planejada 2026 · base 38.000,00 · CBS 0,9% · IBS 0,1%', fonte: 'API', api: { CBS: 342.00, IBS: 38.00 },
+      calc: () => { const t = ibscbs(38000, { cbs: 0.9, ibsUf: 0.1, ibsMun: 0 }, 0); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'Projeto 2027 · base 77.044,00 sem ICMS · CBS 8,8% · IBS 0,05% + 0,05%', fonte: 'API', api: { CBS: 6779.87, IBS: 77.04 },
+      calc: () => { const t = ibscbs(77044, { cbs: 8.8, ibsUf: 0.05, ibsMun: 0.05 }, 0); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'Projeto 2033 · base 94.000,00 · CBS 8,8% · IBS 8,85% + 8,85%', fonte: 'API', api: { CBS: 8272.00, IBS: 16638.00 },
+      calc: () => { const t = ibscbs(94000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }, 0); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'Maca clínica 2033 · NCM 9402.90 · cClassTrib 200030 · redução de 60% · base 18.000,00', fonte: 'API', api: { CBS: 633.60, IBS: 1274.40 },
+      calc: () => { const t = ibscbs(18000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }, 60); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'Base unificada 2026 · operação 94.000,00 − ICMS 16.956,00 − PIS 611,94 − Cofins 2.826,00', fonte: 'API', api: { Base: 73606.06 },
+      calc: () => ({ Base: rhe(94000 - 16956 - 611.94 - 2826, 2) }) },
+    { desc: 'Empate para o par · base 25,00 · CBS 0,9%', fonte: 'API', api: { CBS: 0.22 },
+      calc: () => ({ CBS: ibscbs(25, { cbs: 0.9, ibsUf: 0, ibsMun: 0 }, 0).cbs.v }) },
+  ];
+  let okTodos = true;
+  $('conf').innerHTML = CASOS.map(c => {
+    const v = c.calc();
+    const ok = Object.keys(c.api).every(k => Math.abs(v[k] - c.api[k]) < 0.005);
+    okTodos = okTodos && ok;
+    const vals = Object.keys(c.api).map(k => `${k}: oficial ${brl(c.api[k])} · simulador ${brl(v[k])}`).join('<br>');
+    return `<div><div><div>${esc(c.desc)}</div><div class="vals">${vals}</div></div>${ok ? '<span class="etiqueta ok">confere</span>' : '<span class="etiqueta perigo">diverge</span>'}</div>`;
+  }).join('');
+  $('conf-status').innerHTML = okTodos ? `<span class="etiqueta ok md">${CASOS.length} de ${CASOS.length} casos conferem</span>` : '<span class="etiqueta perigo md">Há divergência</span>';
+
+  atualizar();
+})();
+</script>
+</body>
+</html>
