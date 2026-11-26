@@ -455,6 +455,7 @@ button.sm { padding: 4px 10px; font-size: 13px; }
             <div class="field" data-campo="qFap"><label for="qFap">FAP da empresa</label><div class="inp"><input id="qFap" inputmode="decimal" autocomplete="off"><span class="un dir">0,5 a 2</span></div></div>
             <div class="field" data-campo="qDespPJ"><label for="qDespPJ">Despesas mensais com empresas do regime regular</label><div class="inp"><span class="un">R$</span><input id="qDespPJ" inputmode="decimal" autocomplete="off"></div><small>Energia, aluguel pago a empresa, software, contabilidade. Frota e frete têm campo próprio.</small></div>
             <div class="field"><label for="qMontagem">Quem faz a montagem</label><select id="qMontagem"><option value="clt">Equipe própria registrada</option><option value="mei">Montadores MEI ou autônomos</option><option value="empresa">Empresa de montagem</option></select></div>
+            <div class="field"><label for="qMontAut">Montadores trabalham por empreitada, sem horário e sem exclusividade?</label><select id="qMontAut"><option value="sim">Sim</option><option value="parte">Em parte</option><option value="nao">Não: têm horário e exclusividade</option></select><small>Vale para montadores MEI ou autônomos.</small></div>
             <div class="field"><label for="qPejot">Converter funcionários em PJ</label><select id="qPejot"><option value="nao">Não pensamos nisso</option><option value="avaliando">Estamos avaliando</option></select></div>
             <div class="full"><h2>Frota, máquinas e logística</h2></div>
             <div class="field" data-campo="qVeicOp"><label for="qVeicOp">Veículos usados na operação</label><div class="inp"><input id="qVeicOp" inputmode="decimal" autocomplete="off"><span class="un dir">veículos</span></div><small>Entrega, montagem e medição.</small></div>
@@ -960,17 +961,25 @@ const ENGINE = (() => {
     // 13. Contratar funcionário como PJ (pejotização)
     const simples = rec === 'sn' || rec === 'hb', fatorEnc = simples ? 0.29 : 0.63, econ = folhaAno * fatorEnc;
     if (inp.qPejot === 'avaliando' && folhaAno > 0) add({ id: 'pejot', aplica: true, sem: 'vermelho', valida: 'Advogado trabalhista', titulo: 'Transformar funcionários em PJ', rotulo: `aparente: ${R(econ)} por ano`,
-      porque: `A conta vendida é economizar os encargos da CLT (${simples ? 'FGTS, férias e 13º; no Simples o INSS patronal já está no DAS' : 'INSS patronal, RAT, terceiros, FGTS, férias e 13º'}) e ainda tomar crédito. Na sua folha, a economia aparente é de ${R(econ)} por ano. Mas se a pessoa continua com horário, chefe, exclusividade e trabalho pessoal, é emprego: a Justiça reconhece o vínculo e a Receita cobra o INSS com multa de 75% a 150%, até 5 anos para trás, o que dá cerca de ${R(econ * 5)} mais multas e juros. E o crédito não vem: um montador MEI gera crédito de IBS/CBS praticamente nulo. O STF ainda julga o tema (Tema 1389), sem decisão final.`,
+      porque: `A conta vendida é economizar os encargos da CLT (${simples ? 'FGTS, férias e 13º; no Simples o INSS patronal já está no DAS' : 'INSS patronal, RAT, terceiros, FGTS, férias e 13º'}) e ainda tomar crédito. Na sua folha, a economia aparente é de ${R(econ)} por ano. Mas se a pessoa continua com horário, chefe, exclusividade e trabalho pessoal, é emprego: a Justiça reconhece o vínculo e a Receita cobra o INSS com multa de 75% a 150%, até 5 anos para trás, o que dá cerca de ${R(econ * 5)} mais multas e juros. E o crédito não vem: um montador MEI gera crédito de IBS/CBS praticamente nulo. O STF ainda julga o tema (Tema 1389), sem decisão final. Montador por empreitada, sem horário e sem exclusividade, é outro caso: prestação de serviço legítima (veja a alavanca de montagem).`,
       passos: ['Não converter em PJ quem trabalha com subordinação', 'Se o objetivo é custo, atacar produtividade, perdas e retrabalho na fábrica', 'Se a montagem pode ser terceirizada de verdade, contratar empresa com estrutura própria'] });
     else add({ id: 'pejot', aplica: false, titulo: 'Transformar funcionários em PJ', motivo: folhaAno > 0 ? 'não há plano de converter funcionários em PJ' : 'folha de salários não informada' });
 
     // 14. Montagem terceirizada
     const montAno = inp.outros * N, cMont = montAno * k27 / (1 + k27);
-    if (inp.qMontagem === 'mei') add({ id: 'montagem', aplica: true, sem: 'amarelo', valida: 'Advogado trabalhista e contador', titulo: 'Montadores MEI e autônomos',
-      rotulo: credita ? `até ${R(cMont)} por ano em crédito` : null,
-      porque: 'A montagem é feita por MEI ou autônomos. Para não virar vínculo, cada um precisa de autonomia de verdade: vários clientes, ferramentas próprias, preço por serviço e agenda própria. E o MEI gera crédito de IBS/CBS praticamente nulo.' +
-        (credita ? ` Com uma empresa de montagem do regime regular pelo mesmo preço líquido, os cerca de ${R(montAno)} por ano em montagem e frete renderiam até ${R(cMont)} de crédito em 2027.` : ''),
-      passos: ['Conferir a autonomia de cada montador: clientes, ferramentas, agenda e preço', 'Contrato por serviço, sem exclusividade e sem horário', credita ? 'Cotar empresas de montagem do regime regular e comparar o preço líquido do crédito' : null].filter(Boolean) });
+    const checklist = ['Contrato por empreitada, com escopo, prazo e preço de cada projeto', 'Nota fiscal do MEI em toda empreitada; autônomo sem CNPJ tem encargos próprios, a confirmar com o contador', 'Pagamento por projeto entregue, nunca salário fixo por mês', 'Liberdade real: o montador define como e quando executa, usa ferramentas próprias e pode recusar projeto', 'Sem rotina de empregado: sem horário, ponto, crachá ou chefe dando ordens no dia a dia', 'Guardar sinais de que ele atende outras marcenarias e não depender de um único montador por anos'];
+    const credMont = credita ? ` Para ter crédito de IBS/CBS, a alternativa é uma empresa de montagem do regime regular: nos cerca de ${R(montAno)} por ano em montagem e frete, até ${R(cMont)} em 2027.` : '';
+    if (inp.qMontagem === 'mei' && inp.qMontAut === 'nao') add({ id: 'montagem', aplica: true, sem: 'vermelho', valida: 'Advogado trabalhista', titulo: 'Montadores com rotina de empregado', rotulo: `passivo de até ${R(montAno * fatorEnc * 5)} em 5 anos`,
+      porque: `Com horário, exclusividade e chefe, o montador contratado como MEI é empregado: a Justiça reconhece o vínculo e a Receita cobra os encargos com multa. Nos cerca de ${R(montAno)} por ano pagos à montagem, isso dá encargos de cerca de ${R(montAno * fatorEnc)} por ano, até 5 anos para trás, mais multas e juros.`,
+      passos: ['Registrar quem trabalha como empregado', 'Ou reestruturar para empreitada de verdade, cumprindo o checklist de autonomia', 'Revisar com advogado trabalhista os contratos atuais'] });
+    else if (inp.qMontagem === 'mei' && inp.qMontAut === 'parte') add({ id: 'montagem', aplica: true, sem: 'amarelo', valida: 'Advogado trabalhista e contador', titulo: 'Montagem por empreitada: ajustar a autonomia',
+      rotulo: credita ? `até ${R(cMont)} por ano em crédito` : 'corrigir antes que vire vínculo',
+      porque: `A montagem por empreitada é prestação de serviço legítima, mas parte da rotina hoje lembra emprego. O risco está na prova do dia a dia: corrija os pontos do checklist antes que um montador entre com reclamação trabalhista. O MEI gera crédito de IBS/CBS praticamente nulo.${credMont}`,
+      passos: checklist });
+    else if (inp.qMontagem === 'mei') add({ id: 'montagem', aplica: true, sem: 'verde', valida: 'Contador e advogado trabalhista', titulo: 'Montagem por empreitada (MEI)',
+      rotulo: credita ? `até ${R(cMont)} por ano em crédito` : 'manter a blindagem',
+      porque: `Montador que pega um projeto, entrega e só pega outro se quiser, sem horário e sem exclusividade, é prestador de serviço, não empregado. É uma estrutura legítima e econômica; o cuidado é manter a prova em dia, porque numa reclamação trabalhista vale a rotina real, não o contrato. O MEI gera crédito de IBS/CBS praticamente nulo.${credMont}`,
+      passos: checklist });
     else if (inp.qMontagem === 'empresa') add({ id: 'montagem', aplica: true, sem: credita ? 'verde' : 'amarelo', valida: 'Contador', titulo: 'Montagem terceirizada com empresa',
       rotulo: credita ? `até ${R(cMont)} por ano em crédito` : null,
       porque: credita ? `Com a empresa de montagem no regime regular, os cerca de ${R(montAno)} por ano em montagem e frete geram até ${R(cMont)} de crédito de IBS/CBS em 2027. Se ela estiver no Simples, o crédito cai para cerca de 1,3% do valor.`
@@ -1057,7 +1066,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     qEmpresa: 'Marcenaria Exemplo', qUf: 'SP', qResp: '', qClin: 10, qAcess: 0, qFornSN: 20, qCarteira: 150000, qMaq: 120000, qRetirada: 30000,
     qCprb: 'naosei', qImovel: 'socio', qSeparar: 'nao',
     qFolha: 36000, qRat: '3', qFap: 1, qDespPJ: 15000, qMontagem: 'mei', qPejot: 'avaliando',
-    qVeicOp: 3, qGastoFrota: 6000, qVeicSocio: 2, qBens: 800000, qEntrega: 'propria', qFrete: 0, qTurnos: '1', ctxExtra: '',
+    qVeicOp: 3, qGastoFrota: 6000, qVeicSocio: 2, qBens: 800000, qEntrega: 'propria', qFrete: 0, qTurnos: '1', qMontAut: 'sim', ctxExtra: '',
   };
   const NUM = {
     rbt: { tipo: 'brl', max: 1e10 }, icms: { tipo: 'pct', max: 40 }, enc: { tipo: 'pct', max: 60 },
@@ -1121,7 +1130,7 @@ if (typeof module !== 'undefined') module.exports = ENGINE;
     const b = e.target.closest('button[data-v]'); if (!b) return; est[chave] = conv(b.dataset.v); atualizar();
   });
   segmentado('atual', 'atual'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente'); segmentado('qCprb', 'qCprb');
-  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar', 'qRat', 'qMontagem', 'qPejot', 'qEntrega', 'qTurnos'];
+  const TXT = ['qEmpresa', 'qResp'], SEL = ['qUf', 'qImovel', 'qSeparar', 'qRat', 'qMontagem', 'qPejot', 'qEntrega', 'qTurnos', 'qMontAut'];
   const preencherQ = () => { TXT.forEach(id => { $(id).value = est[id]; }); SEL.forEach(id => { $(id).value = est[id]; }); };
   TXT.forEach(id => $(id).addEventListener('input', e => { est[id] = e.target.value.slice(0, 80); atualizar(); }));
   SEL.forEach(id => $(id).addEventListener('change', e => { est[id] = e.target.value; atualizar(); }));
@@ -1497,7 +1506,7 @@ Contexto legal (novembro de 2026; confirme o que for usar):
 - Lucro Real: IRPJ de 15% mais adicional de 10% sobre o lucro acima de R$ 240 mil por ano; CSLL de 9%. Despesas necessárias, depreciação e manutenção reduzem o imposto. A depreciação de bens móveis pode ser acelerada pelo número de turnos (1,5 vez com dois turnos de 8 horas, 2 vezes com três). Gasto que aumenta a vida útil do bem em mais de um ano é capitalizado. Veículos só são dedutíveis se ligados à produção ou à venda.
 - Lucros e dividendos (Lei 15.270/2025): retenção de 10% sobre o total pago no mês acima de R$ 50 mil, da mesma empresa ao mesmo sócio; IR mínimo para rendas acima de R$ 600 mil por ano.
 - Folha: fim da desoneração (CPRB) em 2028 (Lei 14.973/2024). RAT de 1% a 3% multiplicado pelo FAP (0,5 a 2), contestável todo ano; estabelecimento com CNPJ próprio pode ter o RAT do próprio risco (Súmula 351 do STJ).
-- Pessoa jurídica no lugar de empregado: tema em julgamento no STF (Tema 1389), sem decisão final. Havendo subordinação, horário, exclusividade e pessoalidade, há vínculo.
+- Pessoa jurídica no lugar de empregado: tema em julgamento no STF (Tema 1389), sem decisão final. Havendo subordinação, horário, exclusividade e pessoalidade, há vínculo. Já o montador por empreitada (contrato por projeto, nota fiscal, pagamento por entrega, sem horário, sem exclusividade, atendendo outras marcenarias) é prestação de serviço legítima: trate como [VERDE] quando a rotina confirma a autonomia, ou [AMARELO] quando parte dela lembra emprego, sempre listando as provas a manter.
 - Norma antielisiva (CTN, art. 116, parágrafo único): atos sem propósito negocial ou com abuso de forma podem ser desconsiderados.
 
 Como classificar cada tese:
@@ -1553,7 +1562,7 @@ Como responder:
     q('Outra empresa para dividir o faturamento', { nao: 'não', avaliando: 'avaliando', grupo: 'o grupo já tem mais de uma' }[est.qSeparar]);
     q('Folha mensal de salários', brl0(est.qFolha)); q('RAT e FAP', `${est.qRat}% × ${numFmt(est.qFap, 'pct')}`);
     q('Despesas mensais com empresas do regime regular', brl0(est.qDespPJ));
-    q('Montagem', { clt: 'equipe própria registrada', mei: 'montadores MEI ou autônomos', empresa: 'empresa de montagem' }[est.qMontagem]);
+    q('Montagem', { clt: 'equipe própria registrada', mei: 'montadores MEI ou autônomos', empresa: 'empresa de montagem' }[est.qMontagem] + (est.qMontagem === 'mei' ? `; trabalham por empreitada, sem horário e sem exclusividade: ${{ sim: 'sim', parte: 'em parte', nao: 'não' }[est.qMontAut]}` : ''));
     q('Converter funcionários em PJ', est.qPejot === 'avaliando' ? 'avaliando' : 'não');
     q('Frota', `${est.qVeicOp} veículos de operação; gasto mensal ${brl0(est.qGastoFrota)}; ${est.qVeicSocio} carros usados pelos sócios; frota e máquinas valem ${brl0(est.qBens)}`);
     q('Entrega', `${{ propria: 'frota própria', transportadora: 'transportadora contratada', grupo: 'transportadora do grupo', autonomos: 'transportador autônomo' }[est.qEntrega]}; frete de terceiros ${brl0(est.qFrete)} por mês`);
