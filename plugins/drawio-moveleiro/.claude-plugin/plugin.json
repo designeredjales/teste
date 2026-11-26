@@ -1,0 +1,19 @@
+{
+  "name": "drawio-moveleiro",
+  "version": "1.0.0",
+  "description": "Diagramas de gestão no draw.io com canvas ao vivo: fluxos em raias (AS-IS/TO-BE), mapas de gargalo, organogramas com dependência do dono e jornadas do cliente para marcenarias e fábricas de móveis sob medida.",
+  "author": {
+    "name": "designeredjales"
+  },
+  "homepage": "https://github.com/designeredjales/teste/tree/main/plugins/drawio-moveleiro",
+  "repository": "https://github.com/designeredjales/teste",
+  "keywords": [
+    "drawio",
+    "diagramas",
+    "processos",
+    "gestao",
+    "moveleiro",
+    "marcenaria",
+    "industria-4-0"
+  ]
+}
