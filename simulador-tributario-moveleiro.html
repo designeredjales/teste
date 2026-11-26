@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador Tributário Moveleiro · Diâmetro</title>
+<meta name="description" content="Simulador da Reforma Tributária para marcenarias: Lucro Presumido, Lucro Real e Simples Nacional, com custo do cliente PF e PJ, margem de 2026 a 2033 e decisão entre Simples puro e híbrido.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: painel de gestão Diâmetro. Premissas à esquerda, decisão à direita; um número de destaque por tela. */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --panel-2: #f0f2f5; --line: #e3e6eb;
+  --text: #16191f; --muted: #5d6573; --faint: #98a0ad;
+  --accent: #2f6fed; --accent-ink: #ffffff; --on-color: #ffffff;
+  --green: #0f9d76; --red: #d93b3b; --amber: #c77d10;
+  --sn: #8b5cf6; --hb: #0e9f9f;
+  --logo-ink: #000200; --logo-lime: #aabe09;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
+  --shadow-md: 0 10px 30px rgba(10, 14, 20, .18);
+  --sp-2: 4px; --sp-3: 6px; --sp-4: 8px; --sp-5: 12px; --sp-6: 16px; --sp-7: 24px;
+  --r-sm: 4px; --r-md: 8px; --radius: 10px; --r-pill: 999px;
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk", Inter, system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --panel: #171b21; --panel-2: #1f242c; --line: #2a3039;
+    --text: #e7eaee; --muted: #a3abb8; --faint: #6b7482;
+    --accent: #5b8cff; --accent-ink: #ffffff; --on-color: #0f1216;
+    --green: #2fbf94; --red: #f06363; --amber: #e3a23a;
+    --sn: #9d80f7; --hb: #27b0b0;
+    --logo-ink: #e7eaee; --logo-lime: #aabe09;
+    --shadow: none; --shadow-md: 0 10px 30px rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --panel: #171b21; --panel-2: #1f242c; --line: #2a3039;
+  --text: #e7eaee; --muted: #a3abb8; --faint: #6b7482;
+  --accent: #5b8cff; --accent-ink: #ffffff; --on-color: #0f1216;
+  --green: #2fbf94; --red: #f06363; --amber: #e3a23a;
+  --sn: #9d80f7; --hb: #27b0b0;
+  --logo-ink: #e7eaee; --logo-lime: #aabe09;
+  --shadow: none; --shadow-md: 0 10px 30px rgba(0, 0, 0, .45);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font-sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { margin: 0; line-height: 1.25; text-wrap: balance; }
+h1 { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+h3 { font-size: 16px; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+button, input, select { font: inherit; color: inherit; }
+button { background: var(--accent); color: var(--accent-ink); border: 1px solid transparent; border-radius: var(--r-md); padding: 7px 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+button:hover { filter: brightness(1.07); }
+button.ghost { background: transparent; color: var(--text); border-color: var(--line); }
+button.ghost:hover { background: var(--panel-2); filter: none; }
+button:focus-visible, input[type="range"]:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+
+.wrap {
+  max-width: 1320px; margin: 0 auto; padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: var(--sp-7);
+}
+.topo { display: flex; align-items: center; gap: var(--sp-6); flex-wrap: wrap; }
+.topo .mark { width: 62px; height: auto; flex: none; }
+.topo .tit { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; flex: 1 1 320px; }
+.topo .tit p { color: var(--muted); max-width: 72ch; }
+.topo .chips { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.layout { display: grid; grid-template-columns: 344px minmax(0, 1fr); gap: var(--sp-7); align-items: start; }
+@media (max-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr); } .resultado { order: -1; } }
+.lateral { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+@media (min-width: 1001px) { .lateral { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow-y: auto; padding-right: 4px; } }
+.resultado { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); min-width: 0; display: flex; flex-direction: column; gap: var(--sp-6); }
+.card > header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-5); flex-wrap: wrap; }
+
+.campos { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
+.campos .full { grid-column: 1 / -1; }
+.field { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.field > label, .field > .rot { font-size: 13px; font-weight: 600; color: var(--muted); }
+.field small { color: var(--muted); font-size: 12px; }
+.inp { display: flex; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); min-width: 0; }
+.inp:focus-within { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+.inp .un { padding-left: 10px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.inp .un.dir { padding: 0 10px 0 0; }
+.inp input { border: 0; background: transparent; outline: none; padding: 7px 10px; flex: 1; min-width: 0; width: 100%; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.field.erro .inp { border-color: var(--red); }
+.field .msg { color: var(--red); font-size: 12px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.faixa { display: flex; align-items: center; gap: var(--sp-5); }
+.faixa output { min-width: 44px; text-align: right; font-weight: 600; }
+.info { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 10px; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+.info b { color: var(--text); font-weight: 600; }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; background: var(--panel); max-width: 100%; }
+.seg button { background: transparent; color: var(--muted); border: 0; border-radius: 0; padding: 6px 12px; flex: 1 1 auto; white-space: normal; line-height: 1.3; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); font-weight: 600; }
+.seg.cheio { display: flex; width: 100%; }
+.seg.cheio button { padding: 6px 8px; }
+.rolagem { overflow-x: auto; max-width: 100%; }
+.anos .seg button { min-width: 58px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.etiqueta { --c: var(--muted); display: inline-flex; align-items: center; gap: var(--sp-2); white-space: nowrap; font-family: var(--font-sans); font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 var(--sp-3); border: 1px solid transparent; border-radius: var(--r-pill); color: color-mix(in srgb, var(--c) 66%, var(--text)); background: color-mix(in srgb, var(--c) 14%, transparent); }
+.etiqueta.md { font-size: 12px; line-height: 20px; padding: 0 var(--sp-4); }
+.etiqueta.neutra { background: var(--panel-2); border-color: var(--line); font-weight: 500; }
+.etiqueta.ok { --c: var(--green); } .etiqueta.alerta { --c: var(--amber); } .etiqueta.perigo { --c: var(--red); } .etiqueta.acao { --c: var(--accent); }
+.etiqueta.sn { --c: var(--sn); } .etiqueta.hb { --c: var(--hb); }
+
+.destaque { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: var(--sp-7); align-items: center; }
+@media (max-width: 720px) { .destaque { grid-template-columns: minmax(0, 1fr); } }
+.destaque .big { font-family: var(--font-display); font-size: 40px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+.destaque .rotulo { font-size: 13px; color: var(--muted); font-weight: 600; }
+.destaque .resumo { display: flex; flex-direction: column; gap: var(--sp-4); max-width: 70ch; }
+.destaque .resumo p { line-height: 1.55; }
+
+.regimes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+@media (max-width: 720px) { .regimes { grid-template-columns: minmax(0, 1fr); } }
+.regime header { align-items: center; justify-content: flex-start; }
+.regime header p { flex-basis: 100%; color: var(--muted); font-size: 13px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.sn { background: var(--sn); } .dot.hb { background: var(--hb); }
+.mini { width: 100%; font-size: 13px; }
+.mini th, .mini td { padding: 6px 0 6px 10px; }
+.mini th:first-child, .mini td:first-child { padding-left: 0; }
+.mini td:first-child { font-family: var(--font-sans); color: var(--muted); white-space: normal; }
+.mini tr.forte td { font-weight: 700; color: var(--text); }
+.mini tr:last-child td { border-bottom: 0; }
+.linhas { display: flex; flex-direction: column; margin: 0; }
+.linhas > div { display: flex; justify-content: space-between; gap: var(--sp-4); padding: 6px 0; border-top: 1px solid var(--line); align-items: baseline; flex-wrap: wrap; }
+.linhas > div:first-child { border-top: 0; padding-top: 0; }
+.linhas dt { color: var(--muted); font-size: 13px; min-width: 0; }
+.linhas dd { margin: 0; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
+.linhas .forte dt { color: var(--text); font-weight: 600; }
+.linhas .forte dd { font-weight: 700; font-size: 15px; }
+.vazio { color: var(--muted); font-size: 13px; padding: 12px 0; }
+
+.graficos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+@media (max-width: 1180px) { .graficos { grid-template-columns: minmax(0, 1fr); } }
+.legenda { display: flex; gap: var(--sp-6); flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legenda span { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.grafico { position: relative; min-width: 0; }
+.grafico svg { display: block; width: 100%; overflow: visible; }
+.grafico svg text { font-family: var(--font-mono); font-size: 11px; }
+.tooltip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-md); padding: 8px 10px; font-size: 12px; display: flex; flex-direction: column; gap: 3px; min-width: 180px; z-index: 5; }
+.tooltip .l { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.tooltip .l span:first-child { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+
+.tabela { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; vertical-align: bottom; }
+td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td.txt { font-family: var(--font-sans); }
+tbody tr.sel td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+tbody tr.clicavel { cursor: pointer; }
+tbody tr.clicavel:hover td { background: var(--panel-2); }
+tr.total td { font-weight: 700; }
+tr.sub td { color: var(--muted); }
+.dre td:first-child { font-family: var(--font-sans); white-space: normal; min-width: 210px; }
+.dre th:not(:first-child) { min-width: 118px; }
+thead tr.grupo th { text-align: center; border-bottom: 0; padding-bottom: 0; }
+
+.conf { display: flex; flex-direction: column; }
+.conf > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-5); padding: 9px 0; border-top: 1px solid var(--line); align-items: center; }
+.conf > div:first-child { border-top: 0; }
+.conf .vals { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); }
+.premissas { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: var(--sp-3); max-width: 92ch; }
+.premissas li { line-height: 1.5; }
+.aviso { border: 1px solid color-mix(in srgb, var(--red) 45%, var(--line)); background: color-mix(in srgb, var(--red) 8%, var(--panel)); border-radius: var(--radius); padding: 14px 16px; }
+.rodape { color: var(--muted); font-size: 12px; max-width: 100ch; }
+@media (prefers-reduced-motion: no-preference) { .seg button, button.ghost, tbody tr td { transition: background-color .15s; } }
+</style>
+<style>
+.dot.pf { background: var(--sn); } .dot.pj { background: var(--hb); }
+select { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); padding: 7px 10px; width: 100%; min-width: 0; }
+select:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+.regime-seg button { padding: 8px 6px; font-size: 13px; }
+.premissas h3 { font-size: 13px; margin-top: 4px; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-6); }
+@media (max-width: 720px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.cards .card header { align-items: center; justify-content: flex-start; }
+.cards .card header p { flex-basis: 100%; color: var(--muted); font-size: 13px; }
+.linhas .etiqueta { margin-right: 6px; }
+.barra-regime { padding: 14px 18px; }
+.barra-regime .field { gap: 8px; }
+.barra-regime .seg { max-width: 640px; }
+.barra-regime .seg button { padding: 9px 10px; font-size: 14px; }
+.anexos { display: flex; flex-direction: column; gap: var(--sp-6); min-width: 0; }
+</style>
+<style>html, body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topo">
+    <svg class="mark" viewBox="146 56 566 458" role="img" aria-label="Diâmetro">
+      <defs>
+        <marker style="overflow:visible" id="dmSeta" refX="0" refY="0" orient="auto-start-reverse" markerWidth="4.2071066" markerHeight="7" viewBox="0 0 4.2071068 7" preserveAspectRatio="xMidYMid">
+          <path style="fill:none;stroke:var(--logo-ink);stroke-width:1;stroke-linecap:round" d="M 3,-3 0,0 3,3" transform="rotate(180,0.125,0)"></path>
+        </marker>
+      </defs>
+      <g transform="translate(41.827397,6.6077261)">
+        <g style="fill:none" transform="matrix(2.0575241,0,0,2.0575241,-16.469864,-352.60605)">
+          <path d="m 244.6596,381.7838 c -19.2171,19.4137 -45.8822,31.4418 -75.3502,31.4418 -58.5465,0 -106.026,-47.4795 -106.026,-106.0262 0,-58.5467 47.4795,-106.0262 106.026,-106.0262 26.8075,0 51.2948,9.9546 69.966,26.3673" style="fill:none;fill-rule:evenodd;stroke:var(--logo-ink);stroke-width:8.5039;stroke-linecap:round;stroke-linejoin:miter"></path>
+          <path d="m 245.2039,233.1689 c 18.6431,19.1092 30.1319,45.231 30.1319,74.0305 0,26.2977 -9.5797,50.363 -25.4384,68.8948" style="fill:none;fill-rule:evenodd;stroke:var(--logo-lime);stroke-width:8.5039;stroke-linecap:round;stroke-linejoin:miter"></path>
+          <path d="m 251.2774,221.3083 18.7661,-21.137 h 58.2054" style="fill:none;fill-rule:evenodd;stroke:var(--logo-ink);stroke-width:3.75;stroke-linecap:round;stroke-linejoin:miter;marker-start:url(#dmSeta)"></path>
+          <path style="fill:var(--logo-lime);stroke-linecap:round;stroke-linejoin:round" d="m 169.93359,288.3125 a 1.875,1.875 0 0 0 -1.875,1.875 v 31.70117 a 1.875,1.875 0 0 0 1.875,1.875 1.875,1.875 0 0 0 1.875,-1.875 V 290.1875 a 1.875,1.875 0 0 0 -1.875,-1.875 z"></path>
+          <path style="fill:var(--logo-lime);stroke-linecap:round;stroke-linejoin:round" d="m 154.08203,304.16406 a 1.875,1.875 0 0 0 -1.875,1.875 1.875,1.875 0 0 0 1.875,1.875 h 31.70313 a 1.875,1.875 0 0 0 1.875,-1.875 1.875,1.875 0 0 0 -1.875,-1.875 z"></path>
+        </g>
+      </g>
+    </svg>
+    <div class="tit">
+      <h2>Diâmetro · Reforma Tributária do Consumo</h2>
+      <h1>Simulador Tributário Moveleiro</h1>
+      <p>Para marcenarias e fábricas de móveis: quanto o mesmo projeto custa para o cliente PF e para o cliente empresa, o que sobra de margem de 2026 a 2033 e, no Simples, se vale recolher IBS e CBS por fora.</p>
+    </div>
+    <div class="chips">
+      <span class="etiqueta neutra md">LC 123/2006 · LC 214/2025</span>
+      <span class="etiqueta acao md">Motor conferido com as Calculadoras da Receita</span>
+    </div>
+  </header>
+
+  <section class="card barra-regime" aria-labelledby="regime-rot">
+    <div class="field">
+      <h2 id="regime-rot">Regime tributário da marcenaria</h2>
+      <div class="seg cheio regime-seg" id="regime" role="group" aria-labelledby="regime-rot">
+        <button type="button" data-v="presumido">Lucro Presumido</button>
+        <button type="button" data-v="real">Lucro Real</button>
+        <button type="button" data-v="simples">Simples Nacional</button>
+      </div>
+      <small id="regime-info"></small>
+    </div>
+  </section>
+
+  <div class="layout">
+    <aside class="lateral" aria-label="Premissas">
+      <section class="card">
+        <header><h2>Empresa</h2><span class="etiqueta alerta">Exemplo</span></header>
+        <div class="campos">
+          <div class="field full" data-modo="sn">
+            <span class="rot" id="anexo-rot">Atividade no Simples</span>
+            <div class="seg cheio" id="anexo" role="group" aria-labelledby="anexo-rot">
+              <button type="button" data-v="II">Fabricação · Anexo II</button>
+              <button type="button" data-v="I">Revenda · Anexo I</button>
+            </div>
+          </div>
+          <div class="field full" data-campo="rbt" data-modo="sn">
+            <label for="rbt">Faturamento dos últimos 12 meses</label>
+            <div class="inp"><span class="un">R$</span><input id="rbt" inputmode="decimal" autocomplete="off"></div>
+            <div class="info" id="das-info"></div>
+          </div>
+          <div class="field full" data-modo="rr">
+            <label for="tipo">Tipo de produto</label>
+            <select id="tipo">
+              <option value="movel">Móveis planejados e estofados</option>
+              <option value="clinico">Mobiliário clínico (redução de 60%)</option>
+              <option value="acess">Acessibilidade PcD (redução de 100%)</option>
+            </select>
+            <small id="tipo-info"></small>
+          </div>
+          <div class="field full" data-campo="icms" data-modo="rr">
+            <label for="icms">ICMS na venda hoje (hipótese)</label>
+            <div class="inp"><input id="icms" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field full">
+            <label for="mix">Vendas para empresas (PJ)</label>
+            <div class="faixa"><input type="range" id="mix" min="0" max="100" step="5"><output id="mix-out" for="mix" class="mono">0%</output></div>
+            <small>Parte do faturamento com lojas, construtoras, escritórios, hotéis e clínicas do regime regular.</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header><h2>Projeto típico</h2></header>
+        <div class="campos">
+          <div class="field full" data-campo="ins">
+            <label for="ins">Insumos, pelo preço pago hoje</label>
+            <div class="inp"><span class="un">R$</span><input id="ins" inputmode="decimal" autocomplete="off"></div>
+            <small>MDF, ferragens, fitas, vidros, com os impostos que vêm na nota. O simulador desconta o que cada regime recupera.</small>
+          </div>
+          <div class="field full" data-campo="mo">
+            <label for="mo">Mão de obra própria</label>
+            <div class="inp"><span class="un">R$</span><input id="mo" inputmode="decimal" autocomplete="off"></div>
+          </div>
+          <div class="field full" data-campo="outros">
+            <label for="outros">Outros custos sem crédito</label>
+            <div class="inp"><span class="un">R$</span><input id="outros" inputmode="decimal" autocomplete="off"></div>
+            <small>Montador MEI, frete de autônomo, deslocamento.</small>
+          </div>
+          <div class="field" data-campo="rt">
+            <label for="rt">RT / comissão</label>
+            <div class="inp"><input id="rt" inputmode="decimal" autocomplete="off"><span class="un dir">% contrato</span></div>
+          </div>
+          <div class="field" data-campo="fix">
+            <label for="fix">Despesas fixas</label>
+            <div class="inp"><input id="fix" inputmode="decimal" autocomplete="off"><span class="un dir">% fatur.</span></div>
+          </div>
+          <div class="field full" data-campo="m">
+            <label for="m">Margem em 2026</label>
+            <div class="inp"><input id="m" inputmode="decimal" autocomplete="off"><span class="un dir">% da receita</span></div>
+            <small id="m-info"></small>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header><h2>Compras e alíquotas</h2></header>
+        <div class="campos">
+          <div class="field" data-campo="icmsF">
+            <label for="icmsF">ICMS do fornecedor</label>
+            <div class="inp"><input id="icmsF" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="pcF">
+            <label for="pcF">PIS/Cofins do fornecedor</label>
+            <div class="inp"><input id="pcF" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="cbs">
+            <label for="cbs">CBS cheia</label>
+            <div class="inp"><input id="cbs" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="ibsUf">
+            <label for="ibsUf">IBS estadual</label>
+            <div class="inp"><input id="ibsUf" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field" data-campo="ibsMun">
+            <label for="ibsMun">IBS municipal</label>
+            <div class="inp"><input id="ibsMun" inputmode="decimal" autocomplete="off"><span class="un dir">%</span></div>
+          </div>
+          <div class="field">
+            <span class="rot">Total pleno</span>
+            <div class="inp"><input id="pleno" readonly tabindex="-1" aria-label="Alíquota plena total"><span class="un dir">%</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header><h2>Política de preço</h2></header>
+        <div class="campos">
+          <div class="field full">
+            <span class="rot" id="lente-rot">Cliente PF</span>
+            <div class="seg cheio" id="lente" role="group" aria-labelledby="lente-rot">
+              <button type="button" data-v="mercado">Preço de mercado</button>
+              <button type="button" data-v="margem">Margem constante</button>
+            </div>
+            <small id="lente-info"></small>
+          </div>
+          <div class="field full" data-modo="rr">
+            <label for="captura">Cliente PJ: parte da vantagem de crédito que vira preço</label>
+            <div class="faixa"><input type="range" id="captura" min="0" max="100" step="5"><output id="captura-out" for="captura" class="mono">0%</output></div>
+            <small>0% cobra do PJ o mesmo preço do PF. 100% cobra do PJ até o custo efetivo dele igualar o contrato do PF.</small>
+          </div>
+        </div>
+      </section>
+
+      <button type="button" class="ghost" id="restaurar">Restaurar exemplo</button>
+    </aside>
+
+    <main class="resultado">
+      <section aria-label="Ano da simulação" class="anos">
+        <div class="rolagem"><div class="seg" id="ano" role="group" aria-label="Ano"></div></div>
+      </section>
+
+      <div id="erro" class="aviso" hidden></div>
+
+      <section class="card destaque">
+        <div>
+          <div class="rotulo" id="big-rot"></div>
+          <div class="big" id="big">—</div>
+          <div class="small muted" id="big-sub"></div>
+        </div>
+        <div class="resumo" id="resumo"></div>
+      </section>
+
+      <div class="cards" id="cards"></div>
+
+      <div class="graficos">
+        <section class="card">
+          <header><h2 id="g1-tit"></h2><div class="legenda" id="g1-leg"></div></header>
+          <div class="grafico" id="g1"></div>
+        </section>
+        <section class="card">
+          <header><h2 id="g2-tit"></h2><div class="legenda" id="g2-leg"></div></header>
+          <div class="grafico" id="g2"></div>
+        </section>
+      </div>
+
+      <section class="card">
+        <header><h2 id="dre-tit">Resultado do projeto</h2><span class="small muted">Clique num ano do gráfico ou da tabela para trocar</span></header>
+        <div class="tabela"><table class="dre" id="dre"></table></div>
+      </section>
+
+      <section class="card">
+        <header><h2>Ano a ano</h2><span class="small muted">Alíquotas de 2027 em diante e partilha do Simples de 2029 em diante são estimativas</span></header>
+        <div class="tabela"><table id="tab-anos"></table></div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="anexos">
+      <section class="card">
+        <header><h2>Conferência do motor</h2><span id="conf-status"></span></header>
+        <p class="small muted">Regime regular: casos rodados na Calculadora de Tributos da Receita Federal (calculadora-rtc-regime-regular 1.7.2, perfil offline), com o mesmo arredondamento (base com 2 casas, alíquota efetiva com 4, valor com 2, empate para o par). Simples: linha real da Tabela de Alíquotas Efetivas do PGDAS (março/2027) usada nos testes da calculadora-rtc-simples-nacional 1.0.2.</p>
+        <div class="conf" id="conf"></div>
+      </section>
+
+      <section class="card">
+        <header><h2>Premissas do modelo</h2></header>
+        <ul class="premissas">
+          <li><b>2026:</b> no regime regular, CBS de 0,9% e IBS de 0,1% saem destacados na nota e são compensáveis com PIS/Cofins; no Simples, não se aplicam. O projeto de 2026 é a base da comparação.</li>
+          <li><b>Regime regular, 2027 a 2033:</b> CBS cheia a partir de 2027 com IBS de 0,05% + 0,05% até 2028; ICMS a 90%, 80%, 70% e 60% de 2029 a 2032 e extinto em 2033, com o IBS assumindo 10%, 20%, 30%, 40% e 100% da alíquota cheia. O ICMS sai da base do IBS/CBS durante a transição. O padrão de 26,5% é a estimativa usada nos exemplos da Calculadora; o Senado ainda fixa as alíquotas.</li>
+          <li><b>Compras:</b> o fornecedor do regime regular mantém o preço sem tributos. O Presumido credita o ICMS das compras e o Real, também o PIS/Cofins; a partir de 2027 os dois creditam todo o IBS/CBS. O Simples puro não credita nada; o híbrido credita o IBS/CBS.</li>
+          <li><b>Cliente PJ:</b> empresa do regime regular comprando para uso próprio. Recupera 100% do IBS/CBS destacado (cClassTrib 000001) e, por hipótese, não credita ICMS hoje. De fornecedor no Simples puro, credita só o IBS/CBS que está no DAS (LC 214, art. 47, §9º). Empresa do Simples se comporta como cliente PF.</li>
+          <li><b>Simples Nacional:</b> alíquota efetiva pela tabela vigente da LC 123 (faixas 1 a 5, até R$ 3,6 milhões); o total do DAS não muda, muda a partilha. Em 2027–2028 a CBS fica com 13,85% do DAS no Anexo II (15,33% no I) e o IBS com 0,15% (0,17%), conferido com o PGDAS de teste. De 2029 em diante, o IBS assume 10% a 100% da fatia do ICMS (estimativa). O híbrido calcula IBS/CBS sobre o preço do produto e tira essas fatias do DAS; a opção tem prazo definido pelo Comitê Gestor do Simples: confirme com o contador.</li>
+          <li><b>Preço de mercado:</b> o cliente PF paga o mesmo contrato de 2026. <b>Margem constante:</b> o preço se ajusta para manter a margem de 2026. No Simples, o cliente PJ acompanha: mesmo custo efetivo de 2026 no preço de mercado, mesmo preço do PF na margem constante.</li>
+          <li><b>Margem:</b> no regime regular, lucro antes de IRPJ/CSLL; no Simples, lucro líquido, porque o DAS já inclui IRPJ e CSLL. Por isso as margens dos dois regimes não se comparam diretamente. Despesas fixas constantes em reais; RT sobre o valor do contrato; IPI, frete e descontos fora do modelo.</li>
+        </ul>
+      </section>
+
+      <p class="rodape">Simulação gerencial para decisão de preço, canal e regime. Não substitui a apuração fiscal nem a orientação do contador.</p>
+  </div>
+</div>
+
+<script>
+// ENGINE START
+const ENGINE = (() => {
+  // Arredondamento meio-par, como na Calculadora ("empates continuam indo para o par").
+  function rhe(x, d) {
+    const neg = x < 0;
+    const s = Math.abs(x).toFixed(10);
+    const [ip, fp] = s.split('.');
+    const big = BigInt(ip + fp);
+    const div = 10n ** BigInt(10 - d);
+    let q = big / div;
+    const r = big % div;
+    const half = div / 2n;
+    if (r > half || (r === half && q % 2n === 1n)) q += 1n;
+    const out = Number(q) / 10 ** d;
+    return neg && out !== 0 ? -out : out;
+  }
+  function tributo(vBC, aliq, red = 0) { const pEf = rhe(aliq * (1 - red / 100), 4); return { pAliq: aliq, pEf, v: rhe(vBC * pEf / 100, 2) }; }
+  function ibscbs(base, r, red = 0) {
+    const vBC = rhe(base, 2);
+    const cbs = tributo(vBC, r.cbs, red), uf = tributo(vBC, r.ibsUf, red), mun = tributo(vBC, r.ibsMun, red);
+    const vIBS = rhe(uf.v + mun.v, 2);
+    return { vBC, cbs, uf, mun, vIBS, total: rhe(cbs.v + vIBS, 2) };
+  }
+
+  const ANOS = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033];
+  const FRAC = { 2029: 0.1, 2030: 0.2, 2031: 0.3, 2032: 0.4, 2033: 1 };
+  const FASE_RR = { 2026: 'Ano de teste', 2027: 'CBS cheia', 2028: 'CBS cheia', 2029: 'IBS 10%', 2030: 'IBS 20%', 2031: 'IBS 30%', 2032: 'IBS 40%', 2033: 'Alíquota cheia' };
+  const FASE_SN = { 2026: 'Base', 2027: 'CBS no DAS', 2028: 'CBS no DAS', 2029: 'IBS 10%', 2030: 'IBS 20%', 2031: 'IBS 30%', 2032: 'IBS 40%', 2033: 'Pleno' };
+  const fatorIcms = t => t <= 2028 ? 1 : (t >= 2033 ? 0 : 1 - FRAC[t]);
+
+  // Alíquotas do regime regular por ano (venda no regime regular, híbrido e fornecedores).
+  function regras(t, p) {
+    if (t === 2026) return { t, cbs: 0.9, ibsUf: 0.1, ibsMun: 0, icms: p.icms, pc: p.pc, cobrado: false };
+    if (t <= 2028) return { t, cbs: p.cbs, ibsUf: 0.05, ibsMun: 0.05, icms: p.icms, pc: 0, cobrado: true };
+    if (t <= 2032) { const f = FRAC[t]; return { t, cbs: p.cbs, ibsUf: rhe(p.ibsUf * f, 4), ibsMun: rhe(p.ibsMun * f, 4), icms: rhe(p.icms * (1 - f), 4), pc: 0, cobrado: true }; }
+    return { t, cbs: p.cbs, ibsUf: p.ibsUf, ibsMun: p.ibsMun, icms: 0, pc: 0, cobrado: true };
+  }
+  const kCheio = r => (rhe(r.cbs, 4) + rhe(r.ibsUf, 4) + rhe(r.ibsMun, 4)) / 100;
+
+  // Compras: N é o insumo sem tributos; o preço pago e o crédito mudam por ano e por regime.
+  function compras(inp, t, p) {
+    const N = inp.ins * (1 - inp.icmsF / 100) * (1 - inp.pcF / 100);
+    if (t <= 2026) return { N, pago: inp.ins, k: 0 };
+    const r = regras(t, p), k = kCheio(r), iF = inp.icmsF / 100 * fatorIcms(t);
+    return { N, pago: rhe(N / (1 - iF) + k * N, 2), k, credIbsCbs: rhe(N * k, 2), icmsCompra: rhe(N / (1 - iF) * iF, 2) };
+  }
+
+  // ───────── Regime regular (Lucro Presumido ou Real) ─────────
+  const TIPOS = {
+    movel:   { red: 0,   credito: true,  info: 'NCM 9401/9403 · cClassTrib 000001 · tributação integral · cliente PJ recupera o crédito' },
+    clinico: { red: 60,  credito: true,  info: 'NCM 9402.90 · cClassTrib 200030 · Anexo IV · camas e mesas de exame · redução de 60%' },
+    acess:   { red: 100, credito: false, info: 'NCM 8302.41 · cClassTrib 200007 · Anexo XIII · barras de apoio · redução de 100%' },
+  };
+  function simularRR(inp) {
+    const tipo = TIPOS[inp.tipo] || TIPOS.movel, red = tipo.red;
+    const pc = inp.regime === 'real' ? 9.25 : 3.65;
+    const p = { icms: inp.icms, pc, cbs: inp.cbs, ibsUf: inp.ibsUf, ibsMun: inp.ibsMun };
+    // Custo líquido do insumo: Presumido credita ICMS; Real credita ICMS e PIS/Cofins; de 2027 em diante, ambos chegam ao valor sem tributos.
+    const insLiq = t => {
+      const c = compras(inp, t, p);
+      if (t >= 2027 || inp.regime === 'real') return c.N;
+      return inp.ins * (1 - inp.icmsF / 100);
+    };
+    const custo = t => rhe(insLiq(t) + inp.mo + inp.outros, 2);
+    const r0 = regras(2026, p);
+    const den0 = 1 - r0.icms / 100 - (r0.pc / 100) * (1 - r0.icms / 100) - inp.rt / 100 - inp.fix / 100 - inp.m / 100;
+    if (den0 <= 0.02) return { erro: 'ICMS, PIS/Cofins, RT, despesas fixas e margem somam mais de 98% do preço de 2026. Reduza algum desses percentuais.' };
+    if (!(custo(2026) > 0)) return { erro: 'Informe ao menos um custo maior que zero.' };
+    const P0 = rhe(custo(2026) / den0, 2);
+    const F = rhe(P0 * inp.fix / 100, 2);
+
+    function avaliar(P, r, C, credita) {
+      const icms = rhe(P * r.icms / 100, 2), pcv = rhe((P - icms) * r.pc / 100, 2);
+      const trib = ibscbs(P - icms - pcv, r, red);
+      const cobrado = r.cobrado ? trib.total : 0;
+      const contrato = rhe(P + cobrado, 2);
+      const credito = credita && r.cobrado ? trib.total : 0;
+      const comissao = rhe(contrato * inp.rt / 100, 2);
+      const lucro = rhe(P - icms - pcv - comissao - C - F, 2);
+      return { P, icms, pc: pcv, trib, cobrado, contrato, credito, custo: rhe(contrato - credito, 2), comissao, lucro, margem: P > 0 ? lucro / P : 0 };
+    }
+    const anos = [];
+    for (const t of ANOS) {
+      const r = regras(t, p);
+      const kEf = (rhe(r.cbs * (1 - red / 100), 4) + rhe(r.ibsUf * (1 - red / 100), 4) + rhe(r.ibsMun * (1 - red / 100), 4)) / 100;
+      const g = r.cobrado ? 1 + kEf * (1 - r.icms / 100) : 1;
+      const C = custo(t);
+      let Ppf;
+      if (inp.lente === 'mercado') Ppf = P0 / g;
+      else {
+        const den = 1 - r.icms / 100 - (r.pc / 100) * (1 - r.icms / 100) - (inp.rt / 100) * g - inp.m / 100;
+        if (den <= 0.02) return { erro: `Em ${t}, RT, tributos e margem passam de 98% do preço. Reduza a RT ou a margem.` };
+        Ppf = (C + F) / den;
+      }
+      Ppf = rhe(Ppf, 2);
+      const pf = avaliar(Ppf, r, C, false);
+      const Ppj = rhe(Ppf + (inp.captura / 100) * (pf.contrato - Ppf), 2);
+      const pj = avaliar(Ppj, r, C, tipo.credito);
+      const cp = compras(inp, t, p);
+      const credCompras = t >= 2027 ? cp.credIbsCbs : 0;
+      const w = inp.mix / 100;
+      anos.push({ t, fase: FASE_RR[t], r, kEf, C, F, insLiq: rhe(insLiq(t), 2), pago: cp.pago, pf, pj, credCompras, recolher: rhe(pf.trib.total - credCompras, 2), blend: w * pj.margem + (1 - w) * pf.margem });
+    }
+    return { modo: 'rr', P0, F, tipo, pc, anos };
+  }
+
+  // ───────── Simples Nacional: puro × híbrido ─────────
+  const LIMITE = 3600000;
+  const ANEXOS = {
+    II: { nome: 'Anexo II · indústria', faixas: [[180000, 4.5, 0], [360000, 7.8, 5940], [720000, 10, 13860], [1800000, 11.2, 22500], [3600000, 14.7, 85500]], pisCofins: 14.00, icms: [32, 32, 32, 32, 32], cbs2027: 13.85, ibs2027: 0.15 },
+    I:  { nome: 'Anexo I · comércio',  faixas: [[180000, 4, 0], [360000, 7.3, 5940], [720000, 9.5, 13860], [1800000, 10.7, 22500], [3600000, 14.3, 87300]], pisCofins: 15.50, icms: [34, 34, 33.5, 33.5, 33.5], cbs2027: 15.33, ibs2027: 0.17 },
+  };
+  function das(anexo, rbt) {
+    const A = ANEXOS[anexo];
+    const i = A.faixas.findIndex(f => rbt <= f[0]);
+    if (i < 0) return null;
+    const [, nom, pd] = A.faixas[i];
+    return { faixa: i + 1, nominal: nom, deduzir: pd, efetiva: rbt > 0 ? (rbt * nom / 100 - pd) / rbt * 100 : nom, icms: A.icms[i], A };
+  }
+  function partilha(d, t) {
+    if (t <= 2026) return { cbs: 0, ibs: 0 };
+    if (t <= 2028) return { cbs: d.A.cbs2027, ibs: d.A.ibs2027 };
+    return { cbs: d.A.pisCofins, ibs: rhe(d.icms * FRAC[t], 4) };
+  }
+  function virada(gPF, gPJ) {
+    const eps = 1e-9;
+    if (gPF > eps && gPJ > eps) return { tipo: 'sempre', w: 0 };
+    if (gPF <= eps && gPJ <= eps) return { tipo: 'nunca', w: null };
+    const w = gPF / (gPF - gPJ);
+    return gPJ > 0 ? { tipo: 'acima', w } : { tipo: 'abaixo', w };
+  }
+  function simularSN(inp) {
+    if (!(inp.rbt > 0)) return { erro: 'Informe o faturamento dos últimos 12 meses.' };
+    const d = das(inp.anexo, inp.rbt);
+    if (!d) return { erro: 'Acima de R$ 3,6 milhões em 12 meses, o ICMS e o IBS saem do DAS (sublimite). O Simples está coberto até R$ 3,6 milhões.' };
+    const a = d.efetiva / 100, rt = inp.rt / 100, m = inp.m / 100, w = inp.mix / 100;
+    const den0 = 1 - a - rt - inp.fix / 100 - m;
+    if (den0 <= 0.02) return { erro: 'DAS, RT, despesas fixas e margem somam mais de 98% do preço. Reduza algum desses percentuais.' };
+    const C0 = inp.ins + inp.mo + inp.outros;
+    if (!(C0 > 0)) return { erro: 'Informe ao menos um custo maior que zero.' };
+    const P0 = rhe(C0 / den0, 2), F = rhe(P0 * inp.fix / 100, 2);
+    const p = { icms: 0, pc: 0, cbs: inp.cbs, ibsUf: inp.ibsUf, ibsMun: inp.ibsMun };
+    const anos = [];
+    for (const t of ANOS) {
+      const pt = partilha(d, t);
+      const pC = d.efetiva * pt.cbs / 100, pI = d.efetiva * pt.ibs / 100;
+      const rr = regras(t, p), k = t <= 2026 ? 0 : kCheio(rr);
+      const cp = compras(inp, t, p), G = cp.pago, cred = t <= 2026 ? 0 : cp.credIbsCbs;
+      const avalSN = (P, credita) => {
+        const vDas = rhe(P * a, 2);
+        const vNoDas = t <= 2026 ? 0 : rhe(rhe(P * pC / 100, 2) + rhe(P * pI / 100, 2), 2);
+        const comissao = rhe(P * rt, 2);
+        const lucro = rhe(P - vDas - comissao - G - inp.mo - inp.outros - F, 2);
+        const credito = credita ? vNoDas : 0;
+        return { P, contrato: P, fora: 0, das: vDas, noDas: vNoDas, comissao, insumos: G, credCompras: 0, lucro, margem: lucro / P, credito, custo: rhe(P - credito, 2) };
+      };
+      const avalHB = (P, credita) => {
+        const trib = ibscbs(P, rr);
+        const contrato = rhe(P + trib.total, 2);
+        const vDas = rhe(P * a * (1 - (pt.cbs + pt.ibs) / 100), 2);
+        const comissao = rhe(contrato * rt, 2);
+        const lucro = rhe(P - vDas - comissao - (G - cred) - inp.mo - inp.outros - F, 2);
+        const credito = credita ? trib.total : 0;
+        return { P, contrato, fora: trib.total, das: vDas, noDas: 0, comissao, insumos: G, credCompras: cred, lucro, margem: lucro / P, credito, custo: rhe(contrato - credito, 2), recolher: rhe(trib.total - cred, 2) };
+      };
+      let sn, hb = null;
+      const c = (pC + pI) / 100;
+      if (inp.lente === 'mercado') {
+        sn = { pf: avalSN(P0, false), pj: avalSN(rhe(t <= 2026 ? P0 : P0 / (1 - c), 2), true) };
+        if (t >= 2027) hb = { pf: avalHB(rhe(P0 / (1 + k), 2), false), pj: avalHB(P0, true) };
+      } else {
+        const Ps = rhe((G + inp.mo + inp.outros + F) / (1 - a - rt - m), 2);
+        sn = { pf: avalSN(Ps, false), pj: avalSN(Ps, true) };
+        if (t >= 2027) {
+          const denH = 1 - a * (1 - (pt.cbs + pt.ibs) / 100) - rt * (1 + k) - m;
+          if (denH <= 0.02) return { erro: `Em ${t}, DAS, RT e margem passam de 98% do preço no híbrido.` };
+          const Ph = rhe((G - cred + inp.mo + inp.outros + F) / denH, 2);
+          hb = { pf: avalHB(Ph, false), pj: avalHB(Ph, true) };
+        }
+      }
+      let blendSN, blendHB = null, vir = null;
+      if (inp.lente === 'mercado') {
+        blendSN = w * sn.pj.margem + (1 - w) * sn.pf.margem;
+        if (hb) { blendHB = w * hb.pj.margem + (1 - w) * hb.pf.margem; vir = virada(hb.pf.margem - sn.pf.margem, hb.pj.margem - sn.pj.margem); }
+      } else {
+        blendSN = w * sn.pj.custo + (1 - w) * sn.pf.custo;
+        if (hb) { blendHB = w * hb.pj.custo + (1 - w) * hb.pf.custo; vir = virada(sn.pf.custo / hb.pf.custo - 1, sn.pj.custo / hb.pj.custo - 1); }
+      }
+      anos.push({ t, fase: FASE_SN[t], G, cred, F, pt, pC, pI, rr, k, sn, hb, blendSN, blendHB, vir });
+    }
+    return { modo: 'sn', d, P0, F, anos };
+  }
+
+  const simular = inp => inp.regime === 'simples' ? simularSN(inp) : simularRR(inp);
+  return { rhe, tributo, ibscbs, regras, compras, das, partilha, virada, simular, simularRR, simularSN, TIPOS, ANOS, FASE_RR, FASE_SN, ANEXOS };
+})();
+// ENGINE END
+if (typeof module !== 'undefined') module.exports = ENGINE;
+</script>
+
+<script>
+(() => {
+  if (typeof document === 'undefined') return;
+  const { rhe, ibscbs, das, partilha, simular, TIPOS, ANOS, FASE_RR, FASE_SN } = ENGINE;
+
+  const PADRAO = {
+    regime: 'simples', anexo: 'II', rbt: 1200000, tipo: 'movel', icms: 18, mix: 30,
+    ins: 30000, mo: 16000, outros: 4000, rt: 8, fix: 12, m: 12,
+    icmsF: 18, pcF: 9.25, cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85, lente: 'mercado', captura: 30, ano: 2027,
+  };
+  const NUM = {
+    rbt: { tipo: 'brl', max: 1e10 }, icms: { tipo: 'pct', max: 40 },
+    ins: { tipo: 'brl', max: 1e9 }, mo: { tipo: 'brl', max: 1e9 }, outros: { tipo: 'brl', max: 1e9 },
+    rt: { tipo: 'pct', max: 60 }, fix: { tipo: 'pct', max: 80 }, m: { tipo: 'pct', max: 80 },
+    icmsF: { tipo: 'pct', max: 40 }, pcF: { tipo: 'pct', max: 20 }, cbs: { tipo: 'pct', max: 30 }, ibsUf: { tipo: 'pct', max: 30 }, ibsMun: { tipo: 'pct', max: 30 },
+  };
+  const CHAVE = 'diametro-simulador-moveleiro-v1';
+  let est = { ...PADRAO };
+  try {
+    const salvo = JSON.parse(localStorage.getItem(CHAVE) || 'null');
+    if (salvo && typeof salvo === 'object') for (const k of Object.keys(PADRAO)) if (k in salvo && typeof salvo[k] === typeof PADRAO[k]) est[k] = salvo[k];
+  } catch (e) {}
+  const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(est)); } catch (e) {} };
+
+  const $ = id => document.getElementById(id);
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const brl0 = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0, minimumFractionDigits: 0 });
+  const pct = (v, d = 1) => (v * 100).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%';
+  const pp = (v, d = 2) => v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: Math.max(d, 4) }) + '%';
+  const numFmt = (v, tipo) => tipo === 'brl' ? v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : v.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const sinal = v => Math.abs(v) < 0.0005 ? '' : (v > 0 ? '+' : '−');
+  function lerNumero(txt) {
+    let s = String(txt).trim().replace(/\s|R\$|%/g, '');
+    if (!s) return NaN;
+    if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+    return /^-?\d*\.?\d+$/.test(s) ? Number(s) : NaN;
+  }
+
+  for (const [id, cfg] of Object.entries(NUM)) {
+    const el = $(id), campo = el.closest('.field');
+    el.value = numFmt(est[id], cfg.tipo);
+    el.addEventListener('input', () => {
+      const v = lerNumero(el.value);
+      const ok = Number.isFinite(v) && v >= 0 && v <= cfg.max;
+      campo.classList.toggle('erro', !ok);
+      let msg = campo.querySelector('.msg');
+      if (!ok) {
+        if (!msg) { msg = document.createElement('span'); msg.className = 'msg'; campo.appendChild(msg); }
+        msg.textContent = Number.isFinite(v) ? `Use um valor entre 0 e ${numFmt(cfg.max, cfg.tipo)}.` : 'Digite só números, como 30.000,00.';
+        return;
+      }
+      if (msg) msg.remove();
+      est[id] = v; atualizar();
+    });
+    el.addEventListener('blur', () => { campo.classList.remove('erro'); const msg = campo.querySelector('.msg'); if (msg) msg.remove(); el.value = numFmt(est[id], cfg.tipo); });
+  }
+  $('tipo').value = est.tipo;
+  $('tipo').addEventListener('change', e => { est.tipo = e.target.value; atualizar(); });
+  $('mix').value = est.mix;
+  $('mix').addEventListener('input', e => { est.mix = Number(e.target.value); atualizar(); });
+  $('captura').value = est.captura;
+  $('captura').addEventListener('input', e => { est.captura = Number(e.target.value); atualizar(); });
+  const segmentado = (id, chave, conv = v => v) => $(id).addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]'); if (!b) return; est[chave] = conv(b.dataset.v); atualizar();
+  });
+  segmentado('regime', 'regime'); segmentado('anexo', 'anexo'); segmentado('lente', 'lente');
+  $('ano').innerHTML = ANOS.map(a => `<button type="button" data-v="${a}">${a}</button>`).join('');
+  segmentado('ano', 'ano', Number);
+  const marcar = (id, v) => $(id).querySelectorAll('button[data-v]').forEach(b => { const on = String(b.dataset.v) === String(v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  $('restaurar').addEventListener('click', () => {
+    const regime = est.regime;
+    est = { ...PADRAO, regime };
+    for (const [id, cfg] of Object.entries(NUM)) { $(id).value = numFmt(est[id], cfg.tipo); const c = $(id).closest('.field'); c.classList.remove('erro'); const mm = c.querySelector('.msg'); if (mm) mm.remove(); }
+    $('tipo').value = est.tipo; $('mix').value = est.mix; $('captura').value = est.captura; atualizar();
+  });
+  const setAno = a => { est.ano = a; atualizar(); };
+
+  // Gráfico de linhas: um eixo, rótulo direto no fim, crosshair com tooltip, valores nulos aceitos.
+  function grafico(el, cfg) {
+    const { series, fmtEixo, fmtTip, extra, dominio, ref, fase } = cfg;
+    const W = Math.max(280, el.clientWidth || 520), H = 236;
+    const m = { l: 62, r: 40, t: 14, b: 30 };
+    const n = ANOS.length, iw = W - m.l - m.r, ih = H - m.t - m.b;
+    let y0, y1, ticks = [];
+    if (dominio) { [y0, y1] = dominio; for (let v = y0; v <= y1 + 1e-9; v += (y1 - y0) / 4) ticks.push(v); }
+    else {
+      const vals = series.flatMap(s => s.v).filter(v => v != null);
+      let lo = Math.min(...vals), hi = Math.max(...vals);
+      if (hi - lo < Math.abs(hi) * 0.02 || hi === lo) { const pad = Math.max(Math.abs(hi) * 0.05, 0.01); lo -= pad; hi += pad; }
+      const bruto = (hi - lo) / 4, mag = 10 ** Math.floor(Math.log10(bruto));
+      const passo = [1, 2, 2.5, 5, 10].map(k => k * mag).find(s => s >= bruto) || 10 * mag;
+      y0 = Math.floor(lo / passo) * passo; y1 = Math.ceil(hi / passo) * passo;
+      for (let v = y0; v <= y1 + passo / 2; v += passo) ticks.push(v);
+    }
+    const X = i => m.l + i * iw / (n - 1), Y = v => m.t + ih - (v - y0) / (y1 - y0) * ih, col = iw / (n - 1);
+    const si = ANOS.indexOf(est.ano);
+    let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(cfg.rotulo)}">`;
+    s += `<rect x="${X(si) - col / 2}" y="${m.t}" width="${col}" height="${ih}" rx="6" fill="var(--panel-2)"></rect>`;
+    for (const t of ticks) {
+      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)" stroke-width="1"></line>`;
+      s += `<text x="${m.l - 8}" y="${Y(t) + 4}" text-anchor="end" fill="var(--muted)">${esc(fmtEixo(t))}</text>`;
+    }
+    if (ref) {
+      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(ref.v)}" y2="${Y(ref.v)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"></line>`;
+      s += `<text x="${m.l + 6}" y="${Y(ref.v) - 6}" fill="var(--text)">${esc(ref.rot)}</text>`;
+    }
+    ANOS.forEach((a, i) => { s += `<text x="${X(i)}" y="${H - 8}" text-anchor="middle" fill="${i === si ? 'var(--text)' : 'var(--muted)'}" font-weight="${i === si ? 700 : 400}">${a}</text>`; });
+    for (const sr of series) {
+      let d = '', pen = false;
+      sr.v.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`; pen = true; });
+      s += `<path d="${d}" fill="none" stroke="var(${sr.cor})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>`;
+    }
+    for (const sr of series) sr.v.forEach((v, i) => { if (v != null) s += `<circle cx="${X(i)}" cy="${Y(v)}" r="${i === si ? 5 : 4}" fill="var(${sr.cor})" stroke="var(--panel)" stroke-width="2"></circle>`; });
+    if (series.length > 1) {
+      const fim = series.map(sr => ({ sr, y: Y(sr.v[n - 1]) }));
+      if (Math.abs(fim[0].y - fim[1].y) < 14) { const mid = (fim[0].y + fim[1].y) / 2, up = fim[0].y <= fim[1].y ? 0 : 1; fim[up].y = mid - 7; fim[1 - up].y = mid + 7; }
+      for (const f of fim) s += `<text x="${X(n - 1) + 10}" y="${f.y + 4}" fill="var(--text)" font-weight="600">${esc(f.sr.curto)}</text>`;
+    }
+    s += `<line class="cruz" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"></line>`;
+    ANOS.forEach((a, i) => { s += `<rect class="alvo" data-i="${i}" x="${X(i) - col / 2}" y="${m.t}" width="${col}" height="${ih + m.b}" fill="transparent" style="cursor:pointer"></rect>`; });
+    s += '</svg>';
+    el.innerHTML = s + '<div class="tooltip" hidden></div>';
+    const svg = el.querySelector('svg'), tip = el.querySelector('.tooltip'), cruz = svg.querySelector('.cruz');
+    svg.querySelectorAll('.alvo').forEach(r => {
+      const i = Number(r.dataset.i);
+      r.addEventListener('mouseenter', () => {
+        cruz.setAttribute('x1', X(i)); cruz.setAttribute('x2', X(i)); cruz.setAttribute('visibility', 'visible');
+        tip.innerHTML = `<b>${ANOS[i]} · ${esc(fase[ANOS[i]])}</b>` + series.map(sr => `<div class="l"><span><i class="dot" style="background:var(${sr.cor})"></i>${esc(sr.nome)}</span><span class="mono">${esc(fmtTip(sr.v[i], i))}</span></div>`).join('') + (extra ? `<div class="l"><span>${esc(extra.rot)}</span><span class="mono">${esc(extra.f(i))}</span></div>` : '');
+        tip.hidden = false;
+        const escala = el.clientWidth / W; let left = X(i) * escala + 12;
+        if (left + 200 > el.clientWidth) left = X(i) * escala - 200;
+        tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '8px';
+      });
+      r.addEventListener('mouseleave', () => { tip.hidden = true; cruz.setAttribute('visibility', 'hidden'); });
+      r.addEventListener('click', () => setAno(ANOS[i]));
+    });
+  }
+  const eixoBRL = v => 'R$ ' + (v / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil';
+  const eixoPct = v => (v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+  const legenda = itens => itens.map(([cls, txt]) => `<span><i class="dot ${cls}"></i>${esc(txt)}</span>`).join('');
+  const textoVirada = v => !v ? '—' : v.tipo === 'sempre' ? 'compensa com qualquer mix' : v.tipo === 'nunca' ? 'não compensa' : `${v.tipo === 'acima' ? 'acima de' : 'abaixo de'} ${pct(v.w, 0)} PJ`;
+  function etiquetaMargem(mg) {
+    const alvo = est.m / 100;
+    if (mg <= 0) return '<span class="etiqueta perigo">prejuízo</span>';
+    if (mg + 0.0005 < alvo) return '<span class="etiqueta alerta">abaixo de 2026</span>';
+    if (mg > alvo + 0.0005) return '<span class="etiqueta ok">acima de 2026</span>';
+    return '<span class="etiqueta ok">igual a 2026</span>';
+  }
+  const linha = (rot, val, forte) => `<div${forte ? ' class="forte"' : ''}><dt>${rot}</dt><dd>${val}</dd></div>`;
+  const ligarTabela = () => $('tab-anos').querySelectorAll('tr[data-ano]').forEach(tr => {
+    tr.addEventListener('click', () => setAno(Number(tr.dataset.ano)));
+    tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAno(Number(tr.dataset.ano)); } });
+  });
+
+  let ultimo = null;
+  function atualizar() {
+    salvar();
+    const sn = est.regime === 'simples';
+    marcar('regime', est.regime); marcar('anexo', est.anexo); marcar('lente', est.lente); marcar('ano', est.ano);
+    document.querySelectorAll('[data-modo]').forEach(e => { e.hidden = e.dataset.modo !== (sn ? 'sn' : 'rr'); });
+    $('mix-out').textContent = est.mix + '%';
+    $('captura-out').textContent = est.captura + '%';
+    $('pleno').value = numFmt(rhe(est.cbs + est.ibsUf + est.ibsMun, 4), 'pct');
+    $('tipo-info').textContent = TIPOS[est.tipo].info;
+    $('regime-info').textContent = { presumido: 'PIS/Cofins cumulativo de 3,65% em 2026; credita ICMS nas compras.', real: 'PIS/Cofins não cumulativo de 9,25% em 2026; credita ICMS e PIS/Cofins nas compras.', simples: 'Compara IBS/CBS dentro do DAS (Simples puro) com o recolhimento por fora (híbrido).' }[est.regime];
+    $('m-info').textContent = sn ? 'Lucro líquido: o DAS já inclui IRPJ e CSLL. Forma o preço de 2026.' : 'Lucro antes de IRPJ/CSLL. Forma o preço de 2026.';
+    $('lente-info').textContent = est.lente === 'mercado'
+      ? (sn ? 'O cliente paga o mesmo que em 2026 (o PJ, o mesmo custo efetivo). Compara quanto sobra de margem.' : 'O PF paga o mesmo contrato de 2026; a marcenaria absorve a diferença.')
+      : (sn ? 'O preço se ajusta para manter a margem de 2026. Compara quanto o cliente paga.' : 'Preço recalculado a cada ano para manter a margem de 2026.');
+    if (sn) {
+      const d = das(est.anexo, est.rbt);
+      $('das-info').innerHTML = d && est.rbt > 0
+        ? `<span><b>${d.A.nome} · faixa ${d.faixa}</b> · nominal ${pp(d.nominal, 2)}, deduz ${brl0(d.deduzir)}</span><span>Alíquota efetiva do DAS: <b>${pp(rhe(d.efetiva, 4), 2)}</b> · IBS/CBS no DAS em 2027: <b>${pp(rhe(d.efetiva * (d.A.cbs2027 + d.A.ibs2027) / 100, 4), 2)}</b></span>`
+        : '<span>Faturamento acima de R$ 3,6 milhões: fora do Simples coberto aqui (sublimite).</span>';
+    }
+
+    const sim = simular(est);
+    if (sim.erro) {
+      $('erro').textContent = sim.erro; $('erro').hidden = false;
+      document.querySelectorAll('.resultado > :not(#erro):not(.anos)').forEach(e => e.style.opacity = .35);
+      return;
+    }
+    $('erro').hidden = true;
+    document.querySelectorAll('.resultado > *').forEach(e => e.style.opacity = '');
+    ultimo = sim;
+    if (sim.modo === 'sn') renderSN(sim); else renderRR(sim);
+    desenhar();
+  }
+
+  // ───────── Regime regular ─────────
+  function renderRR(sim) {
+    const a = sim.anos.find(x => x.t === est.ano), base = sim.anos[0], { pf, pj } = a;
+    const regimeNome = est.regime === 'real' ? 'Lucro Real' : 'Lucro Presumido';
+    const vant = rhe(pf.custo - pj.custo, 2);
+    $('big-rot').textContent = `Vantagem de custo do cliente PJ em ${a.t}`;
+    $('big').textContent = brl0(vant); $('big').style.color = '';
+    $('big-sub').textContent = `${pf.custo > 0 ? pct(vant / pf.custo) + ' a menos que o PF · ' : ''}margem pelo mix (${est.mix}% PJ): ${pct(a.blend)}`;
+    const frases = [];
+    if (a.t === 2026) frases.push(`Em 2026, ano de teste, a CBS de 0,9% e o IBS de 0,1% saem destacados na nota (${brl(pf.trib.total)} neste projeto), mas são compensáveis com PIS/Cofins. PF e PJ pagam o mesmo: <b>${brl(pf.contrato)}</b>.`);
+    else if (pf.trib.total === 0) frases.push(`Com redução de 100%, não há IBS/CBS a cobrar em ${a.t}. PF e PJ pagam o mesmo contrato de <b>${brl(pf.contrato)}</b>.`);
+    else frases.push(`Em ${a.t}, no ${regimeNome}, o projeto sai por <b>${brl(pf.contrato)}</b> para o cliente PF. O cliente PJ paga <b>${brl(pj.contrato)}</b>, recupera ${brl(pj.credito)} de IBS/CBS e fica com custo efetivo de <b>${brl(pj.custo)}</b>.`);
+    if (a.t !== 2026) {
+      const varPF = pf.contrato / base.pf.contrato - 1;
+      if (est.lente === 'mercado') frases.push(`Mantendo o contrato de 2026 para o PF, sua margem nesse canal vai de ${pct(base.pf.margem)} para <b>${pct(pf.margem)}</b>.`);
+      else frases.push(Math.abs(varPF) < 0.0005 ? `Mantendo a margem, o contrato do PF fica igual ao de 2026.` : `Mantendo a margem, o contrato do PF ${varPF > 0 ? 'sobe' : 'cai'} ${pct(Math.abs(varPF))} em relação a 2026.`);
+      if (est.captura > 0 && pj.credito > 0) frases.push(`Cobrando do PJ ${est.captura}% da vantagem de crédito, a margem na venda PJ chega a <b>${pct(pj.margem)}</b> e o cliente ainda paga ${brl0(vant)} a menos que o PF.`);
+      else if (pj.credito > 0) frases.push('Com o mesmo preço nos dois canais, toda a vantagem do crédito fica com o cliente PJ: argumento de venda para lojas, construtoras e escritórios.');
+      const pior = sim.anos.slice(1).reduce((x, y) => y.pf.margem < x.pf.margem ? y : x);
+      if (est.lente === 'mercado' && pior.pf.margem < base.pf.margem - 0.0005) frases.push(`O aperto maior na venda PF é em ${pior.t}: margem de ${pct(pior.pf.margem)}.`);
+    }
+    $('resumo').innerHTML = frases.map(f => `<p>${f}</p>`).join('');
+
+    const ibsTxt = a.t === 2026 ? 'IBS/CBS destacado (compensável)' : 'IBS/CBS na nota';
+    const cartao = (cls, titulo, desc, x, rotVar, varV) => `<section class="card"><header><span class="dot ${cls}"></span><h3>${titulo}</h3><p>${desc}</p></header><dl class="linhas">${
+      linha('Preço do produto', brl(x.P)) + linha(ibsTxt, brl(x.trib.total)) + linha('Valor do contrato', brl(x.contrato)) +
+      linha('Crédito recuperado', brl(x.credito)) + linha('Custo efetivo', brl(x.custo), true) +
+      linha(rotVar, sinal(varV) + pct(Math.abs(varV))) + linha('Margem da marcenaria', `${etiquetaMargem(x.margem)}${pct(x.margem)}`)}</dl></section>`;
+    $('cards').innerHTML =
+      cartao('pf', 'Cliente pessoa física', 'Consumidor final: não recupera IBS/CBS.', pf, 'Contrato vs 2026', pf.contrato / base.pf.contrato - 1) +
+      cartao('pj', 'Cliente empresa', 'Regime regular, uso próprio: recupera o IBS/CBS destacado.', pj, 'Custo efetivo vs 2026', pj.custo / base.pj.custo - 1);
+
+    $('dre-tit').textContent = `Resultado do projeto em ${a.t} · ${regimeNome}`;
+    const L = (rot, f, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${rot}</td><td>${f(pf)}</td><td>${f(pj)}</td></tr>`;
+    const neg = v => v ? '−' + brl(v) : brl(0);
+    $('dre').innerHTML = `<thead><tr><th>${a.t} · ${esc(a.fase)}</th><th>Venda PF</th><th>Venda PJ</th></tr></thead><tbody>` +
+      L('Valor do contrato (o que o cliente paga)', x => brl(x.contrato), 'total') +
+      L(a.t === 2026 ? '(−) IBS/CBS cobrado no contrato (2026: não cobrado)' : '(−) IBS/CBS repassado ao fisco', x => neg(x.cobrado)) +
+      L('= Receita da marcenaria', x => brl(x.P), 'total') +
+      L('(−) ICMS', x => neg(x.icms)) + L('(−) PIS/Cofins', x => neg(x.pc)) +
+      L(`(−) RT / comissão (${numFmt(est.rt, 'pct')}% do contrato)`, x => neg(x.comissao)) +
+      L(`(−) Insumos, líquidos dos créditos (pago: ${brl(a.pago)})`, () => neg(a.insLiq)) +
+      L('(−) Mão de obra própria', () => neg(est.mo)) + L('(−) Outros custos', () => neg(est.outros)) +
+      L('(−) Despesas fixas', () => neg(a.F)) +
+      L('= Lucro antes de IRPJ/CSLL', x => brl(x.lucro), 'total') + L('Margem', x => pct(x.margem), 'total') +
+      L('Crédito de IBS/CBS do cliente', x => brl(x.credito), 'sub') + L('Custo efetivo para o cliente', x => brl(x.custo), 'sub') + '</tbody>';
+
+    $('tab-anos').innerHTML = `<thead><tr><th>Ano</th><th>Fase</th><th>CBS</th><th>IBS</th><th>ICMS</th><th>Base IBS/CBS<br>(PF)</th><th>IBS/CBS<br>(PF)</th><th>Insumos<br>líquidos</th><th>Contrato<br>PF</th><th>Margem<br>PF</th><th>Contrato<br>PJ</th><th>Custo efetivo<br>PJ</th><th>Margem<br>PJ</th><th>IBS/CBS a recolher<br>(PF, estim.)</th></tr></thead><tbody>` +
+      sim.anos.map(x => `<tr class="clicavel${x.t === est.ano ? ' sel' : ''}" data-ano="${x.t}" tabindex="0"><td>${x.t}</td><td class="txt">${esc(x.fase)}</td>
+        <td>${pp(x.pf.trib.cbs.pEf)}</td><td>${pp(rhe(x.pf.trib.uf.pEf + x.pf.trib.mun.pEf, 4))}</td><td>${pp(x.r.icms)}</td>
+        <td>${brl(x.pf.trib.vBC)}</td><td>${brl(x.pf.trib.total)}</td><td>${brl0(x.insLiq)}</td><td>${brl(x.pf.contrato)}</td><td>${pct(x.pf.margem)}</td>
+        <td>${brl(x.pj.contrato)}</td><td>${brl(x.pj.custo)}</td><td>${pct(x.pj.margem)}</td><td>${x.t === 2026 ? '—' : brl(x.recolher)}</td></tr>`).join('') + '</tbody>';
+    ligarTabela();
+  }
+
+  // ───────── Simples Nacional ─────────
+  function renderSN(sim) {
+    const a = sim.anos.find(x => x.t === est.ano), base = sim.anos[0], merc = est.lente === 'mercado';
+    const frases = [];
+    if (!a.hb) {
+      $('big-rot').textContent = 'Em 2026';
+      $('big').textContent = 'Simples puro'; $('big').style.color = 'var(--sn)';
+      $('big-sub').textContent = 'A opção pelo híbrido começa em 2027';
+      frases.push(`Em 2026 a CBS e o IBS de teste não se aplicam ao Simples. Este projeto sai por <b>${brl(base.sn.pf.contrato)}</b>, com DAS de ${brl(base.sn.pf.das)} e margem de ${pct(base.sn.pf.margem)}: é a base da comparação.`);
+      frases.push('Escolha 2027 ou um ano posterior para comparar com o híbrido.');
+    } else {
+      const hbMelhor = merc ? a.blendHB > a.blendSN + 1e-9 : a.blendHB < a.blendSN - 1e-9;
+      $('big-rot').textContent = `Melhor regime em ${a.t} com ${est.mix}% de vendas PJ`;
+      $('big').textContent = hbMelhor ? 'Híbrido' : 'Simples puro';
+      $('big').style.color = hbMelhor ? 'var(--hb)' : 'var(--sn)';
+      $('big-sub').textContent = merc ? `Margem pelo mix: ${pct(a.blendSN)} no Simples puro e ${pct(a.blendHB)} no híbrido` : `Custo médio do cliente: ${brl0(a.blendSN)} no Simples puro e ${brl0(a.blendHB)} no híbrido`;
+      const v = a.vir;
+      if (v.tipo === 'acima') frases.push(`<b>Ponto de virada em ${a.t}: o híbrido compensa quando mais de ${pct(v.w, 0)} do faturamento vem de clientes PJ.</b>`);
+      else if (v.tipo === 'abaixo') frases.push(`<b>Ponto de virada em ${a.t}: o híbrido compensa quando menos de ${pct(v.w, 0)} do faturamento vem de clientes PJ.</b>`);
+      else if (v.tipo === 'sempre') frases.push(`<b>Em ${a.t}, o híbrido é melhor nos dois canais, qualquer que seja o mix.</b>`);
+      else frases.push(`<b>Em ${a.t}, o Simples puro é melhor nos dois canais, qualquer que seja o mix.</b>`);
+      if (merc) {
+        frases.push(`Na venda PF, o híbrido põe IBS/CBS por fora e, para manter o preço do cliente, sua receita cai: margem de <b>${pct(a.hb.pf.margem)}</b> contra ${pct(a.sn.pf.margem)} no Simples puro.`);
+        frases.push(`Na venda PJ, o cliente recupera ${brl(a.hb.pj.credito)} no híbrido contra ${brl(a.sn.pj.credito)} no Simples puro. Com o mesmo custo efetivo para ele, sua margem vai a <b>${pct(a.hb.pj.margem)}</b>, contra ${pct(a.sn.pj.margem)}.`);
+      } else {
+        frases.push(`Para manter a margem, o cliente PF paga <b>${brl(a.hb.pf.custo)}</b> no híbrido contra ${brl(a.sn.pf.custo)} no Simples puro (${sinal(a.hb.pf.custo / a.sn.pf.custo - 1)}${pct(Math.abs(a.hb.pf.custo / a.sn.pf.custo - 1))}).`);
+        frases.push(`O cliente PJ fica com custo efetivo de <b>${brl(a.hb.pj.custo)}</b> no híbrido contra ${brl(a.sn.pj.custo)} no Simples puro (${sinal(a.hb.pj.custo / a.sn.pj.custo - 1)}${pct(Math.abs(a.hb.pj.custo / a.sn.pj.custo - 1))}): é o argumento para disputar contrato com quem está no regime regular.`);
+      }
+    }
+    $('resumo').innerHTML = frases.map(f => `<p>${f}</p>`).join('');
+
+    const mini = r => `<div class="tabela"><table class="mini"><thead><tr><th></th><th>Venda PF</th><th>Venda PJ</th></tr></thead><tbody>
+      <tr><td>Valor do contrato</td><td>${brl(r.pf.contrato)}</td><td>${brl(r.pj.contrato)}</td></tr>
+      <tr><td>Crédito do cliente</td><td>${brl(r.pf.credito)}</td><td>${brl(r.pj.credito)}</td></tr>
+      <tr class="forte"><td>Custo do cliente</td><td>${brl(r.pf.custo)}</td><td>${brl(r.pj.custo)}</td></tr>
+      <tr class="forte"><td>Margem</td><td>${pct(r.pf.margem)}</td><td>${pct(r.pj.margem)}</td></tr></tbody></table></div>`;
+    $('cards').innerHTML =
+      `<section class="card"><header><span class="dot sn"></span><h3>Simples puro</h3><p>IBS e CBS dentro do DAS. O cliente PJ só credita o que está no DAS.</p></header>${mini(a.sn)}</section>` +
+      `<section class="card"><header><span class="dot hb"></span><h3>Híbrido</h3><p>DAS sem IBS/CBS; os dois por fora, com crédito nas compras e crédito integral para o cliente PJ.</p></header>${a.hb ? mini(a.hb) : '<p class="vazio">A opção pelo regime regular do IBS/CBS começa em 2027.</p>'}</section>`;
+
+    $('dre-tit').textContent = `Resultado do projeto em ${a.t} · Simples Nacional`;
+    const cols = [a.sn.pf, a.sn.pj].concat(a.hb ? [a.hb.pf, a.hb.pj] : []);
+    const L = (rot, f, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${rot}</td>${cols.map(x => `<td>${f(x)}</td>`).join('')}</tr>`;
+    const neg = v => v ? '−' + brl(v) : brl(0);
+    $('dre').innerHTML = `<thead><tr class="grupo"><th></th><th colspan="2">Simples puro</th>${a.hb ? '<th colspan="2">Híbrido</th>' : ''}</tr><tr><th>${a.t} · ${esc(a.fase)}</th><th>PF</th><th>PJ</th>${a.hb ? '<th>PF</th><th>PJ</th>' : ''}</tr></thead><tbody>` +
+      L('Valor do contrato (o que o cliente paga)', x => brl(x.contrato), 'total') +
+      L('(−) IBS/CBS por fora, repassado ao fisco', x => neg(x.fora)) +
+      L('= Receita da marcenaria', x => brl(x.P), 'total') +
+      L('(−) DAS', x => neg(x.das)) + L('dos quais IBS/CBS dentro do DAS', x => brl(x.noDas), 'sub') +
+      L(`(−) RT / comissão (${numFmt(est.rt, 'pct')}% do contrato)`, x => neg(x.comissao)) +
+      L('(−) Insumos, preço pago ao fornecedor', x => neg(x.insumos)) + L('(+) Crédito de IBS/CBS nas compras', x => brl(x.credCompras)) +
+      L('(−) Mão de obra própria', () => neg(est.mo)) + L('(−) Outros custos', () => neg(est.outros)) + L('(−) Despesas fixas', () => neg(a.F)) +
+      L('= Lucro líquido', x => brl(x.lucro), 'total') + L('Margem líquida', x => pct(x.margem), 'total') +
+      L('Crédito de IBS/CBS do cliente', x => brl(x.credito), 'sub') + L('Custo efetivo para o cliente', x => brl(x.custo), 'sub') + '</tbody>';
+
+    const f2 = (x, k) => merc ? pct(x[k].margem) : brl0(x[k].custo);
+    $('tab-anos').innerHTML = `<thead><tr class="grupo"><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th colspan="2">${merc ? 'Margem PF' : 'Custo PF'}</th><th colspan="2">${merc ? 'Margem PJ' : 'Custo PJ'}</th><th></th></tr>
+      <tr><th>Ano</th><th>Fase</th><th>DAS<br>efetivo</th><th>IBS/CBS<br>no DAS</th><th>IBS/CBS<br>híbrido</th><th>Insumos<br>pagos</th><th>Crédito<br>compras</th><th>Simples</th><th>Híbrido</th><th>Simples</th><th>Híbrido</th><th>Ponto de virada</th></tr></thead><tbody>` +
+      sim.anos.map(x => `<tr class="clicavel${x.t === est.ano ? ' sel' : ''}" data-ano="${x.t}" tabindex="0"><td>${x.t}</td><td class="txt">${esc(x.fase)}</td>
+        <td>${pp(rhe(sim.d.efetiva, 4))}</td><td>${x.t <= 2026 ? '—' : pp(rhe(x.pC + x.pI, 4))}</td><td>${x.t <= 2026 ? '—' : pp(rhe(x.k * 100, 4))}</td>
+        <td>${brl0(x.G)}</td><td>${x.hb ? brl0(x.cred) : '—'}</td>
+        <td>${f2(x.sn, 'pf')}</td><td>${x.hb ? f2(x.hb, 'pf') : '—'}</td><td>${f2(x.sn, 'pj')}</td><td>${x.hb ? f2(x.hb, 'pj') : '—'}</td>
+        <td class="txt">${esc(textoVirada(x.vir))}</td></tr>`).join('') + '</tbody>';
+    ligarTabela();
+  }
+
+  function desenhar() {
+    if (!ultimo) return;
+    const anos = ultimo.anos;
+    if (ultimo.modo === 'rr') {
+      $('g1-tit').textContent = 'Custo efetivo para o cliente';
+      $('g1-leg').innerHTML = legenda([['pf', 'Cliente PF'], ['pj', 'Cliente PJ']]);
+      grafico($('g1'), { rotulo: 'Custo efetivo para o cliente por ano', fase: FASE_RR,
+        series: [{ nome: 'Cliente PF', curto: 'PF', cor: '--sn', v: anos.map(x => x.pf.custo) }, { nome: 'Cliente PJ', curto: 'PJ', cor: '--hb', v: anos.map(x => x.pj.custo) }],
+        fmtEixo: eixoBRL, fmtTip: v => brl0(v), extra: { rot: 'Diferença', f: i => brl0(anos[i].pf.custo - anos[i].pj.custo) } });
+      $('g2-tit').textContent = 'Margem da marcenaria';
+      $('g2-leg').innerHTML = legenda([['pf', 'Venda PF'], ['pj', 'Venda PJ']]);
+      grafico($('g2'), { rotulo: 'Margem da marcenaria por ano', fase: FASE_RR,
+        series: [{ nome: 'Venda PF', curto: 'PF', cor: '--sn', v: anos.map(x => x.pf.margem) }, { nome: 'Venda PJ', curto: 'PJ', cor: '--hb', v: anos.map(x => x.pj.margem) }],
+        fmtEixo: eixoPct, fmtTip: v => pct(v), extra: { rot: 'Margem pelo mix', f: i => pct(anos[i].blend) } });
+    } else {
+      const merc = est.lente === 'mercado';
+      $('g1-tit').textContent = merc ? 'Margem pelo seu mix de vendas' : 'Custo médio do cliente pelo seu mix';
+      $('g1-leg').innerHTML = legenda([['sn', 'Simples puro'], ['hb', 'Híbrido']]);
+      grafico($('g1'), { rotulo: $('g1-tit').textContent, fase: FASE_SN,
+        series: [{ nome: 'Simples puro', curto: 'SN', cor: '--sn', v: anos.map(x => x.blendSN) }, { nome: 'Híbrido', curto: 'HB', cor: '--hb', v: anos.map(x => x.blendHB) }],
+        fmtEixo: merc ? eixoPct : eixoBRL, fmtTip: v => v == null ? 'a partir de 2027' : (merc ? pct(v) : brl0(v)), extra: { rot: 'Vendas PJ', f: () => est.mix + '%' } });
+      $('g2-tit').textContent = 'Ponto de virada';
+      $('g2-leg').innerHTML = legenda([['hb', 'Vendas PJ a partir das quais o híbrido compensa']]);
+      grafico($('g2'), { rotulo: 'Ponto de virada por ano', fase: FASE_SN,
+        series: [{ nome: 'Ponto de virada', curto: '', cor: '--hb', v: anos.map(x => !x.vir ? null : x.vir.tipo === 'nunca' ? 1 : Math.min(1, Math.max(0, x.vir.w))) }],
+        fmtEixo: v => pct(v, 0), dominio: [0, 1], fmtTip: (v, i) => textoVirada(anos[i].vir), ref: { v: est.mix / 100, rot: `seu mix: ${est.mix}%` } });
+    }
+  }
+  if ('ResizeObserver' in window) {
+    let raf = 0; const ro = new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(desenhar); });
+    ro.observe($('g1')); ro.observe($('g2'));
+  } else window.addEventListener('resize', desenhar);
+
+  // Conferência do motor com as Calculadoras da Receita
+  const CASOS = [
+    { desc: 'Regime regular · cozinha 2026 · base 38.000,00 · CBS 0,9% · IBS 0,1%', api: { CBS: 342.00, IBS: 38.00 }, calc: () => { const t = ibscbs(38000, { cbs: 0.9, ibsUf: 0.1, ibsMun: 0 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'Regime regular · projeto 2027 · base 77.044,00 sem ICMS · CBS 8,8% · IBS 0,05% + 0,05%', api: { CBS: 6779.87, IBS: 77.04 }, calc: () => { const t = ibscbs(77044, { cbs: 8.8, ibsUf: 0.05, ibsMun: 0.05 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'Regime regular · projeto 2033 · base 94.000,00 · CBS 8,8% · IBS 8,85% + 8,85%', api: { CBS: 8272.00, IBS: 16638.00 }, calc: () => { const t = ibscbs(94000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'Regime regular · maca clínica 2033 · cClassTrib 200030 · redução de 60% · base 18.000,00', api: { CBS: 633.60, IBS: 1274.40 }, calc: () => { const t = ibscbs(18000, { cbs: 8.8, ibsUf: 8.85, ibsMun: 8.85 }, 60); return { CBS: t.cbs.v, IBS: t.vIBS }; } },
+    { desc: 'Regime regular · empate para o par · base 25,00 · CBS 0,9%', api: { CBS: 0.22 }, calc: () => ({ CBS: ibscbs(25, { cbs: 0.9, ibsUf: 0, ibsMun: 0 }).cbs.v }) },
+    { desc: 'Simples · Anexo II · faturamento R$ 720.000 (faixa 3) · PGDAS março/2027', api: { pCBSSN: 1.1184, pIBSSN: 0.0121 }, pp: true, calc: () => { const d = das('II', 720000), t = partilha(d, 2027); return { pCBSSN: rhe(d.efetiva * t.cbs / 100, 4), pIBSSN: rhe(d.efetiva * t.ibs / 100, 4) }; } },
+    { desc: 'Simples · Anexo I · faturamento R$ 720.000 (faixa 3) · PGDAS março/2027', api: { pCBSSN: 1.1612, pIBSSN: 0.0129 }, pp: true, calc: () => { const d = das('I', 720000), t = partilha(d, 2027); return { pCBSSN: rhe(d.efetiva * t.cbs / 100, 4), pIBSSN: rhe(d.efetiva * t.ibs / 100, 4) }; } },
+  ];
+  let ok = 0;
+  $('conf').innerHTML = CASOS.map(c => {
+    const v = c.calc();
+    const bate = Object.keys(c.api).every(k => Math.abs(v[k] - c.api[k]) < (c.pp ? 1e-9 : 0.005));
+    if (bate) ok++;
+    const f = x => c.pp ? pp(x, 4) : brl(x);
+    return `<div><div><div>${esc(c.desc)}</div><div class="vals">${Object.keys(c.api).map(k => `${k}: oficial ${f(c.api[k])} · simulador ${f(v[k])}`).join('<br>')}</div></div>${bate ? '<span class="etiqueta ok">confere</span>' : '<span class="etiqueta perigo">diverge</span>'}</div>`;
+  }).join('');
+  $('conf-status').innerHTML = ok === CASOS.length ? `<span class="etiqueta ok md">${ok} de ${CASOS.length} conferem</span>` : '<span class="etiqueta perigo md">Há divergência</span>';
+
+  atualizar();
+})();
+</script>
+</body>
+</html>
